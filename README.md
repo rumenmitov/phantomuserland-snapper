@@ -100,6 +100,8 @@ git clone https://github.com/skalk/genode-devel-docker
 git clone https://github.com/genodelabs/genode
 # Setting up with goa - tool for building genode applications
 git clone https://github.com/genodelabs/goa
+# Setting up Snapper
+git clone --depth 1 https://github.com/rumenmitov/snapper genode/repos/snapper
 ```
 
 ### Genode development container
@@ -135,6 +137,17 @@ export PATH=$PATH:$(pwd)/goa/bin
 
 > `--network host` is optional, but it helps to avoid the process of setting up the network for debugging. You can omit `DOCKER_CONTAINER_ARGS=" --network host "` if you won't use debuggers.
 
+#### Alternative Container Setup
+For a container setup with less steps, run the following:  
+
+```bash
+cd <PATH_TO_PHANTOMUSERLAND>
+
+docker run -d --name phantomuserland --replace --cap-add SYS_PTRACE -v .:/phantomuserland -w /phantomuserland rmitov/genode:latest tail -f /dev/null
+
+docker exec phantomuserland sed -i "s|/genode/goa|/phantomuserland/goa|g" /root/.bashrc
+```
+
 ### Initial setup
 
 This section contains commands that would prepare the environment to build Phantom OS. 
@@ -157,6 +170,9 @@ git checkout 24.02
 sed -i 's/#REPOSITORIES/REPOSITORIES/g' build/x86_64/etc/build.conf
 # Remove `-no-kvm` qemu option
 sed -i '/QEMU_OPT += -no-kvm/d' build/x86_64/etc/build.conf
+
+# Enable Snapper
+echo "REPOSITORIES += \$(GENODE_DIR)/repos/snapper" >> build/x86_64/etc/build.conf
 
 # go back
 cd ../
