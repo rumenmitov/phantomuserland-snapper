@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(Isomem)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
 
 # disable -rdynamic flag

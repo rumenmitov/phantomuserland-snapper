@@ -10,6 +10,8 @@
 #include "phantom_threads.h"
 #include "phantom_framebuffer.h"
 
+#ifdef __cplusplus
+
 namespace Phantom
 {
     using namespace Genode;
@@ -44,4 +46,6 @@ namespace Phantom
     void test_block_device(Disk_backend &disk);
 }
 
-#endif
+#endif // __cplusplus
+
+#endif // PHANTOM_ENV_H

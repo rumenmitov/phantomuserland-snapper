@@ -3,3 +3,4 @@
 /empty_disk.raw
 /genode-devel-docker
 /goa
+/.cache/
