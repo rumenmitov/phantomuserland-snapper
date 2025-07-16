@@ -239,7 +239,7 @@ extern "C"
         if (hal_alloc_phys_pages(pa, npages))
             panic("out of physmem");
 
-        *va = main_obj->_vmem_adapter.map_somewhere((addr_t)*pa, true, npages);
+        *va = (void*)main_obj->_vmem_adapter.map_somewhere((addr_t)*pa, true, npages);
     }
 
     void hal_pv_free(physaddr_t pa, void *va, int size_bytes)
@@ -280,7 +280,7 @@ extern "C"
             assert(shift > 0);
 
             // hal_page_control(page, addr, page_map, page_rw);
-            addr = main_obj->_vmem_adapter.map_somewhere(page, true, 1);
+            addr = (void*)main_obj->_vmem_adapter.map_somewhere(page, true, 1);
 
             ph_memcpy((char*)addr + shift, from, part);
 
@@ -303,7 +303,7 @@ extern "C"
             size -= stepSize;
 
             // hal_page_control(to, addr, page_map, page_rw);
-            addr = main_obj->_vmem_adapter.map_somewhere((addr_t)to, true, 1);
+            addr = (void*)main_obj->_vmem_adapter.map_somewhere((addr_t)to, true, 1);
 
             ph_memcpy(addr, from, stepSize);
             // Genode::log("V2P: ", Hex((addr_t)addr), " ", Hex((addr_t)from), " ", stepSize);
@@ -337,7 +337,7 @@ extern "C"
             size -= stepSize;
 
             // hal_page_control(from, addr, page_map, page_rw);
-            addr = main_obj->_vmem_adapter.map_somewhere((addr_t)from, true, 1);
+            addr = (void*)main_obj->_vmem_adapter.map_somewhere((addr_t)from, true, 1);
 
             ph_memcpy(to, addr, stepSize);
 
@@ -362,7 +362,7 @@ extern "C"
         // if (hal_alloc_vaddress(&addr, 1))
         //     panic("out of vaddresses");
         // hal_page_control(to, addr, page_map, page_rw);
-        addr = main_obj->_vmem_adapter.map_somewhere((addr_t)to, true, 1);
+        addr = (void*)main_obj->_vmem_adapter.map_somewhere((addr_t)to, true, 1);
 
         ph_memcpy(addr, from, hal_mem_pagesize());
 
