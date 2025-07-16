@@ -21,7 +21,7 @@ extern "C" void *ph_malloc(size_t size)
     auto alloc_res = main_obj->_heap.try_alloc(total_size);
 
     if (!alloc_res.ok()){
-        alloc_res.with_error([](Allocator::Alloc_error err){error(err);});
+      alloc_res.with_error([](Alloc_error err){error(err);});
         return 0;
     }
 
@@ -29,7 +29,7 @@ extern "C" void *ph_malloc(size_t size)
 
     alloc_res.with_result(
         [&](void* addr){ original_addr = addr; }, 
-        [&](Allocator::Alloc_error err){ error(err); }
+        [&](Alloc_error err){ error(err); }
     );
 
     // just to ensure it is safe

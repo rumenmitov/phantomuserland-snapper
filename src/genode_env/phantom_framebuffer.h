@@ -3,7 +3,9 @@
 
 #include <base/attached_rom_dataspace.h>
 #include <gui_session/connection.h>
+#include <gui_session/gui_session.h>
 #include <input/keycodes.h>
+
 
 // Phantom includes
 extern "C" {
@@ -135,30 +137,37 @@ public:
   unsigned char *pixels = nullptr;
 
   void refresh_screen() {
-    _framebuffer_session->refresh(0, 0, _view_attributes.rect.area.w,
-                                  _view_attributes.rect.area.h);
+    _framebuffer_session->refresh(_view_attributes.rect);
 
-    Gui::Point point{0, 0};
-
-    Gui::Rect geometry(point, _view_attributes.rect.area);
-    _gui.enqueue<Gui::Session::Command::Geometry>(_view_attributes.area,
+    Gui::Rect geometry(_view_attributes.rect);
+    _gui.enqueue<Gui::Session::Command::Geometry>(_view_attributes.rect,
                                                   geometry);
     _gui.execute();
   }
 
   FramebufferAdapter(Genode::Env &env) : _env(env) {
-    _gui.view(0, _view_attributes);
+    _gui.view(Gui::View_id{0}, _view_attributes);
 
     _gui.enqueue<Gui::Session::Command::Front>(_view_attributes.rect.area);
 
     _gui.execute();
 
-    _gui.buffer({_view_attributes.rect}, false);
-    _framebuffer_session = _gui.framebuffer();
-    _input_session = _gui.input();
+    _gui.buffer({_view_attributes.rect.area, false});
+    *_framebuffer_session = _gui.framebuffer;
+    *_input_session = _gui.input;
 
-    pixels =
-        (unsigned char *)_env.rm().attach(_framebuffer_session->dataspace());
+    Genode::Region_map::Attr attributes{
+        .size =
+            Genode::Dataspace_client(_framebuffer_session->dataspace()).size(),
+        .offset = 0,
+        .use_at = false,
+        .executable = false,
+        .writeable = true};
+
+    _env.rm()
+        .attach(_framebuffer_session->dataspace(), attributes)
+        .with_result([this](addr_t addr) { pixels = (unsigned char *)addr; },
+                     []() { throw; });
 
     _input_session->sigh(_input_signal_handler);
 
