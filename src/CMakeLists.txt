@@ -74,6 +74,6 @@ add_executable(isomem ${ISOMEM_SOURCE})
 target_link_libraries (isomem vmlib)
 
 set_property(TARGET isomem PROPERTY C_STANDARD 99)
-set_property(TARGET isomem PROPERTY CXX_STANDARD 17)
+set_property(TARGET isomem PROPERTY CXX_STANDARD 20)
 
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror=implicit-function-declaration")

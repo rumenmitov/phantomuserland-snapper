@@ -74,10 +74,10 @@ private:
     _ds = _ram->alloc(_size, _cache);
     _rm->attach(_ds, attributes)
         .with_result(
-            [this](addr_t addr) {
-              _local_addr = addr;
+          [this](const Genode::Region_map::Range &range) {
+              _local_addr = range.start;
             },
-            [this]() {
+            [this](auto) {
               /* revert allocation if attaching the dataspace failed */
               _ram->free(_ds);
               throw;

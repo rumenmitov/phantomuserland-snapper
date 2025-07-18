@@ -203,11 +203,15 @@ struct Phantom::Vmem_adapter {
     addr_t ptr_obj = 0;
     env.rm()
         .attach(_obj_space.dataspace(), attributes)
-        .with_result([&ptr_obj](addr_t addr) { ptr_obj = addr; },
-                     []() {
-                       error("couldn't attach dataspace!");
-                       throw;
-                     });
+        .with_result(
+            [&ptr_obj](Genode::Env::Local_rm::Attachment &attachment) {
+              ptr_obj = (Genode::addr_t)attachment.ptr;
+              attachment.deallocate = false;
+            },
+            [](auto) {
+              error("couldn't attach dataspace!");
+              throw;
+            });
 
     Dataspace_client rm_obj_client(_obj_space.dataspace());
     log(_obj_space.dataspace());
@@ -277,12 +281,14 @@ struct Phantom::Vmem_adapter {
                                              .writeable = writeable};
 
                   _obj_space.attach(_ram_ds, attribute)
-                      .with_result([&laddr](addr_t addr) { laddr = addr; },
-                                   []() {
-                                     Genode::error(
-                                         "couldn't attach region map!");
-                                     throw;
-                                   });
+                      .with_result(
+                          [&laddr](const Genode::Region_map::Range &range) {
+                            laddr = (Genode::addr_t)range.start;
+                          },
+                          [](auto) {
+                            Genode::error("couldn't attach region map!");
+                            throw;
+                          });
                 },
                 [&]() { _rm.upgrade_caps(10); }, 16U);
           },
@@ -318,11 +324,15 @@ struct Phantom::Vmem_adapter {
 
       _env.rm()
           .attach(_ram_ds, attribute)
-          .with_result([&laddr](addr_t addr) { laddr = addr; },
-                       []() {
-                         Genode::error("couldn't attach region map!");
-                         throw;
-                       });
+          .with_result(
+              [&laddr](Genode::Env::Local_rm::Attachment &attachment) {
+                laddr = (Genode::addr_t)attachment.ptr;
+                attachment.deallocate = false;
+              },
+              [](auto) {
+                Genode::error("couldn't attach region map!");
+                throw;
+              });
 
       if (laddr != virt_addr) {
         error("Mapped addr does not correspond to virtual one! Got ",
@@ -376,11 +386,15 @@ struct Phantom::Vmem_adapter {
 
     _env.rm()
         .attach(_ram_ds, attribute)
-        .with_result([&laddr](addr_t addr) { laddr = addr; },
-                     []() {
-                       Genode::error("couldn't attach region map!");
-                       throw;
-                     });
+        .with_result(
+            [&laddr](Genode::Env::Local_rm::Attachment &attachment) {
+              laddr = (Genode::addr_t)attachment.ptr;
+              attachment.deallocate = false;
+            },
+            [](auto) {
+              Genode::error("couldn't attach region map!");
+              throw;
+            });
 
     if (_debug)
       log("Map returned laddr=", Hex(laddr));

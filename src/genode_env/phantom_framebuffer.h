@@ -6,7 +6,6 @@
 #include <gui_session/gui_session.h>
 #include <input/keycodes.h>
 
-
 // Phantom includes
 extern "C" {
 #include <event.h>
@@ -56,6 +55,8 @@ protected:
       .rect = {.at = {0, 0}, .area = {1024, 768}},
       .front = true};
 
+  Gui::Top_level_view _view{_gui, _view_attributes.rect};
+
   Framebuffer::Session *_framebuffer_session = nullptr;
   Input::Session *_input_session = nullptr;
 
@@ -86,10 +87,11 @@ protected:
                                          .executable = false,
                                          .writeable = true})
         .with_result(
-            [&event_buffer](addr_t addr) {
-              event_buffer = reinterpret_cast<Input::Event *>(addr);
+            [&event_buffer](Genode::Env::Local_rm::Attachment &attachment) {
+              event_buffer = reinterpret_cast<Input::Event *>(attachment.ptr);
+              attachment.deallocate = false;
             },
-            []() {
+            [](auto) {
               Genode::error(
                   "couldn't arrach region map for input event buffer!");
               throw;
@@ -140,15 +142,14 @@ public:
     _framebuffer_session->refresh(_view_attributes.rect);
 
     Gui::Rect geometry(_view_attributes.rect);
-    _gui.enqueue<Gui::Session::Command::Geometry>(_view_attributes.rect,
-                                                  geometry);
+    _gui.enqueue<Gui::Session::Command::Geometry>(_view.id(), geometry);
     _gui.execute();
   }
 
   FramebufferAdapter(Genode::Env &env) : _env(env) {
     _gui.view(Gui::View_id{0}, _view_attributes);
 
-    _gui.enqueue<Gui::Session::Command::Front>(_view_attributes.rect.area);
+    _gui.enqueue<Gui::Session::Command::Front>(_view.id());
 
     _gui.execute();
 
@@ -166,8 +167,12 @@ public:
 
     _env.rm()
         .attach(_framebuffer_session->dataspace(), attributes)
-        .with_result([this](addr_t addr) { pixels = (unsigned char *)addr; },
-                     []() { throw; });
+        .with_result(
+            [this](Genode::Env::Local_rm::Attachment &attachment) {
+              pixels = (unsigned char *)attachment.ptr;
+              attachment.deallocate = false;
+            },
+            [](auto) { throw; });
 
     _input_session->sigh(_input_signal_handler);
 

@@ -1,0 +1,443 @@
+-- Isomem Build Configurations:
+    BUILD : KERNEL + TESTS
+    Display disabled
+-- Build Configurations:
+     Build as target X86_64
+     CMAKE_BUILD_TYPE Debug
+     WAMR Interpreter enabled
+     WAMR AOT disabled
+     WAMR JIT disabled
+     Libc builtin enabled
+     Libc WASI enabled
+     Fast interpreter disabled
+     Multiple modules disabled
+     Bulk memory feature enabled
+     Reference types disabled
+[phantomuserland:cmake] -- Configuring done (0.0s)
+[phantomuserland:cmake] -- Generating done (0.0s)
+[phantomuserland:cmake] -- Build files have been written to: /phantomuserland/var/build/x86_64
+In file included from /phantomuserland/src/genode_env/phantom_env.h:8,
+                 from /phantomuserland/src/genode_env/phantom_framebuffer.cc:1:
+/phantomuserland/src/genode_env/phantom_vmem.h: In member function 'void Phantom::Local_fault_handler::_handle_fault()':
+/phantomuserland/src/genode_env/phantom_vmem.h:66:5: warning: '++' expression of 'volatile'-qualified type is deprecated [-Wvolatile]
+   66 |     _fault_cnt++;
+      |     ^~~~~~~~~~
+In file included from /phantomuserland/src/genode_env/phantom_env.h:8,
+                 from /phantomuserland/src/genode_env/phantom_unsorted.cc:2:
+/phantomuserland/src/genode_env/phantom_vmem.h: In member function 'void Phantom::Local_fault_handler::_handle_fault()':
+/phantomuserland/src/genode_env/phantom_vmem.h:66:5: warning: '++' expression of 'volatile'-qualified type is deprecated [-Wvolatile]
+   66 |     _fault_cnt++;
+      |     ^~~~~~~~~~
+/phantomuserland/src/genode_env/phantom_vmem.h: In constructor 'Phantom::Vmem_adapter::Vmem_adapter(Genode::Env&)':
+/phantomuserland/src/genode_env/phantom_vmem.h:187:35: warning: ignoring returned value of type 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'}, declared with attribute 'nodiscard' [-Wunused-result]
+  187 |     _obj_space_allocator.add_range(OBJECT_SPACE_START + PAGE_SIZE * 0x10,
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  188 |                                    OBJECT_SPACE_SIZE);
+      |                                    ~~~~~~~~~~~~~~~~~~
+In file included from /phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/heap.h:21,
+                 from /phantomuserland/src/genode_env/disk_backend.h:8,
+                 from /phantomuserland/src/genode_env/phantom_env.h:4:
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:412:30: note: in call to 'Genode::Range_allocator::Range_result Genode::Allocator_avl_tpl< <template-parameter-1-1>, SLAB_BLOCK_SIZE>::add_range(Genode::addr_t, Genode::size_t) [with BMDT = Genode::Empty; unsigned int SLAB_BLOCK_SIZE = 8128; Genode::Range_allocator::Range_result = Genode::Attempt<Genode::Ok, Genode::Alloc_error>; Genode::addr_t = long unsigned int; Genode::size_t = long unsigned int]', declared here
+  412 |                 Range_result add_range(addr_t base, size_t size) override
+      |                              ^~~~~~~~~
+In file included from /phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:17:
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator.h:117:15: note: 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'} declared here
+  117 |         using Range_result = Attempt<Ok, Alloc_error>;
+      |               ^~~~~~~~~~~~
+/phantomuserland/src/genode_env/phantom_vmem.h:191:42: warning: ignoring returned value of type 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'}, declared with attribute 'nodiscard' [-Wunused-result]
+  191 |     _pseudo_phys_addr_allocator.add_range(PAGE_SIZE * 0x10, _phys_space_limit);
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:412:30: note: in call to 'Genode::Range_allocator::Range_result Genode::Allocator_avl_tpl< <template-parameter-1-1>, SLAB_BLOCK_SIZE>::add_range(Genode::addr_t, Genode::size_t) [with BMDT = Genode::Empty; unsigned int SLAB_BLOCK_SIZE = 8128; Genode::Range_allocator::Range_result = Genode::Attempt<Genode::Ok, Genode::Alloc_error>; Genode::addr_t = long unsigned int; Genode::size_t = long unsigned int]', declared here
+  412 |                 Range_result add_range(addr_t base, size_t size) override
+      |                              ^~~~~~~~~
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator.h:117:15: note: 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'} declared here
+  117 |         using Range_result = Attempt<Ok, Alloc_error>;
+      |               ^~~~~~~~~~~~
+In file included from /phantomuserland/src/genode_env/phantom_env.h:8,
+                 from /phantomuserland/src/genode_env/phantom_threads.cc:11:
+/phantomuserland/src/genode_env/phantom_vmem.h: In member function 'void Phantom::Local_fault_handler::_handle_fault()':
+/phantomuserland/src/genode_env/phantom_vmem.h:66:5: warning: '++' expression of 'volatile'-qualified type is deprecated [-Wvolatile]
+   66 |     _fault_cnt++;
+      |     ^~~~~~~~~~
+In file included from /phantomuserland/src/genode_env/phantom_env.h:8,
+                 from /phantomuserland/src/genode_env/phantom_disk.cc:5:
+/phantomuserland/src/genode_env/phantom_vmem.h: In member function 'void Phantom::Local_fault_handler::_handle_fault()':
+/phantomuserland/src/genode_env/phantom_vmem.h:66:5: warning: '++' expression of 'volatile'-qualified type is deprecated [-Wvolatile]
+   66 |     _fault_cnt++;
+      |     ^~~~~~~~~~
+/phantomuserland/src/genode_env/phantom_vmem.h: In constructor 'Phantom::Vmem_adapter::Vmem_adapter(Genode::Env&)':
+/phantomuserland/src/genode_env/phantom_vmem.h:187:35: warning: ignoring returned value of type 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'}, declared with attribute 'nodiscard' [-Wunused-result]
+  187 |     _obj_space_allocator.add_range(OBJECT_SPACE_START + PAGE_SIZE * 0x10,
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  188 |                                    OBJECT_SPACE_SIZE);
+      |                                    ~~~~~~~~~~~~~~~~~~
+In file included from /phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/heap.h:21,
+                 from /phantomuserland/src/genode_env/disk_backend.h:8,
+                 from /phantomuserland/src/genode_env/phantom_env.h:4:
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:412:30: note: in call to 'Genode::Range_allocator::Range_result Genode::Allocator_avl_tpl< <template-parameter-1-1>, SLAB_BLOCK_SIZE>::add_range(Genode::addr_t, Genode::size_t) [with BMDT = Genode::Empty; unsigned int SLAB_BLOCK_SIZE = 8128; Genode::Range_allocator::Range_result = Genode::Attempt<Genode::Ok, Genode::Alloc_error>; Genode::addr_t = long unsigned int; Genode::size_t = long unsigned int]', declared here
+  412 |                 Range_result add_range(addr_t base, size_t size) override
+      |                              ^~~~~~~~~
+In file included from /phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:17:
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator.h:117:15: note: 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'} declared here
+  117 |         using Range_result = Attempt<Ok, Alloc_error>;
+      |               ^~~~~~~~~~~~
+/phantomuserland/src/genode_env/phantom_vmem.h:191:42: warning: ignoring returned value of type 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'}, declared with attribute 'nodiscard' [-Wunused-result]
+  191 |     _pseudo_phys_addr_allocator.add_range(PAGE_SIZE * 0x10, _phys_space_limit);
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:412:30: note: in call to 'Genode::Range_allocator::Range_result Genode::Allocator_avl_tpl< <template-parameter-1-1>, SLAB_BLOCK_SIZE>::add_range(Genode::addr_t, Genode::size_t) [with BMDT = Genode::Empty; unsigned int SLAB_BLOCK_SIZE = 8128; Genode::Range_allocator::Range_result = Genode::Attempt<Genode::Ok, Genode::Alloc_error>; Genode::addr_t = long unsigned int; Genode::size_t = long unsigned int]', declared here
+  412 |                 Range_result add_range(addr_t base, size_t size) override
+      |                              ^~~~~~~~~
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator.h:117:15: note: 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'} declared here
+  117 |         using Range_result = Attempt<Ok, Alloc_error>;
+      |               ^~~~~~~~~~~~
+/phantomuserland/src/genode_env/phantom_vmem.h: In constructor 'Phantom::Vmem_adapter::Vmem_adapter(Genode::Env&)':
+/phantomuserland/src/genode_env/phantom_vmem.h:187:35: warning: ignoring returned value of type 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'}, declared with attribute 'nodiscard' [-Wunused-result]
+  187 |     _obj_space_allocator.add_range(OBJECT_SPACE_START + PAGE_SIZE * 0x10,
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  188 |                                    OBJECT_SPACE_SIZE);
+      |                                    ~~~~~~~~~~~~~~~~~~
+In file included from /phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/heap.h:21,
+                 from /phantomuserland/src/genode_env/disk_backend.h:8,
+                 from /phantomuserland/src/genode_env/phantom_env.h:4:
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:412:30: note: in call to 'Genode::Range_allocator::Range_result Genode::Allocator_avl_tpl< <template-parameter-1-1>, SLAB_BLOCK_SIZE>::add_range(Genode::addr_t, Genode::size_t) [with BMDT = Genode::Empty; unsigned int SLAB_BLOCK_SIZE = 8128; Genode::Range_allocator::Range_result = Genode::Attempt<Genode::Ok, Genode::Alloc_error>; Genode::addr_t = long unsigned int; Genode::size_t = long unsigned int]', declared here
+  412 |                 Range_result add_range(addr_t base, size_t size) override
+      |                              ^~~~~~~~~
+In file included from /phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:17:
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator.h:117:15: note: 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'} declared here
+  117 |         using Range_result = Attempt<Ok, Alloc_error>;
+      |               ^~~~~~~~~~~~
+/phantomuserland/src/genode_env/phantom_vmem.h:191:42: warning: ignoring returned value of type 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'}, declared with attribute 'nodiscard' [-Wunused-result]
+  191 |     _pseudo_phys_addr_allocator.add_range(PAGE_SIZE * 0x10, _phys_space_limit);
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:412:30: note: in call to 'Genode::Range_allocator::Range_result Genode::Allocator_avl_tpl< <template-parameter-1-1>, SLAB_BLOCK_SIZE>::add_range(Genode::addr_t, Genode::size_t) [with BMDT = Genode::Empty; unsigned int SLAB_BLOCK_SIZE = 8128; Genode::Range_allocator::Range_result = Genode::Attempt<Genode::Ok, Genode::Alloc_error>; Genode::addr_t = long unsigned int; Genode::size_t = long unsigned int]', declared here
+  412 |                 Range_result add_range(addr_t base, size_t size) override
+      |                              ^~~~~~~~~
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator.h:117:15: note: 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'} declared here
+  117 |         using Range_result = Attempt<Ok, Alloc_error>;
+      |               ^~~~~~~~~~~~
+/phantomuserland/src/genode_env/phantom_vmem.h: In constructor 'Phantom::Vmem_adapter::Vmem_adapter(Genode::Env&)':
+/phantomuserland/src/genode_env/phantom_vmem.h:187:35: warning: ignoring returned value of type 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'}, declared with attribute 'nodiscard' [-Wunused-result]
+  187 |     _obj_space_allocator.add_range(OBJECT_SPACE_START + PAGE_SIZE * 0x10,
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  188 |                                    OBJECT_SPACE_SIZE);
+      |                                    ~~~~~~~~~~~~~~~~~~
+In file included from /phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/heap.h:21,
+                 from /phantomuserland/src/genode_env/disk_backend.h:8,
+                 from /phantomuserland/src/genode_env/phantom_env.h:4:
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:412:30: note: in call to 'Genode::Range_allocator::Range_result Genode::Allocator_avl_tpl< <template-parameter-1-1>, SLAB_BLOCK_SIZE>::add_range(Genode::addr_t, Genode::size_t) [with BMDT = Genode::Empty; unsigned int SLAB_BLOCK_SIZE = 8128; Genode::Range_allocator::Range_result = Genode::Attempt<Genode::Ok, Genode::Alloc_error>; Genode::addr_t = long unsigned int; Genode::size_t = long unsigned int]', declared here
+  412 |                 Range_result add_range(addr_t base, size_t size) override
+      |                              ^~~~~~~~~
+In file included from /phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:17:
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator.h:117:15: note: 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'} declared here
+  117 |         using Range_result = Attempt<Ok, Alloc_error>;
+      |               ^~~~~~~~~~~~
+/phantomuserland/src/genode_env/phantom_vmem.h:191:42: warning: ignoring returned value of type 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'}, declared with attribute 'nodiscard' [-Wunused-result]
+  191 |     _pseudo_phys_addr_allocator.add_range(PAGE_SIZE * 0x10, _phys_space_limit);
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:412:30: note: in call to 'Genode::Range_allocator::Range_result Genode::Allocator_avl_tpl< <template-parameter-1-1>, SLAB_BLOCK_SIZE>::add_range(Genode::addr_t, Genode::size_t) [with BMDT = Genode::Empty; unsigned int SLAB_BLOCK_SIZE = 8128; Genode::Range_allocator::Range_result = Genode::Attempt<Genode::Ok, Genode::Alloc_error>; Genode::addr_t = long unsigned int; Genode::size_t = long unsigned int]', declared here
+  412 |                 Range_result add_range(addr_t base, size_t size) override
+      |                              ^~~~~~~~~
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator.h:117:15: note: 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'} declared here
+  117 |         using Range_result = Attempt<Ok, Alloc_error>;
+      |               ^~~~~~~~~~~~
+/phantomuserland/src/genode_env/phantom_threads.cc: In function 'void hal_exit_kernel_thread()':
+/phantomuserland/src/genode_env/phantom_threads.cc:54:104: error: no match for call to '(const Genode::Thread::Name {aka const Genode::String<32>}) ()'
+   54 |             Genode::error("Error: Phantom kernel thread %s was not terminated!", Thread::myself()->name().string());
+      |                                                                                  ~~~~~~~~~~~~~~~~~~~~~~^~
+In file included from /phantomuserland/src/genode_env/phantom_env.h:8,
+                 from /phantomuserland/src/genode_env/tests_adapters.h:1,
+                 from /phantomuserland/src/genode_env/tests_ph_api.cc:2:
+/phantomuserland/src/genode_env/phantom_vmem.h: In member function 'void Phantom::Local_fault_handler::_handle_fault()':
+/phantomuserland/src/genode_env/phantom_vmem.h:66:5: warning: '++' expression of 'volatile'-qualified type is deprecated [-Wvolatile]
+   66 |     _fault_cnt++;
+      |     ^~~~~~~~~~
+In file included from /phantomuserland/src/genode_env/phantom_env.h:8,
+                 from /phantomuserland/src/genode_env/phantom_malloc.cc:1:
+/phantomuserland/src/genode_env/phantom_vmem.h: In member function 'void Phantom::Local_fault_handler::_handle_fault()':
+/phantomuserland/src/genode_env/phantom_vmem.h:66:5: warning: '++' expression of 'volatile'-qualified type is deprecated [-Wvolatile]
+   66 |     _fault_cnt++;
+      |     ^~~~~~~~~~
+In file included from /phantomuserland/src/genode_env/phantom_env.h:8,
+                 from /phantomuserland/src/genode_env/tests_adapters.h:1,
+                 from /phantomuserland/src/genode_env/tests_adapters.cc:1:
+/phantomuserland/src/genode_env/phantom_vmem.h: In member function 'void Phantom::Local_fault_handler::_handle_fault()':
+/phantomuserland/src/genode_env/phantom_vmem.h:66:5: warning: '++' expression of 'volatile'-qualified type is deprecated [-Wvolatile]
+   66 |     _fault_cnt++;
+      |     ^~~~~~~~~~
+In file included from /phantomuserland/src/genode_env/phantom_env.h:8,
+                 from /phantomuserland/src/genode_env/phantom_timer.cc:1:
+/phantomuserland/src/genode_env/phantom_vmem.h: In member function 'void Phantom::Local_fault_handler::_handle_fault()':
+/phantomuserland/src/genode_env/phantom_vmem.h:66:5: warning: '++' expression of 'volatile'-qualified type is deprecated [-Wvolatile]
+   66 |     _fault_cnt++;
+      |     ^~~~~~~~~~
+/phantomuserland/src/genode_env/phantom_vmem.h: In constructor 'Phantom::Vmem_adapter::Vmem_adapter(Genode::Env&)':
+/phantomuserland/src/genode_env/phantom_vmem.h:187:35: warning: ignoring returned value of type 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'}, declared with attribute 'nodiscard' [-Wunused-result]
+  187 |     _obj_space_allocator.add_range(OBJECT_SPACE_START + PAGE_SIZE * 0x10,
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  188 |                                    OBJECT_SPACE_SIZE);
+      |                                    ~~~~~~~~~~~~~~~~~~
+/phantomuserland/src/genode_env/phantom_vmem.h: In constructor 'Phantom::Vmem_adapter::Vmem_adapter(Genode::Env&)':
+/phantomuserland/src/genode_env/phantom_vmem.h:187:35: warning: ignoring returned value of type 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'}, declared with attribute 'nodiscard' [-Wunused-result]
+  187 |     _obj_space_allocator.add_range(OBJECT_SPACE_START + PAGE_SIZE * 0x10,
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  188 |                                    OBJECT_SPACE_SIZE);
+      |                                    ~~~~~~~~~~~~~~~~~~
+In file included from /phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/heap.h:21,
+                 from /phantomuserland/src/genode_env/disk_backend.h:8,
+                 from /phantomuserland/src/genode_env/phantom_env.h:4:
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:412:30: note: in call to 'Genode::Range_allocator::Range_result Genode::Allocator_avl_tpl< <template-parameter-1-1>, SLAB_BLOCK_SIZE>::add_range(Genode::addr_t, Genode::size_t) [with BMDT = Genode::Empty; unsigned int SLAB_BLOCK_SIZE = 8128; Genode::Range_allocator::Range_result = Genode::Attempt<Genode::Ok, Genode::Alloc_error>; Genode::addr_t = long unsigned int; Genode::size_t = long unsigned int]', declared here
+  412 |                 Range_result add_range(addr_t base, size_t size) override
+      |                              ^~~~~~~~~
+In file included from /phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/heap.h:21,
+                 from /phantomuserland/src/genode_env/disk_backend.h:8,
+                 from /phantomuserland/src/genode_env/phantom_env.h:4:
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:412:30: note: in call to 'Genode::Range_allocator::Range_result Genode::Allocator_avl_tpl< <template-parameter-1-1>, SLAB_BLOCK_SIZE>::add_range(Genode::addr_t, Genode::size_t) [with BMDT = Genode::Empty; unsigned int SLAB_BLOCK_SIZE = 8128; Genode::Range_allocator::Range_result = Genode::Attempt<Genode::Ok, Genode::Alloc_error>; Genode::addr_t = long unsigned int; Genode::size_t = long unsigned int]', declared here
+  412 |                 Range_result add_range(addr_t base, size_t size) override
+      |                              ^~~~~~~~~
+In file included from /phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:17:
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator.h:117:15: note: 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'} declared here
+  117 |         using Range_result = Attempt<Ok, Alloc_error>;
+      |               ^~~~~~~~~~~~
+In file included from /phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:17:
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator.h:117:15: note: 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'} declared here
+  117 |         using Range_result = Attempt<Ok, Alloc_error>;
+      |               ^~~~~~~~~~~~
+/phantomuserland/src/genode_env/phantom_vmem.h:191:42: warning: ignoring returned value of type 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'}, declared with attribute 'nodiscard' [-Wunused-result]
+  191 |     _pseudo_phys_addr_allocator.add_range(PAGE_SIZE * 0x10, _phys_space_limit);
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/phantomuserland/src/genode_env/phantom_vmem.h:191:42: warning: ignoring returned value of type 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'}, declared with attribute 'nodiscard' [-Wunused-result]
+  191 |     _pseudo_phys_addr_allocator.add_range(PAGE_SIZE * 0x10, _phys_space_limit);
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:412:30: note: in call to 'Genode::Range_allocator::Range_result Genode::Allocator_avl_tpl< <template-parameter-1-1>, SLAB_BLOCK_SIZE>::add_range(Genode::addr_t, Genode::size_t) [with BMDT = Genode::Empty; unsigned int SLAB_BLOCK_SIZE = 8128; Genode::Range_allocator::Range_result = Genode::Attempt<Genode::Ok, Genode::Alloc_error>; Genode::addr_t = long unsigned int; Genode::size_t = long unsigned int]', declared here
+  412 |                 Range_result add_range(addr_t base, size_t size) override
+      |                              ^~~~~~~~~
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:412:30: note: in call to 'Genode::Range_allocator::Range_result Genode::Allocator_avl_tpl< <template-parameter-1-1>, SLAB_BLOCK_SIZE>::add_range(Genode::addr_t, Genode::size_t) [with BMDT = Genode::Empty; unsigned int SLAB_BLOCK_SIZE = 8128; Genode::Range_allocator::Range_result = Genode::Attempt<Genode::Ok, Genode::Alloc_error>; Genode::addr_t = long unsigned int; Genode::size_t = long unsigned int]', declared here
+  412 |                 Range_result add_range(addr_t base, size_t size) override
+      |                              ^~~~~~~~~
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator.h:117:15: note: 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'} declared here
+  117 |         using Range_result = Attempt<Ok, Alloc_error>;
+      |               ^~~~~~~~~~~~
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator.h:117:15: note: 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'} declared here
+  117 |         using Range_result = Attempt<Ok, Alloc_error>;
+      |               ^~~~~~~~~~~~
+In file included from /phantomuserland/src/genode_env/phantom_env.h:8,
+                 from /phantomuserland/src/genode_env/tests_hal_vmem.cc:3:
+/phantomuserland/src/genode_env/phantom_vmem.h: In member function 'void Phantom::Local_fault_handler::_handle_fault()':
+/phantomuserland/src/genode_env/phantom_vmem.h:66:5: warning: '++' expression of 'volatile'-qualified type is deprecated [-Wvolatile]
+   66 |     _fault_cnt++;
+      |     ^~~~~~~~~~
+/phantomuserland/src/genode_env/phantom_vmem.h: In constructor 'Phantom::Vmem_adapter::Vmem_adapter(Genode::Env&)':
+/phantomuserland/src/genode_env/phantom_vmem.h:187:35: warning: ignoring returned value of type 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'}, declared with attribute 'nodiscard' [-Wunused-result]
+  187 |     _obj_space_allocator.add_range(OBJECT_SPACE_START + PAGE_SIZE * 0x10,
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  188 |                                    OBJECT_SPACE_SIZE);
+      |                                    ~~~~~~~~~~~~~~~~~~
+/phantomuserland/src/genode_env/phantom_vmem.h: In constructor 'Phantom::Vmem_adapter::Vmem_adapter(Genode::Env&)':
+/phantomuserland/src/genode_env/phantom_vmem.h:187:35: warning: ignoring returned value of type 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'}, declared with attribute 'nodiscard' [-Wunused-result]
+  187 |     _obj_space_allocator.add_range(OBJECT_SPACE_START + PAGE_SIZE * 0x10,
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  188 |                                    OBJECT_SPACE_SIZE);
+      |                                    ~~~~~~~~~~~~~~~~~~
+In file included from /phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/heap.h:21,
+                 from /phantomuserland/src/genode_env/disk_backend.h:8,
+                 from /phantomuserland/src/genode_env/phantom_env.h:4:
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:412:30: note: in call to 'Genode::Range_allocator::Range_result Genode::Allocator_avl_tpl< <template-parameter-1-1>, SLAB_BLOCK_SIZE>::add_range(Genode::addr_t, Genode::size_t) [with BMDT = Genode::Empty; unsigned int SLAB_BLOCK_SIZE = 8128; Genode::Range_allocator::Range_result = Genode::Attempt<Genode::Ok, Genode::Alloc_error>; Genode::addr_t = long unsigned int; Genode::size_t = long unsigned int]', declared here
+  412 |                 Range_result add_range(addr_t base, size_t size) override
+      |                              ^~~~~~~~~
+In file included from /phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/heap.h:21,
+                 from /phantomuserland/src/genode_env/disk_backend.h:8,
+                 from /phantomuserland/src/genode_env/phantom_env.h:4:
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:412:30: note: in call to 'Genode::Range_allocator::Range_result Genode::Allocator_avl_tpl< <template-parameter-1-1>, SLAB_BLOCK_SIZE>::add_range(Genode::addr_t, Genode::size_t) [with BMDT = Genode::Empty; unsigned int SLAB_BLOCK_SIZE = 8128; Genode::Range_allocator::Range_result = Genode::Attempt<Genode::Ok, Genode::Alloc_error>; Genode::addr_t = long unsigned int; Genode::size_t = long unsigned int]', declared here
+  412 |                 Range_result add_range(addr_t base, size_t size) override
+      |                              ^~~~~~~~~
+In file included from /phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:17:
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator.h:117:15: note: 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'} declared here
+  117 |         using Range_result = Attempt<Ok, Alloc_error>;
+      |               ^~~~~~~~~~~~
+In file included from /phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:17:
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator.h:117:15: note: 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'} declared here
+  117 |         using Range_result = Attempt<Ok, Alloc_error>;
+      |               ^~~~~~~~~~~~
+/phantomuserland/src/genode_env/phantom_vmem.h:191:42: warning: ignoring returned value of type 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'}, declared with attribute 'nodiscard' [-Wunused-result]
+  191 |     _pseudo_phys_addr_allocator.add_range(PAGE_SIZE * 0x10, _phys_space_limit);
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/phantomuserland/src/genode_env/phantom_vmem.h:191:42: warning: ignoring returned value of type 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'}, declared with attribute 'nodiscard' [-Wunused-result]
+  191 |     _pseudo_phys_addr_allocator.add_range(PAGE_SIZE * 0x10, _phys_space_limit);
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:412:30: note: in call to 'Genode::Range_allocator::Range_result Genode::Allocator_avl_tpl< <template-parameter-1-1>, SLAB_BLOCK_SIZE>::add_range(Genode::addr_t, Genode::size_t) [with BMDT = Genode::Empty; unsigned int SLAB_BLOCK_SIZE = 8128; Genode::Range_allocator::Range_result = Genode::Attempt<Genode::Ok, Genode::Alloc_error>; Genode::addr_t = long unsigned int; Genode::size_t = long unsigned int]', declared here
+  412 |                 Range_result add_range(addr_t base, size_t size) override
+      |                              ^~~~~~~~~
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:412:30: note: in call to 'Genode::Range_allocator::Range_result Genode::Allocator_avl_tpl< <template-parameter-1-1>, SLAB_BLOCK_SIZE>::add_range(Genode::addr_t, Genode::size_t) [with BMDT = Genode::Empty; unsigned int SLAB_BLOCK_SIZE = 8128; Genode::Range_allocator::Range_result = Genode::Attempt<Genode::Ok, Genode::Alloc_error>; Genode::addr_t = long unsigned int; Genode::size_t = long unsigned int]', declared here
+  412 |                 Range_result add_range(addr_t base, size_t size) override
+      |                              ^~~~~~~~~
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator.h:117:15: note: 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'} declared here
+  117 |         using Range_result = Attempt<Ok, Alloc_error>;
+      |               ^~~~~~~~~~~~
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator.h:117:15: note: 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'} declared here
+  117 |         using Range_result = Attempt<Ok, Alloc_error>;
+      |               ^~~~~~~~~~~~
+In file included from /phantomuserland/src/genode_env/phantom_env.h:8,
+                 from /phantomuserland/src/genode_env/phantom_vmem.cc:28:
+/phantomuserland/src/genode_env/phantom_vmem.h: In member function 'void Phantom::Local_fault_handler::_handle_fault()':
+/phantomuserland/src/genode_env/phantom_vmem.h:66:5: warning: '++' expression of 'volatile'-qualified type is deprecated [-Wvolatile]
+   66 |     _fault_cnt++;
+      |     ^~~~~~~~~~
+/phantomuserland/src/genode_env/phantom_vmem.h: In constructor 'Phantom::Vmem_adapter::Vmem_adapter(Genode::Env&)':
+/phantomuserland/src/genode_env/phantom_vmem.h:187:35: warning: ignoring returned value of type 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'}, declared with attribute 'nodiscard' [-Wunused-result]
+  187 |     _obj_space_allocator.add_range(OBJECT_SPACE_START + PAGE_SIZE * 0x10,
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  188 |                                    OBJECT_SPACE_SIZE);
+      |                                    ~~~~~~~~~~~~~~~~~~
+In file included from /phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/heap.h:21,
+                 from /phantomuserland/src/genode_env/disk_backend.h:8,
+                 from /phantomuserland/src/genode_env/phantom_env.h:4:
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:412:30: note: in call to 'Genode::Range_allocator::Range_result Genode::Allocator_avl_tpl< <template-parameter-1-1>, SLAB_BLOCK_SIZE>::add_range(Genode::addr_t, Genode::size_t) [with BMDT = Genode::Empty; unsigned int SLAB_BLOCK_SIZE = 8128; Genode::Range_allocator::Range_result = Genode::Attempt<Genode::Ok, Genode::Alloc_error>; Genode::addr_t = long unsigned int; Genode::size_t = long unsigned int]', declared here
+  412 |                 Range_result add_range(addr_t base, size_t size) override
+      |                              ^~~~~~~~~
+In file included from /phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:17:
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator.h:117:15: note: 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'} declared here
+  117 |         using Range_result = Attempt<Ok, Alloc_error>;
+      |               ^~~~~~~~~~~~
+/phantomuserland/src/genode_env/phantom_vmem.h:191:42: warning: ignoring returned value of type 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'}, declared with attribute 'nodiscard' [-Wunused-result]
+  191 |     _pseudo_phys_addr_allocator.add_range(PAGE_SIZE * 0x10, _phys_space_limit);
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:412:30: note: in call to 'Genode::Range_allocator::Range_result Genode::Allocator_avl_tpl< <template-parameter-1-1>, SLAB_BLOCK_SIZE>::add_range(Genode::addr_t, Genode::size_t) [with BMDT = Genode::Empty; unsigned int SLAB_BLOCK_SIZE = 8128; Genode::Range_allocator::Range_result = Genode::Attempt<Genode::Ok, Genode::Alloc_error>; Genode::addr_t = long unsigned int; Genode::size_t = long unsigned int]', declared here
+  412 |                 Range_result add_range(addr_t base, size_t size) override
+      |                              ^~~~~~~~~
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator.h:117:15: note: 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'} declared here
+  117 |         using Range_result = Attempt<Ok, Alloc_error>;
+      |               ^~~~~~~~~~~~
+/phantomuserland/src/genode_env/phantom_vmem.h: In constructor 'Phantom::Vmem_adapter::Vmem_adapter(Genode::Env&)':
+/phantomuserland/src/genode_env/phantom_vmem.h:187:35: warning: ignoring returned value of type 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'}, declared with attribute 'nodiscard' [-Wunused-result]
+  187 |     _obj_space_allocator.add_range(OBJECT_SPACE_START + PAGE_SIZE * 0x10,
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  188 |                                    OBJECT_SPACE_SIZE);
+      |                                    ~~~~~~~~~~~~~~~~~~
+In file included from /phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/heap.h:21,
+                 from /phantomuserland/src/genode_env/disk_backend.h:8,
+                 from /phantomuserland/src/genode_env/phantom_env.h:4:
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:412:30: note: in call to 'Genode::Range_allocator::Range_result Genode::Allocator_avl_tpl< <template-parameter-1-1>, SLAB_BLOCK_SIZE>::add_range(Genode::addr_t, Genode::size_t) [with BMDT = Genode::Empty; unsigned int SLAB_BLOCK_SIZE = 8128; Genode::Range_allocator::Range_result = Genode::Attempt<Genode::Ok, Genode::Alloc_error>; Genode::addr_t = long unsigned int; Genode::size_t = long unsigned int]', declared here
+  412 |                 Range_result add_range(addr_t base, size_t size) override
+      |                              ^~~~~~~~~
+In file included from /phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:17:
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator.h:117:15: note: 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'} declared here
+  117 |         using Range_result = Attempt<Ok, Alloc_error>;
+      |               ^~~~~~~~~~~~
+/phantomuserland/src/genode_env/phantom_vmem.h:191:42: warning: ignoring returned value of type 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'}, declared with attribute 'nodiscard' [-Wunused-result]
+  191 |     _pseudo_phys_addr_allocator.add_range(PAGE_SIZE * 0x10, _phys_space_limit);
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:412:30: note: in call to 'Genode::Range_allocator::Range_result Genode::Allocator_avl_tpl< <template-parameter-1-1>, SLAB_BLOCK_SIZE>::add_range(Genode::addr_t, Genode::size_t) [with BMDT = Genode::Empty; unsigned int SLAB_BLOCK_SIZE = 8128; Genode::Range_allocator::Range_result = Genode::Attempt<Genode::Ok, Genode::Alloc_error>; Genode::addr_t = long unsigned int; Genode::size_t = long unsigned int]', declared here
+  412 |                 Range_result add_range(addr_t base, size_t size) override
+      |                              ^~~~~~~~~
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator.h:117:15: note: 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'} declared here
+  117 |         using Range_result = Attempt<Ok, Alloc_error>;
+      |               ^~~~~~~~~~~~
+/phantomuserland/src/genode_env/tests_adapters.cc: In function 'bool Phantom::test_block_alignment(Disk_backend&)':
+/phantomuserland/src/genode_env/tests_adapters.cc:156:1: warning: no return statement in function returning non-void [-Wreturn-type]
+  156 | }
+      | ^
+In file included from /phantomuserland/src/genode_env/phantom_env.h:8,
+                 from /phantomuserland/src/genode_env/phantom_sync.cc:5:
+/phantomuserland/src/genode_env/phantom_vmem.h: In member function 'void Phantom::Local_fault_handler::_handle_fault()':
+/phantomuserland/src/genode_env/phantom_vmem.h:66:5: warning: '++' expression of 'volatile'-qualified type is deprecated [-Wvolatile]
+   66 |     _fault_cnt++;
+      |     ^~~~~~~~~~
+In file included from /phantomuserland/src/genode_env/phantom_env.h:8,
+                 from /phantomuserland/src/genode_env/main.cc:16:
+/phantomuserland/src/genode_env/phantom_vmem.h: In member function 'void Phantom::Local_fault_handler::_handle_fault()':
+/phantomuserland/src/genode_env/phantom_vmem.h:66:5: warning: '++' expression of 'volatile'-qualified type is deprecated [-Wvolatile]
+   66 |     _fault_cnt++;
+      |     ^~~~~~~~~~
+/phantomuserland/src/genode_env/phantom_vmem.h: In constructor 'Phantom::Vmem_adapter::Vmem_adapter(Genode::Env&)':
+/phantomuserland/src/genode_env/phantom_vmem.h:187:35: warning: ignoring returned value of type 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'}, declared with attribute 'nodiscard' [-Wunused-result]
+  187 |     _obj_space_allocator.add_range(OBJECT_SPACE_START + PAGE_SIZE * 0x10,
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  188 |                                    OBJECT_SPACE_SIZE);
+      |                                    ~~~~~~~~~~~~~~~~~~
+In file included from /phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/heap.h:21,
+                 from /phantomuserland/src/genode_env/disk_backend.h:8,
+                 from /phantomuserland/src/genode_env/phantom_env.h:4:
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:412:30: note: in call to 'Genode::Range_allocator::Range_result Genode::Allocator_avl_tpl< <template-parameter-1-1>, SLAB_BLOCK_SIZE>::add_range(Genode::addr_t, Genode::size_t) [with BMDT = Genode::Empty; unsigned int SLAB_BLOCK_SIZE = 8128; Genode::Range_allocator::Range_result = Genode::Attempt<Genode::Ok, Genode::Alloc_error>; Genode::addr_t = long unsigned int; Genode::size_t = long unsigned int]', declared here
+  412 |                 Range_result add_range(addr_t base, size_t size) override
+      |                              ^~~~~~~~~
+In file included from /phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:17:
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator.h:117:15: note: 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'} declared here
+  117 |         using Range_result = Attempt<Ok, Alloc_error>;
+      |               ^~~~~~~~~~~~
+/phantomuserland/src/genode_env/phantom_vmem.h:191:42: warning: ignoring returned value of type 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'}, declared with attribute 'nodiscard' [-Wunused-result]
+  191 |     _pseudo_phys_addr_allocator.add_range(PAGE_SIZE * 0x10, _phys_space_limit);
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:412:30: note: in call to 'Genode::Range_allocator::Range_result Genode::Allocator_avl_tpl< <template-parameter-1-1>, SLAB_BLOCK_SIZE>::add_range(Genode::addr_t, Genode::size_t) [with BMDT = Genode::Empty; unsigned int SLAB_BLOCK_SIZE = 8128; Genode::Range_allocator::Range_result = Genode::Attempt<Genode::Ok, Genode::Alloc_error>; Genode::addr_t = long unsigned int; Genode::size_t = long unsigned int]', declared here
+  412 |                 Range_result add_range(addr_t base, size_t size) override
+      |                              ^~~~~~~~~
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator.h:117:15: note: 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'} declared here
+  117 |         using Range_result = Attempt<Ok, Alloc_error>;
+      |               ^~~~~~~~~~~~
+/phantomuserland/src/genode_env/phantom_vmem.h: In constructor 'Phantom::Vmem_adapter::Vmem_adapter(Genode::Env&)':
+/phantomuserland/src/genode_env/phantom_vmem.h:187:35: warning: ignoring returned value of type 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'}, declared with attribute 'nodiscard' [-Wunused-result]
+  187 |     _obj_space_allocator.add_range(OBJECT_SPACE_START + PAGE_SIZE * 0x10,
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  188 |                                    OBJECT_SPACE_SIZE);
+      |                                    ~~~~~~~~~~~~~~~~~~
+In file included from /phantomuserland/src/genode_env/main.cc:11:
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:412:30: note: in call to 'Genode::Range_allocator::Range_result Genode::Allocator_avl_tpl< <template-parameter-1-1>, SLAB_BLOCK_SIZE>::add_range(Genode::addr_t, Genode::size_t) [with BMDT = Genode::Empty; unsigned int SLAB_BLOCK_SIZE = 8128; Genode::Range_allocator::Range_result = Genode::Attempt<Genode::Ok, Genode::Alloc_error>; Genode::addr_t = long unsigned int; Genode::size_t = long unsigned int]', declared here
+  412 |                 Range_result add_range(addr_t base, size_t size) override
+      |                              ^~~~~~~~~
+In file included from /phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:17:
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator.h:117:15: note: 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'} declared here
+  117 |         using Range_result = Attempt<Ok, Alloc_error>;
+      |               ^~~~~~~~~~~~
+/phantomuserland/src/genode_env/phantom_vmem.h:191:42: warning: ignoring returned value of type 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'}, declared with attribute 'nodiscard' [-Wunused-result]
+  191 |     _pseudo_phys_addr_allocator.add_range(PAGE_SIZE * 0x10, _phys_space_limit);
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator_avl.h:412:30: note: in call to 'Genode::Range_allocator::Range_result Genode::Allocator_avl_tpl< <template-parameter-1-1>, SLAB_BLOCK_SIZE>::add_range(Genode::addr_t, Genode::size_t) [with BMDT = Genode::Empty; unsigned int SLAB_BLOCK_SIZE = 8128; Genode::Range_allocator::Range_result = Genode::Attempt<Genode::Ok, Genode::Alloc_error>; Genode::addr_t = long unsigned int; Genode::size_t = long unsigned int]', declared here
+  412 |                 Range_result add_range(addr_t base, size_t size) override
+      |                              ^~~~~~~~~
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/allocator.h:117:15: note: 'Genode::Range_allocator::Range_result' {aka 'Genode::Attempt<Genode::Ok, Genode::Alloc_error>'} declared here
+  117 |         using Range_result = Attempt<Ok, Alloc_error>;
+      |               ^~~~~~~~~~~~
+/phantomuserland/src/genode_env/phantom_sync.cc: In function 'errno_t hal_cond_wait(hal_cond_t*, hal_mutex_t*)':
+/phantomuserland/src/genode_env/phantom_sync.cc:161:18: warning: '++' expression of 'volatile'-qualified type is deprecated [-Wvolatile]
+  161 |         c->impl->counter++;
+      |         ~~~~~~~~~^~~~~~~
+/phantomuserland/src/genode_env/phantom_sync.cc: In function 'errno_t hal_cond_signal(hal_cond_t*)':
+/phantomuserland/src/genode_env/phantom_sync.cc:191:22: warning: '--' expression of 'volatile'-qualified type is deprecated [-Wvolatile]
+  191 |             c->impl->counter--;
+      |             ~~~~~~~~~^~~~~~~
+/phantomuserland/src/genode_env/phantom_sync.cc: In function 'errno_t hal_cond_broadcast(hal_cond_t*)':
+/phantomuserland/src/genode_env/phantom_sync.cc:206:22: warning: '--' expression of 'volatile'-qualified type is deprecated [-Wvolatile]
+  206 |             c->impl->counter--;
+      |             ~~~~~~~~~^~~~~~~
+In file included from /phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/parent/parent.h:17,
+                 from /phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/env.h:17,
+                 from /phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/base/component.h:17,
+                 from /phantomuserland/src/genode_env/disk_backend.h:7:
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/util/attempt.h: In instantiation of 'void Genode::Unique_attempt< <template-parameter-1-1>, <template-parameter-1-2> >::with_result(const auto:34&, const auto:35&) [with auto:34 = ph_malloc(size_t)::<lambda(void*)>; auto:35 = ph_malloc(size_t)::<lambda(Genode::Alloc_error)>; RESULT = Genode::Allocation<Genode::Memory::Constrained_allocator>; ERROR = Genode::Alloc_error]':
+/phantomuserland/src/genode_env/phantom_malloc.cc:30:26:   required from here
+/phantomuserland/var/depot/genodelabs/api/base/2025-04-09/include/util/attempt.h:141:58: error: no match for call to '(const ph_malloc(size_t)::<lambda(void*)>) (Genode::Allocation<Genode::Memory::Constrained_allocator>&)'
+  141 |                         _result.constructed() ? access_fn(*_result) : fail_fn(_error);
+      |                                                 ~~~~~~~~~^~~~~~~~~~
+/phantomuserland/src/genode_env/phantom_malloc.cc:31:9: note: candidate: 'ph_malloc(size_t)::<lambda(void*)>'
+   31 |         [&](void* addr){ original_addr = addr; },
+      |         ^
+/phantomuserland/src/genode_env/phantom_malloc.cc:31:9: note:   no known conversion for argument 1 from 'Genode::Allocation<Genode::Memory::Constrained_allocator>' to 'void*'
+make[2]: *** [CMakeFiles/isomem.dir/build.make:174: CMakeFiles/isomem.dir/genode_env/phantom_malloc.cc.obj] Error 1
+make[2]: *** Waiting for unfinished jobs....
+make[2]: *** [CMakeFiles/isomem.dir/build.make:188: CMakeFiles/isomem.dir/genode_env/phantom_threads.cc.obj] Error 1
+make[1]: *** [CMakeFiles/Makefile2:111: CMakeFiles/isomem.dir/all] Error 2
+make: *** [Makefile:91: all] Error 2
+[phantomuserland:cmake] [  8%] Built target vmlib
+[phantomuserland:cmake] [  8%] Building CXX object CMakeFiles/isomem.dir/genode_env/tests_ph_api.cc.obj
+[phantomuserland:cmake] [  8%] Building CXX object CMakeFiles/isomem.dir/genode_env/phantom_vmem.cc.obj
+[phantomuserland:cmake] [  8%] Building CXX object CMakeFiles/isomem.dir/genode_env/tests_hal_vmem.cc.obj
+[phantomuserland:cmake] [  8%] Building CXX object CMakeFiles/isomem.dir/genode_env/main.cc.obj
+[phantomuserland:cmake] [  8%] Building CXX object CMakeFiles/isomem.dir/genode_env/tests_adapters.cc.obj
+[phantomuserland:cmake] [  8%] Building CXX object CMakeFiles/isomem.dir/genode_env/phantom_malloc.cc.obj
+[phantomuserland:cmake] [  9%] Building CXX object CMakeFiles/isomem.dir/genode_env/phantom_threads.cc.obj
+[phantomuserland:cmake] [  9%] Building CXX object CMakeFiles/isomem.dir/genode_env/phantom_disk.cc.obj
+[phantomuserland:cmake] [  9%] Building CXX object CMakeFiles/isomem.dir/genode_env/phantom_sync.cc.obj
+[phantomuserland:cmake] [  9%] Building CXX object CMakeFiles/isomem.dir/genode_env/phantom_unsorted.cc.obj
+[phantomuserland:cmake] [ 10%] Building CXX object CMakeFiles/isomem.dir/genode_env/phantom_timer.cc.obj
+[phantomuserland:cmake] [ 10%] Building CXX object CMakeFiles/isomem.dir/genode_env/phantom_framebuffer.cc.obj
+[phantomuserland] Error: build via cmake failed:
+ child process exited abnormally
