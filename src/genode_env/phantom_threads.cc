@@ -51,7 +51,7 @@ extern "C"
 
         while (true)
         {
-            Genode::error("Error: Phantom kernel thread %s was not terminated!", Thread::myself()->name().string());
+            Genode::error("Error: Phantom kernel thread %s was not terminated!", Thread::myself()->name.string());
         }
     }
 

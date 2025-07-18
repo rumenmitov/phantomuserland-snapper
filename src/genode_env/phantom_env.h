@@ -42,8 +42,12 @@ struct Main {
 
     _env.rm()
         .attach(_bulk_class_rom.dataspace(), attributes)
-        .with_result([this](addr_t addr) { _bulk_code_ptr = (void *)addr; },
-                     []() { throw; });
+        .with_result(
+            [this](Genode::Env::Local_rm::Attachment &attachment) {
+              _bulk_code_ptr = attachment.ptr;
+              attachment.deallocate = false;
+            },
+            [](auto) { throw; });
   }
 };
 
