@@ -136,7 +136,7 @@ install_config {
  		<config verbose="yes" ld_verbose="yes">
  		</config>
  		<route>
- 			<service name="Block"><child name="ahci_drv"/></service>
+ 			<service name="Block"><child name="ahci"/></service>
  			<any-service> <parent/> <any-child /> </any-service>
  		</route>
  	</start>
