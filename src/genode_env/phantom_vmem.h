@@ -193,16 +193,16 @@ struct Phantom::Vmem_adapter {
     // ATTENTION! _obj_space is attached to the env's rm!
     // void *ptr_obj = env.rm().attach(_obj_space.dataspace(), 0, 0, true,
     // OBJECT_SPACE_START, false, true);
-    Region_map::Attr attributes{.size = 0,
+    Region_map::Attr attributes{.size = OBJECT_SPACE_SIZE,
                                 .offset = 0,
                                 .use_at = true,
                                 .at = OBJECT_SPACE_START,
-                                .executable = false,
+                                .executable = true,
                                 .writeable = true};
 
     addr_t ptr_obj = 0;
     env.rm()
-        .attach(_obj_space.dataspace(), attributes)
+        .attach(_ram_ds, attributes)
         .with_result(
             [&ptr_obj](Genode::Env::Local_rm::Attachment &attachment) {
               ptr_obj = (Genode::addr_t)attachment.ptr;
