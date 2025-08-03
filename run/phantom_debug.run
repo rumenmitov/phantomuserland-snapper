@@ -1,0 +1,94 @@
+#
+# NB This will segfault since PhantomOS is not supported on base-linux!
+#
+
+assert_spec x86
+
+create_boot_directory
+build {
+	core init timer
+	lib/ld lib/vfs
+    server/vfs_block
+    lib/vfs_import
+}
+
+#
+# Build EXT2-file-system image
+#
+
+# set mke2fs [installed_command mke2fs]
+# set dd     [installed_command dd]
+# catch { exec $dd if=/dev/zero of=bin/ext2.raw bs=1M count=16 }
+# catch { exec $mke2fs -F bin/ext2.raw }
+
+install_config {
+<config>
+	<parent-provides>
+		<service name="ROM"/>
+		<service name="IRQ"/>
+		<service name="IO_MEM"/>
+		<service name="IO_PORT"/>
+		<service name="PD"/>
+		<service name="RM"/>
+		<service name="CPU"/>
+		<service name="LOG"/>
+	</parent-provides>
+	<default-route>
+		<any-service> <parent/> <any-child/> </any-service>
+	</default-route>
+	<default caps="100"/>
+
+	<start name="timer" priority="0">
+		<resource name="RAM" quantum="1M"/>
+		<resource name="CPU" quantum="5"/>
+		<provides><service name="Timer"/></provides>
+	</start>
+
+	<start name="linux_rtc" ld="no">
+		<resource name="RAM" quantum="1M"/>
+		<provides>
+			<service name="Rtc"/>
+		</provides>
+	</start>
+
+<start name="vfs_block" ram="4G" caps="2000">
+	<provides><service name="Block"/></provides>
+	<config>
+		<vfs>
+			<ram/>
+			<import>
+				<rom name="block0.raw"/>
+			</import>
+		</vfs>
+		<policy label_prefix="isomem"
+			      file="/block0.raw" block_size="512" writeable="yes"/>
+  </config>
+</start>
+
+
+ 	<start name="isomem" caps="2000">
+ 		<resource name="RAM" quantum="2G"/>
+ 		<config verbose="yes" ld_verbose="yes">
+ 		</config>
+ 		<route>
+ 			<service name="Block"><child name="vfs_block"/></service>
+ 			<any-service> <parent/> <any-child /> </any-service>
+ 		</route>
+ 	</start>
+</config> }
+
+#
+# Boot modules
+#
+build_boot_image [list {*}[build_artifacts] phantom_classes isomem block0.raw]
+
+append qemu_args " -smp 2 "
+# append qemu_args " -s -S "
+# append qemu_args " -m 1024 "
+append qemu_args " -device ahci,id=ahci -boot d "
+append qemu_args " -nographic "
+# append qemu_args " -drive id=disk,file=bin/ext2.raw,format=raw,if=none             -device ide-hd,drive=disk,bus=ahci.0 "
+append qemu_args " -drive id=disk,file=bin/block0.raw,format=raw,if=none             -device ide-hd,drive=disk,bus=ahci.0 "
+# append qemu_args " -drive id=cd,file=[run_dir]/../ahci_block.iso,if=none,media=cdrom -device ide-cd,drive=cd,bus=ahci.1 "
+
+run_genode_until forever
