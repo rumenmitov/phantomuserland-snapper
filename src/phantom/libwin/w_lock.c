@@ -52,7 +52,10 @@ void w_unlock(void)
 void w_assert_lock(void)
 {
 #if ALLW_MUTEX
-    ASSERT_LOCKED_MUTEX( &allw_mutex );
+  // XXX: Since the (un)locking of the mutex and the update of the
+  // mutex state happen non-atomically, this assertion can cause the
+  // system to needlessly panic.
+  // ASSERT_LOCKED_MUTEX( &allw_mutex );
 #else
     assert(hal_spin_locked( &allw_lock ));
 #endif
