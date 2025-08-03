@@ -190,6 +190,7 @@ struct Phantom::Vmem_adapter {
     // Initializing pseudo phys allocator
     _pseudo_phys_addr_allocator.add_range(PAGE_SIZE * 0x10, _phys_space_limit);
 
+
     // ATTENTION! _obj_space is attached to the env's rm!
     // void *ptr_obj = env.rm().attach(_obj_space.dataspace(), 0, 0, true,
     // OBJECT_SPACE_START, false, true);
@@ -197,12 +198,12 @@ struct Phantom::Vmem_adapter {
                                 .offset = 0,
                                 .use_at = true,
                                 .at = OBJECT_SPACE_START,
-                                .executable = true,
+                                .executable = false,
                                 .writeable = true};
 
     addr_t ptr_obj = 0;
     env.rm()
-        .attach(_ram_ds, attributes)
+    .attach(_obj_space.dataspace(), attributes)
         .with_result(
             [&ptr_obj](Genode::Env::Local_rm::Attachment &attachment) {
               ptr_obj = (Genode::addr_t)attachment.ptr;
@@ -272,7 +273,7 @@ struct Phantom::Vmem_adapter {
             Genode::retry<Genode::Out_of_caps>(
                 [&]() {
                   // Genode::log("attach attempt");
-                  Region_map::Attr attribute{.size = 0,
+                  Region_map::Attr attribute{.size = PAGE_SIZE,
                                              .offset = offset,
                                              .use_at = true,
                                              .at =
@@ -283,10 +284,22 @@ struct Phantom::Vmem_adapter {
                   _obj_space.attach(_ram_ds, attribute)
                       .with_result(
                           [&laddr](const Genode::Region_map::Range &range) {
-                            laddr = (Genode::addr_t)range.start;
+                            laddr = range.start;
                           },
-                          [](auto) {
-                            Genode::error("couldn't attach region map!");
+                          [](const Region_map::Attach_error &e) {
+                            switch (e) {
+                            case Region_map::Attach_error::INVALID_DATASPACE:
+                              Genode::error("couldn't attach region map: invalid ds");
+                              break;
+                            case Region_map::Attach_error::REGION_CONFLICT:
+                              Genode::error("couldn't attach region map: region conflict");
+                              break;
+                            case Region_map::Attach_error::OUT_OF_CAPS:
+                              throw Genode::Out_of_caps();
+                            case Region_map::Attach_error::OUT_OF_RAM:
+                              throw Genode::Out_of_ram();
+                              break;
+                            }
                             throw;
                           });
                 },
@@ -315,7 +328,7 @@ struct Phantom::Vmem_adapter {
       //     writeable);
 
       addr_t laddr = 0;
-      Region_map::Attr attribute{.size = 0,
+      Region_map::Attr attribute{.size = PAGE_SIZE,
                                  .offset = offset,
                                  .use_at = true,
                                  .at = virt_addr,
@@ -377,7 +390,7 @@ struct Phantom::Vmem_adapter {
     //     writeable);
 
     addr_t laddr = 0;
-    Region_map::Attr attribute{.size = 0,
+    Region_map::Attr attribute{.size = n_pages * PAGE_SIZE,
                                .offset = offset,
                                .use_at = false,
                                .at = 0,
