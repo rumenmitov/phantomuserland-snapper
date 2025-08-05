@@ -6,3 +6,4 @@ genodelabs/api/framebuffer_session
 genodelabs/api/gui_session
 genodelabs/api/input_session
 genodelabs/api/libc_setjmp/2018-05-28
+phantom/api/snap/2025-08-05

@@ -10,6 +10,7 @@ build {
 	driver/rtc
 	app/pci_decode
 	server/report_rom
+  lib/snap
 }
 
 #
