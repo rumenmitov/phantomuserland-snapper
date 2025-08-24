@@ -1,6 +1,7 @@
 /var
 /genode
 /empty_disk.raw
+/snapper_block.raw
 /genode-devel-docker
 /goa
 /.cache/
