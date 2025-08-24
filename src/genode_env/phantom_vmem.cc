@@ -185,7 +185,7 @@ extern "C"
             }
 
             void *temp_res = nullptr;
-            // temp_res = main_obj->_vmem_adapter._pseudo_phys_heap.alloc(PAGE_SIZE * npages);
+            // temp_res = main_obj->_vmem_adapter._pseudo_phys_heap.alloc(ARCH_PAGE_SIZE * npages);
             temp_res = main_obj->_vmem_adapter.alloc_pseudo_phys(npages);
 
             *result = (physaddr_t)temp_res;
@@ -234,7 +234,7 @@ extern "C"
 
     void hal_pv_alloc(physaddr_t *pa, void **va, int size_bytes)
     {
-        int npages = ((size_bytes - 1) / PAGE_SIZE) + 1;
+        int npages = ((size_bytes - 1) / ARCH_PAGE_SIZE) + 1;
 
         if (hal_alloc_phys_pages(pa, npages))
             panic("out of physmem");
@@ -250,7 +250,7 @@ extern "C"
             return;
         }
 
-        int npages = ((size_bytes - 1) / PAGE_SIZE) + 1;
+        int npages = ((size_bytes - 1) / ARCH_PAGE_SIZE) + 1;
 
         main_obj->_vmem_adapter.unmap_page((addr_t)va);
         hal_free_phys_pages(pa, npages);
@@ -271,12 +271,12 @@ extern "C"
 
             physaddr_t page = PREV_PAGE_ALIGN(to);
             int shift = to - page;
-            size_t part = PAGE_SIZE - shift;
+            size_t part = ARCH_PAGE_SIZE - shift;
 
             if (part > size)
                 part = size;
 
-            assert(shift < PAGE_SIZE);
+            assert(shift < ARCH_PAGE_SIZE);
             assert(shift > 0);
 
             // hal_page_control(page, addr, page_map, page_rw);
@@ -299,7 +299,7 @@ extern "C"
 
         while (size > 0)
         {
-            int stepSize = size > PAGE_SIZE ? PAGE_SIZE : size;
+            int stepSize = size > ARCH_PAGE_SIZE ? ARCH_PAGE_SIZE : size;
             size -= stepSize;
 
             // hal_page_control(to, addr, page_map, page_rw);
@@ -312,8 +312,8 @@ extern "C"
             main_obj->_vmem_adapter.unmap_page((addr_t)addr);
             addr = nullptr;
 
-            to += PAGE_SIZE;
-            from += PAGE_SIZE;
+            to += ARCH_PAGE_SIZE;
+            from += ARCH_PAGE_SIZE;
         }
 
         assert(size == 0);
@@ -333,7 +333,7 @@ extern "C"
 
         do
         {
-            int stepSize = size > PAGE_SIZE ? PAGE_SIZE : size;
+            int stepSize = size > ARCH_PAGE_SIZE ? ARCH_PAGE_SIZE : size;
             size -= stepSize;
 
             // hal_page_control(from, addr, page_map, page_rw);
@@ -345,8 +345,8 @@ extern "C"
             main_obj->_vmem_adapter.unmap_page((addr_t)addr);
             addr = nullptr;
 
-            to += PAGE_SIZE;
-            from += PAGE_SIZE;
+            to += ARCH_PAGE_SIZE;
+            from += ARCH_PAGE_SIZE;
 
         } while (size > 0);
 

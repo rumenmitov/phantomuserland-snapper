@@ -159,7 +159,7 @@ bool Phantom::test_remapping()
 {
     // allocate 1 virtual and 2 physical pages
 
-    void *v = main_obj->_vmem_adapter._obj_space_allocator.alloc(PAGE_SIZE);
+    void *v = main_obj->_vmem_adapter._obj_space_allocator.alloc(ARCH_PAGE_SIZE);
     addr_t p_off = (addr_t)main_obj->_vmem_adapter.alloc_pseudo_phys(1);
     (void)p_off;
     addr_t p1 = (addr_t)main_obj->_vmem_adapter.alloc_pseudo_phys(1);

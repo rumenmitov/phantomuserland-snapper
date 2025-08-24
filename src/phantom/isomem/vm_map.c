@@ -1798,13 +1798,13 @@ static void page_clear_engine_clear_page(physaddr_t p)
     int enabled = hal_save_cli();
     hal_spin_lock(&page_clear_lock);
 
-    static char static_clear_page[PAGE_SIZE] = {0};
+    static char static_clear_page[ARCH_PAGE_SIZE] = {0};
 
     if(FAULT_DEBUG)
         hal_printf("page_clear_engine_clear_page( 0x%X )\n", p );
 
     // XXX : Inefficient!
-    memcpy_v2p(p, static_clear_page, PAGE_SIZE);
+    memcpy_v2p(p, static_clear_page, ARCH_PAGE_SIZE);
 
     // hal_page_control( p, page_clear_vaddr, page_map, page_rw );
 
@@ -1860,15 +1860,15 @@ static size_t vm_verify_page(void *data, size_t page_offset, size_t current, siz
         // SHOW_FLOW(0, "verifying object (case 0) at %p", (void*)(current));
         current += vm_verify_object(&hdr);
     }
-    while (current < sz && current - page_offset < PAGE_SIZE)
+    while (current < sz && current - page_offset < ARCH_PAGE_SIZE)
     {
-        if (current + sizeof(hdr) - page_offset <= PAGE_SIZE){
+        if (current + sizeof(hdr) - page_offset <= ARCH_PAGE_SIZE){
             // SHOW_FLOW(0, "verifying object (case 1) at %p", (void*)(current));
             current += vm_verify_object(data + (current - page_offset));
         }
         else
         {
-            ph_memcpy(&hdr, data + (current - page_offset), PAGE_SIZE - (current - page_offset));
+            ph_memcpy(&hdr, data + (current - page_offset), ARCH_PAGE_SIZE - (current - page_offset));
             break;
         }
     }
@@ -1887,7 +1887,7 @@ static void vm_verify_vm(void)
     if(SNAP_STEPS_DEBUG) hal_printf("Verifying VM before snapshot...\n");
     for (np = 0; np < vm_map_map_end - vm_map_map; np++)
     {
-        size_t page_offset = np * PAGE_SIZE;
+        size_t page_offset = np * ARCH_PAGE_SIZE;
         current = vm_verify_page(vm_map_start_of_virtual_address_space + page_offset,
                 page_offset, current, hal.object_vsize);
     }
@@ -1932,7 +1932,7 @@ static void vm_verify_snap(disk_page_no_t head)
 
     for(np = 0; np < vm_map_map_end - vm_map_map; np++)
     {
-        size_t page_offset = np * PAGE_SIZE;
+        size_t page_offset = np * ARCH_PAGE_SIZE;
         disk_page_no_t block;
 	short percentage = np * 100 / (vm_map_map_end - vm_map_map);
 
@@ -1952,7 +1952,7 @@ static void vm_verify_snap(disk_page_no_t head)
             break;
         }
 
-        if (current < page_offset || current - page_offset < PAGE_SIZE)
+        if (current < page_offset || current - page_offset < ARCH_PAGE_SIZE)
         {
 #if USE_SYNC_IO
             extern phantom_disk_partition_t *pp; // BUG
@@ -2044,8 +2044,8 @@ void wire_page_for_addr( void *addr, size_t count )
 
     do{
         wire_page( addr_to_vm_page((addr_t) pp, 0) );
-        c -= PAGE_SIZE;
-        pp += PAGE_SIZE;
+        c -= ARCH_PAGE_SIZE;
+        pp += ARCH_PAGE_SIZE;
     } while( c > 0 );
 }
 
@@ -2057,8 +2057,8 @@ void unwire_page_for_addr( void *addr, size_t count )
 
     do{
         unwire_page( addr_to_vm_page((addr_t) pp, 0) );
-        c -= PAGE_SIZE;
-        pp += PAGE_SIZE;
+        c -= ARCH_PAGE_SIZE;
+        pp += ARCH_PAGE_SIZE;
     } while( c > 0 );
 }
 

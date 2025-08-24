@@ -99,7 +99,7 @@ static errno_t partFence( struct phantom_disk_partition *p )
 // TODO: this function is only called once in genode port. why and do we need it?
 static errno_t startSync( phantom_disk_partition_t *p, void *to, long blockNo, int nBlocks, int isWrite )
 {
-    assert( p->block_size < PAGE_SIZE );
+    assert( p->block_size < ARCH_PAGE_SIZE );
     SHOW_FLOW( 3, "blk %d [%d] (%d)", blockNo, nBlocks, isWrite );
 
     pager_io_request rq;
@@ -162,13 +162,13 @@ ret:
 
 errno_t phantom_sync_read_block( phantom_disk_partition_t *p, void *to, long blockNo, int nBlocks )
 {
-    int m = PAGE_SIZE/p->block_size;
+    int m = ARCH_PAGE_SIZE/p->block_size;
     return startSync( p, to, blockNo*m, nBlocks*m, 0 );
 }
 
 errno_t phantom_sync_write_block( phantom_disk_partition_t *p, const void *to, long blockNo, int nBlocks )
 {
-    int m = PAGE_SIZE/p->block_size;
+    int m = ARCH_PAGE_SIZE/p->block_size;
     return startSync( p, (void *)to, blockNo*m, nBlocks*m, 1 );
 }
 
@@ -190,7 +190,7 @@ errno_t phantom_sync_write_sector( phantom_disk_partition_t *p, const void *to, 
 //! Convert usual pager request to partition code style request and start it
 void disk_enqueue( phantom_disk_partition_t *p, pager_io_request *rq )
 {
-    int m = PAGE_SIZE/p->block_size;
+    int m = ARCH_PAGE_SIZE/p->block_size;
     rq->blockNo = rq->disk_page*m;
     rq->nSect = m;
 
