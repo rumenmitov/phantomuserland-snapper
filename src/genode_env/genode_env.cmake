@@ -15,6 +15,7 @@ set (source_all
     tests_hal_threads.cc 
     tests_ph_api.cc 
     util.cc 
+    phantom_snapper.cc
     phantom_malloc.cc 
     phantom_threads.cc 
     phantom_vmem.cc 
