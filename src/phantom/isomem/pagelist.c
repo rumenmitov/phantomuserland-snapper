@@ -19,7 +19,7 @@ disk_page_io_allocate(disk_page_io *me)
 {
     if(me->mem_allocated) return;
 
-    hal_pv_alloc( &(me->req.phys_page), &(me->mem), PAGE_SIZE );
+    hal_pv_alloc( &(me->req.phys_page), &(me->mem), ARCH_PAGE_SIZE );
 
     me->mem_allocated = 1;
 }
@@ -32,7 +32,7 @@ disk_page_io_release(disk_page_io *me)
         panic("disk_page_cacher_release: operation is in progress");
     if(!me->mem_allocated) return;
 
-    hal_pv_free( me->req.phys_page, me->mem, PAGE_SIZE );
+    hal_pv_free( me->req.phys_page, me->mem, ARCH_PAGE_SIZE );
     hal_sem_destroy( &(me->done) );
 
     me->mem_allocated = 0;

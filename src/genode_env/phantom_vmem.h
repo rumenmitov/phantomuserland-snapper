@@ -137,13 +137,13 @@ struct Phys_region {
   Ram_allocator &_ram;
 
   Phys_region(Ram_allocator &ram, Allocator &addr_allocator, size_t num_pages)
-      : _ram_ds(ram.alloc(PAGE_SIZE * num_pages)),
-        _pseudo_addr((addr_t)addr_allocator.alloc(PAGE_SIZE * num_pages)),
+      : _ram_ds(ram.alloc(ARCH_PAGE_SIZE * num_pages)),
+        _pseudo_addr((addr_t)addr_allocator.alloc(ARCH_PAGE_SIZE * num_pages)),
         _num_pages(num_pages), _addr_allocator(addr_allocator), _ram(ram) {}
 
   virtual ~Phys_region() {
     _ram.free(_ram_ds);
-    _addr_allocator.free((void *)_pseudo_addr, PAGE_SIZE);
+    _addr_allocator.free((void *)_pseudo_addr, ARCH_PAGE_SIZE);
   }
 };
 
@@ -155,7 +155,7 @@ struct Phantom::Vmem_adapter {
   const addr_t OBJECT_SPACE_START = 0x80000000;
   const addr_t OBJECT_SPACE_SIZE = 0x40000000;
   // TODO : defined as a macro that is required for other Phantom, need to
-  // fix!!! const size_t PAGE_SIZE = 4096;
+  // fix!!! const size_t ARCH_PAGE_SIZE = 4096;
 
   const unsigned int _phys_space_limit = 4096 * 1024 * 16;
 
@@ -167,7 +167,7 @@ struct Phantom::Vmem_adapter {
   // Attached to env's rm
   Genode::Region_map_client _obj_space{_rm.create(OBJECT_SPACE_SIZE)};
   // fault handler (will register handler in rm as well)
-  Phantom::Local_fault_handler fault_handler{_env, _obj_space, PAGE_SIZE};
+  Phantom::Local_fault_handler fault_handler{_env, _obj_space, ARCH_PAGE_SIZE};
   // Object space virtual space allocator
   Genode::Allocator_avl _obj_space_allocator{&_metadata_heap};
 
@@ -184,11 +184,11 @@ struct Phantom::Vmem_adapter {
   Vmem_adapter(Env &env) : _env(env) {
 
     // Initializing obj space allocator
-    _obj_space_allocator.add_range(OBJECT_SPACE_START + PAGE_SIZE * 0x10,
+    _obj_space_allocator.add_range(OBJECT_SPACE_START + ARCH_PAGE_SIZE * 0x10,
                                    OBJECT_SPACE_SIZE);
 
     // Initializing pseudo phys allocator
-    _pseudo_phys_addr_allocator.add_range(PAGE_SIZE * 0x10, _phys_space_limit);
+    _pseudo_phys_addr_allocator.add_range(ARCH_PAGE_SIZE * 0x10, _phys_space_limit);
 
 
     // ATTENTION! _obj_space is attached to the env's rm!
@@ -244,7 +244,7 @@ struct Phantom::Vmem_adapter {
 
     addr_t offset = phys_addr;
 
-    if (offset % PAGE_SIZE > 0) {
+    if (offset % ARCH_PAGE_SIZE > 0) {
       Genode::warning("Phys addr (offset) not page alligned");
     }
 
@@ -259,7 +259,7 @@ struct Phantom::Vmem_adapter {
 
       // Region_map::Local_addr laddr = _obj_space.attach(
       //     region->_ram_ds,
-      //     PAGE_SIZE,
+      //     ARCH_PAGE_SIZE,
       //     offset,
       //     true,
       //     virt_addr - OBJECT_SPACE_START,
@@ -273,7 +273,7 @@ struct Phantom::Vmem_adapter {
             Genode::retry<Genode::Out_of_caps>(
                 [&]() {
                   // Genode::log("attach attempt");
-                  Region_map::Attr attribute{.size = PAGE_SIZE,
+                  Region_map::Attr attribute{.size = ARCH_PAGE_SIZE,
                                              .offset = offset,
                                              .use_at = true,
                                              .at =
@@ -328,7 +328,7 @@ struct Phantom::Vmem_adapter {
       //     writeable);
 
       addr_t laddr = 0;
-      Region_map::Attr attribute{.size = PAGE_SIZE,
+      Region_map::Attr attribute{.size = ARCH_PAGE_SIZE,
                                  .offset = offset,
                                  .use_at = true,
                                  .at = virt_addr,
@@ -382,7 +382,7 @@ struct Phantom::Vmem_adapter {
 
     // Region_map::Local_addr laddr = _env.rm().attach(
     //     region->_ram_ds,
-    //     n_pages * PAGE_SIZE,
+    //     n_pages * ARCH_PAGE_SIZE,
     //     offset,
     //     false,
     //     nullptr,
@@ -390,7 +390,7 @@ struct Phantom::Vmem_adapter {
     //     writeable);
 
     addr_t laddr = 0;
-    Region_map::Attr attribute{.size = n_pages * PAGE_SIZE,
+    Region_map::Attr attribute{.size = n_pages * ARCH_PAGE_SIZE,
                                .offset = offset,
                                .use_at = false,
                                .at = 0,
@@ -451,7 +451,7 @@ struct Phantom::Vmem_adapter {
 
     // return (void *)page->_pseudo_addr;
 
-    return _pseudo_phys_addr_allocator.alloc(PAGE_SIZE * num_pages);
+    return _pseudo_phys_addr_allocator.alloc(ARCH_PAGE_SIZE * num_pages);
   }
 
   void free_pseudo_phys(void *addr, int npages) {
@@ -474,9 +474,9 @@ struct Phantom::Vmem_adapter {
     //                 "free pseudo phys with incorrect number of pages: addr=",
     //                 Hex((long)addr),
     //                 " expected=",
-    //                 Hex(region._num_pages * PAGE_SIZE),
+    //                 Hex(region._num_pages * ARCH_PAGE_SIZE),
     //                 " received=",
-    //                 Hex(npages * PAGE_SIZE));
+    //                 Hex(npages * ARCH_PAGE_SIZE));
 
     //             return;
     //         }
@@ -493,7 +493,7 @@ struct Phantom::Vmem_adapter {
     //     total_allocated--;
     // }
 
-    _pseudo_phys_addr_allocator.free(addr, PAGE_SIZE * npages);
+    _pseudo_phys_addr_allocator.free(addr, ARCH_PAGE_SIZE * npages);
   }
 
   Phys_region_handle *get_pseudo_phys_region(addr_t pseudo_phys_addr) {
@@ -511,7 +511,7 @@ struct Phantom::Vmem_adapter {
       // Check if within the region
       if (region._pseudo_addr <= pseudo_phys_addr &&
           pseudo_phys_addr <
-              region._pseudo_addr + region._num_pages * PAGE_SIZE) {
+              region._pseudo_addr + region._num_pages * ARCH_PAGE_SIZE) {
         res = &region;
         success = true;
       }

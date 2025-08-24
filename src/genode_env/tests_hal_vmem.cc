@@ -72,9 +72,9 @@ extern "C"
         log("free 5");
         hal_free_vaddress((char *)temp_addr, 5);
         log("free 2");
-        hal_free_vaddress((char *)temp_addr + (5 * PAGE_SIZE), 2);
+        hal_free_vaddress((char *)temp_addr + (5 * ARCH_PAGE_SIZE), 2);
         log("free 3");
-        hal_free_vaddress((char *)temp_addr + (7 * PAGE_SIZE), 3);
+        hal_free_vaddress((char *)temp_addr + (7 * ARCH_PAGE_SIZE), 3);
 
         log("Currrntly: ", main_obj->_vmem_adapter._obj_space_allocator.avail());
 
@@ -196,7 +196,7 @@ extern "C"
 
         // mapping the page
 
-        hal_pv_alloc(&pa, &va, PAGE_SIZE);
+        hal_pv_alloc(&pa, &va, ARCH_PAGE_SIZE);
         // hal_alloc_vaddress(&va, 1);
         // hal_alloc_phys_page(&pa);
 
@@ -207,7 +207,7 @@ extern "C"
         // Checking addresses
         char *addr_to_write = (char *)va;
 
-        for (int i = 0; i < PAGE_SIZE; i++)
+        for (int i = 0; i < ARCH_PAGE_SIZE; i++)
         {
             char val1 = 'A';
             char val2 = 'B';
@@ -243,7 +243,7 @@ extern "C"
         // hal_free_vaddress(va, 1);
         // hal_free_phys_page(pa);
 
-        hal_pv_free(pa, va, PAGE_SIZE);
+        hal_pv_free(pa, va, ARCH_PAGE_SIZE);
 
         return true;
     }
@@ -258,7 +258,7 @@ extern "C"
         physaddr_t pa_orig = 0x0;
 
         // Allocating pv to get a free adress and the unmapping
-        hal_pv_alloc(&pa_orig, &va, PAGE_SIZE);
+        hal_pv_alloc(&pa_orig, &va, ARCH_PAGE_SIZE);
         hal_page_control(pa_orig, va, page_unmap, page_readwrite);
 
         physaddr_t pas[phys_count];
@@ -273,7 +273,7 @@ extern "C"
         }
 
         // writing phys pages
-        char *buf[PAGE_SIZE];
+        char *buf[ARCH_PAGE_SIZE];
 
         log("Writing phys pages using 1 virtual");
 
@@ -282,13 +282,13 @@ extern "C"
 
             hal_page_control_etc(pas[i], va, page_map, page_readwrite, 0);
 
-            memset(buf, i, PAGE_SIZE);
+            memset(buf, i, ARCH_PAGE_SIZE);
 
             log("Starting memcpy");
 
             // *(int *)va = i;
 
-            memcpy(va, buf, PAGE_SIZE);
+            memcpy(va, buf, ARCH_PAGE_SIZE);
 
             hal_page_control_etc(pas[i], va, page_unmap, page_readwrite, 0);
             // hal_sleep_msec(1000);
@@ -301,11 +301,11 @@ extern "C"
 
             hal_page_control_etc(pas[i], va, page_map, page_readwrite, 0);
 
-            memset(buf, i, PAGE_SIZE);
-            if (memcmp(va, buf, PAGE_SIZE))
+            memset(buf, i, ARCH_PAGE_SIZE);
+            if (memcmp(va, buf, ARCH_PAGE_SIZE))
             {
                 error("Failed remapping test on ", i, "th case. memcmp()=",
-                      memcmp(va, buf, PAGE_SIZE), " va[0]=", Hex((u_int8_t)(*(char *)va)));
+                      memcmp(va, buf, ARCH_PAGE_SIZE), " va[0]=", Hex((u_int8_t)(*(char *)va)));
 
                 return false;
             }
@@ -321,7 +321,7 @@ extern "C"
         }
 
         hal_page_control(pa_orig, va, page_map, page_rw);
-        hal_pv_free(pa_orig, va, PAGE_SIZE);
+        hal_pv_free(pa_orig, va, ARCH_PAGE_SIZE);
 
         return true;
     }

@@ -158,7 +158,7 @@ This section contains commands that would prepare the environment to build Phant
 cd ./genode/
 
 # Switch to supported version
-git checkout 24.02
+git checkout 25.05
 
 # Creating build directory
 ./tool/create_builddir x86_64

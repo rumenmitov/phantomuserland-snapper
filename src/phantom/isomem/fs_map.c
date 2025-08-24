@@ -113,7 +113,7 @@ static int n_phantom_fs_partitions = 0;
 
 errno_t fs_probe_phantom(phantom_disk_partition_t *p)
 {
-    char buf[PAGE_SIZE];
+    char buf[ARCH_PAGE_SIZE];
     phantom_disk_superblock *sb = (phantom_disk_superblock *)&buf;
 
     int i;
@@ -133,7 +133,7 @@ errno_t fs_probe_phantom(phantom_disk_partition_t *p)
         //     phantom_sync_write_sector( p, marked_buf, sbpos[i], 1 );
         // }
 
-        // hexdump((void*)buf, PAGE_SIZE, "sb", 0);
+        // hexdump((void*)buf, ARCH_PAGE_SIZE, "sb", 0);
         
         if( debug_level_flow > 10) hexdump( buf, sizeof(buf), "", 0);
 

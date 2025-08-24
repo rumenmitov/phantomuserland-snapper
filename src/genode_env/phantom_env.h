@@ -9,6 +9,7 @@
 #include <base/component.h>
 #include <base/heap.h>
 #include <rom_session/connection.h>
+#include <snapper_session/connection.h>
 
 #ifdef __cplusplus
 
@@ -22,6 +23,8 @@ struct Main {
   Phantom::Timer_adapter _timer_adapter{_env};
   Phantom::PhantomThreadsRepo _threads_repo{_env, _heap};
   Phantom::Disk_backend _disk{_env, _heap};
+  Snapper::Connection snapper{ _env };
+  
   // Constructible so that we can run Phantom without graphics if we want
   Constructible<Phantom::FramebufferAdapter> _framebuffer;
   // XXX : docs says that it "allows only one timeout at a time"
