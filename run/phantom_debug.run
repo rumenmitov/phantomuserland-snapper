@@ -6,20 +6,24 @@ assert_spec x86
 
 create_boot_directory
 build {
-	core init timer
-	lib/ld lib/vfs
+    core init timer
+    driver/rtc
+    lib/ld lib/vfs
     server/vfs_block
     lib/vfs_import
+    server/vfs
+    snapper
+    lib/snap
 }
 
 #
 # Build EXT2-file-system image
 #
 
-# set mke2fs [installed_command mke2fs]
-# set dd     [installed_command dd]
-# catch { exec $dd if=/dev/zero of=bin/ext2.raw bs=1M count=16 }
-# catch { exec $mke2fs -F bin/ext2.raw }
+set mke2fs [installed_command mke2fs]
+set dd     [installed_command dd]
+catch { exec $dd if=/dev/zero of=bin/snapper_block.raw bs=1M count=16 }
+catch { exec $mke2fs -F bin/snapper_block.raw }
 
 install_config {
 <config>
@@ -51,7 +55,8 @@ install_config {
 		</provides>
 	</start>
 
-<start name="vfs_block" ram="4G" caps="2000">
+<start name="isomem_block" ram="4G" caps="2000">
+  <binary name="vfs_block"/>
 	<provides><service name="Block"/></provides>
 	<config>
 		<vfs>
@@ -65,13 +70,70 @@ install_config {
   </config>
 </start>
 
+<start name="snapper_block" ram="4G" caps="2000">
+  <binary name="vfs_block"/>
+	<provides><service name="Block"/></provides>
+	<config>
+		<vfs>
+			<ram/>
+			<import>
+				<rom name="snapper_block.raw"/>
+			</import>
+		</vfs>
+		<policy label_prefix="vfs"
+			      file="/snapper_block.raw" block_size="512" writeable="yes"/>
+  </config>
+</start>
+
+<start name="vfs" ram="200M" caps="200">
+ 	<provides><service name="File_system"/></provides>
+ 	<config>
+ 		<vfs>
+ 			<dir name="dev">
+ 				<block name="block" block_buffer_count="128"/>
+ 			</dir>
+      <dir name="snapper">
+        <ram/>
+      </dir>
+ 		</vfs>
+ 		<policy label_prefix="snapper" root="/snapper" writeable="yes"/>
+ 	</config>
+ 		<route>
+ 			<service name="Block"><child name="snapper_block"/></service>
+ 			<any-service> <parent/> <any-child /> </any-service>
+ 		</route>
+</start>
+
+    <start name="snapper" ram="400M" caps="100">
+      <provides>
+        <service name="Snapper"/>
+      </provides>
+
+      <config
+          verbose="true"
+          redundancy="2"
+          integrity="true"
+          max_snapshots="0"
+          min_snapshots="0"
+          threshold="1000"
+          expiration="3600">
+
+        <rtc/>
+
+        <vfs>
+          <fs/>
+        </vfs>
+      </config>
+    </start>
+
 
  	<start name="isomem" caps="2000">
- 		<resource name="RAM" quantum="2G"/>
+ 		<resource name="RAM" quantum="700M"/>
+ 
  		<config verbose="yes" ld_verbose="yes">
  		</config>
  		<route>
- 			<service name="Block"><child name="vfs_block"/></service>
+ 			<service name="Block"><child name="isomem_block"/></service>
  			<any-service> <parent/> <any-child /> </any-service>
  		</route>
  	</start>
@@ -80,15 +142,6 @@ install_config {
 #
 # Boot modules
 #
-build_boot_image [list {*}[build_artifacts] phantom_classes isomem block0.raw]
-
-append qemu_args " -smp 2 "
-# append qemu_args " -s -S "
-# append qemu_args " -m 1024 "
-append qemu_args " -device ahci,id=ahci -boot d "
-append qemu_args " -nographic "
-# append qemu_args " -drive id=disk,file=bin/ext2.raw,format=raw,if=none             -device ide-hd,drive=disk,bus=ahci.0 "
-append qemu_args " -drive id=disk,file=bin/block0.raw,format=raw,if=none             -device ide-hd,drive=disk,bus=ahci.0 "
-# append qemu_args " -drive id=cd,file=[run_dir]/../ahci_block.iso,if=none,media=cdrom -device ide-cd,drive=cd,bus=ahci.1 "
+build_boot_image [list {*}[build_artifacts] phantom_classes isomem block0.raw snapper_block.raw]
 
 run_genode_until forever

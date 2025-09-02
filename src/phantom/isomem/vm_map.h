@@ -54,6 +54,8 @@ typedef struct vm_page
     // NB!! pager_io_request MUST BE FIRST so that its address is our address too!
     struct pager_io_request pager_io;
 
+    u_int64_t           snapper_identifier;
+
     void *              virt_addr;     	// where phys_addr is mapped
     physaddr_t          phys_addr;      // our physical address in RAM, if any
 

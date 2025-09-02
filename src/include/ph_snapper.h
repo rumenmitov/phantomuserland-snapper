@@ -41,20 +41,20 @@ struct Snapper_result {
   } Result;
 };
 
-Snapper_result snapper_init_snapshot(void);
+struct Snapper_result snapper_init_snapshot(void);
 
-Snapper_result snapper_take_snapshot(void const *const payload, size_t size,
+struct Snapper_result snapper_take_snapshot(void const *const payload, size_t size,
                                      u_int64_t identifier);
 
-Snapper_result snapper_commit_snapshot(void);
+struct Snapper_result snapper_commit_snapshot(void);
 
-Snapper_result snapper_open_generation(const char *generation);
+struct Snapper_result snapper_open_generation(const char *generation);
 
-Snapper_result snapper_restore(void *dest, size_t size, u_int64_t identifier);
+struct Snapper_result snapper_restore(void *dest, size_t size, u_int64_t identifier);
 
-Snapper_result snapper_close_generation(void);
+struct Snapper_result snapper_close_generation(void);
 
-Snapper_result snapper_purge(const char *generation);
+struct Snapper_result snapper_purge(const char *generation);
 
 void snapper_purge_expired(void);
 

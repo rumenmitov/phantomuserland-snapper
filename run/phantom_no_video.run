@@ -19,10 +19,10 @@ build {
 # Build EXT2-file-system image
 #
 
-# set mke2fs [installed_command mke2fs]
-# set dd     [installed_command dd]
-# catch { exec $dd if=/dev/zero of=bin/ext2.raw bs=1M count=16 }
-# catch { exec $mke2fs -F bin/ext2.raw }
+set mke2fs [installed_command mke2fs]
+set dd     [installed_command dd]
+catch { exec $dd if=/dev/zero of=bin/snapper_block.raw bs=1M count=16 }
+catch { exec $mke2fs -F bin/snapper_block.raw }
 
 install_config {
 <config>
@@ -121,7 +121,7 @@ install_config {
 	</start>
 
 	<start name="ahci">
-		<resource name="RAM" quantum="10M" />
+		<resource name="RAM" quantum="1M" />
 		<provides><service name="Block" /></provides>
 		<config atapi="no">
 			<report ports="yes"/>
@@ -134,15 +134,18 @@ install_config {
 		</route>
 	</start>
 
-<start name="vfs" ram="24M">
+<start name="vfs" ram="200M" caps="200">
  	<provides><service name="File_system"/></provides>
  	<config>
  		<vfs>
  			<dir name="dev">
  				<block name="block" block_buffer_count="128"/>
  			</dir>
+      <dir name="snapper">
+        <ram/>
+      </dir>
  		</vfs>
- 		<policy label_prefix="snapper" root="/" writeable="yes"/>
+ 		<policy label_prefix="snapper" root="/snapper" writeable="yes"/>
  	</config>
 </start>
 
@@ -157,7 +160,7 @@ install_config {
           integrity="true"
           max_snapshots="0"
           min_snapshots="0"
-          threshold="100"
+          threshold="1000"
           expiration="3600">
 
         <rtc/>
@@ -166,6 +169,10 @@ install_config {
           <fs/>
         </vfs>
       </config>
+ 		<route>
+ 			<service name="Block"><child name="ahci"/></service>
+ 			<any-service> <parent/> <any-child /> </any-service>
+ 		</route>
     </start>
 
  	<start name="isomem" caps="2000">
