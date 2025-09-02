@@ -53,6 +53,7 @@
 
 #include <ph_malloc.h>
 #include <ph_string.h>
+#include <ph_snapper.h>
 
 
 #include "vm_map.h"
@@ -545,6 +546,9 @@ vm_page_init( vm_page *me, void *my_vaddr)
     hal_mutex_init(&me->lock, "VM PG" );
     page_touch_history(me);
     pager_io_request_init( &me->pager_io );
+
+    static u_int64_t identifier = 0;
+    me->snapper_identifier = identifier++;
 }
 
 
@@ -1370,6 +1374,20 @@ static void save_snap(vm_page *p)
     hal_mutex_unlock(&p->lock);
     if(SNAP_LISTS_DEBUG) hal_printf("pg0 %d, ", p->make_page);
     pagelist_write_seq( snap_saver, p->make_page);
+
+    struct Snapper_result res =
+      snapper_take_snapshot(p, sizeof(*p), p->snapper_identifier);
+
+    if (res.Tag != Recoverable) {
+    // TODO should crash here
+      ph_syslog(1, "SNAPPER CRASH STATE!!!");
+    }
+
+    if (res.Result.recoverableState != Ok) {
+      // TODO handle recoverable error
+      ph_syslog(1, "SNAPPER ERROR!");
+    }
+
     if(SNAP_LISTS_DEBUG) hal_printf("pg1 %d, ", p->make_page);
     hal_mutex_lock(&p->lock);
 
@@ -1498,6 +1516,9 @@ void do_snapshot(void)
     if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: creating pagelist 0...");
 
     {
+        // TODO snapper error handling
+        snapper_init_snapshot();
+      
         pagelist saver;
         pagelist_init( &saver, new_snap_head, 1, DISK_STRUCT_MAGIC_SNAP_LIST );
 
@@ -1512,6 +1533,9 @@ void do_snapshot(void)
         if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: creating pagelist 4...");
         pagelist_finish(&saver);
         if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: creating pagelist 5 (fin)...");
+
+        // TODO snapper error handling
+        snapper_commit_snapshot();
     }
 
     if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: waiting for all pages to be flushed...");

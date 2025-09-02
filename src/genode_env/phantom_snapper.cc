@@ -2,7 +2,7 @@
 #include "phantom_env.h"
 
 extern "C" {
-Snapper_result snapper_init_snapshot(void) {
+struct Snapper_result snapper_init_snapshot(void) {
   Snapper_result res;
   res.Tag = Snapper_result::Recoverable;
 
@@ -11,17 +11,19 @@ Snapper_result snapper_init_snapshot(void) {
   return res;
 }
 
-Snapper_result snapper_take_snapshot(void const *const payload, size_t size,
-                                     u_int64_t identifier) {
+struct Snapper_result snapper_take_snapshot(void const *const payload,
+                                            size_t size, u_int64_t identifier) {
   Snapper_result res;
   res.Tag = Snapper_result::Recoverable;
 
   res.Result.recoverableState =
       (decltype(res.Result.recoverableState))main_obj->snapper.take_snapshot(
           payload, size, identifier);
+
+  return res;
 }
 
-Snapper_result snapper_commit_snapshot(void) {
+struct Snapper_result snapper_commit_snapshot(void) {
   Snapper_result res;
 
   try {
@@ -36,7 +38,7 @@ Snapper_result snapper_commit_snapshot(void) {
   return res;
 }
 
-Snapper_result snapper_open_generation(const char *generation) {
+struct Snapper_result snapper_open_generation(const char *generation) {
   Snapper_result res;
   res.Tag = Snapper_result::Recoverable;
 
@@ -46,7 +48,8 @@ Snapper_result snapper_open_generation(const char *generation) {
   return res;
 }
 
-Snapper_result snapper_restore(void *dest, size_t size, u_int64_t identifier) {
+struct Snapper_result snapper_restore(void *dest, size_t size,
+                                      u_int64_t identifier) {
   Snapper_result res;
   res.Tag = Snapper_result::Recoverable;
 
@@ -56,7 +59,7 @@ Snapper_result snapper_restore(void *dest, size_t size, u_int64_t identifier) {
   return res;
 }
 
-Snapper_result snapper_close_generation(void) {
+struct Snapper_result snapper_close_generation(void) {
   Snapper_result res;
   res.Tag = Snapper_result::Recoverable;
 
@@ -66,7 +69,7 @@ Snapper_result snapper_close_generation(void) {
   return res;
 }
 
-Snapper_result snapper_purge(const char *generation) {
+struct Snapper_result snapper_purge(const char *generation) {
   Snapper_result res;
   res.Tag = Snapper_result::Recoverable;
 
