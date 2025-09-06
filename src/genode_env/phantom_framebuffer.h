@@ -57,9 +57,6 @@ protected:
 
   Gui::Top_level_view _view{_gui, _view_attributes.rect};
 
-  Framebuffer::Session *_framebuffer_session = nullptr;
-  Input::Session *_input_session = nullptr;
-
   Genode::Signal_handler<FramebufferAdapter> _input_signal_handler{
       _ep, *this, &FramebufferAdapter::_handle_input};
 
@@ -72,74 +69,52 @@ protected:
   }
 
   void _handle_input() {
-    if (!_input_session->pending())
-      return;
+    while (!_gui.input.pending()) {
+      _gui.input.for_each_event([&] (Input::Event const &ev) {     
+        bool have_mouse_event = false;
 
-    int n_events = _input_session->flush();
-    Input::Event *event_buffer = nullptr;
+        ev.handle_absolute_motion([&](int x, int y) {
+            _mouse_x = x;
+            _mouse_y = y;
+            have_mouse_event = true;
+        });
 
-    _env.rm()
-        .attach(_input_session->dataspace(),
-                Genode::Region_map::Attr{.size = 0,
-                                         .offset = 0,
-                                         .use_at = false,
-                                         .at = 0,
-                                         .executable = false,
-                                         .writeable = true})
-        .with_result(
-            [&event_buffer](Genode::Env::Local_rm::Attachment &attachment) {
-              event_buffer = reinterpret_cast<Input::Event *>(attachment.ptr);
-              attachment.deallocate = false;
-            },
-            [](auto) {
-              Genode::error(
-                  "couldn't arrach region map for input event buffer!");
-              throw;
-            });
+        ev.handle_press([&](Input::Keycode key, Input::Codepoint codepoint) {
+          (void)codepoint;
+          unsigned int flags = keycode_to_mouse_flags(key);
+          if (!flags)
+            return;
 
-    bool have_mouse_event = false;
+          _mouse_flags |= flags;
+          have_mouse_event = true;
+        });
+
+        ev.handle_release([&](Input::Keycode key) {
+          unsigned int flags = keycode_to_mouse_flags(key);
+          if (!flags)
+            return;
+
+          _mouse_flags &= ~flags;
+          have_mouse_event = true;
+        });
+
+        if (have_mouse_event)
+          _report_mouse_events();
+      });
+    }
+
+
 
     // XXX: middle mouse press / release seem to always appear in the same
     // event buffer,
     //      so phantom never receives middle button clicks
-    for (int i = 0; i < n_events; i++) {
-      event_buffer[i].handle_press(
-          [this, &have_mouse_event](Input::Keycode key,
-                                    Input::Codepoint codepoint) {
-            (void)codepoint;
-            unsigned int flags = keycode_to_mouse_flags(key);
-            if (!flags)
-              return;
-
-            _mouse_flags |= flags;
-            have_mouse_event = true;
-          });
-      event_buffer[i].handle_release(
-          [this, &have_mouse_event](Input::Keycode key) {
-            unsigned int flags = keycode_to_mouse_flags(key);
-            if (!flags)
-              return;
-
-            _mouse_flags &= ~flags;
-            have_mouse_event = true;
-          });
-      event_buffer[i].handle_absolute_motion(
-          [this, &have_mouse_event](int x, int y) {
-            _mouse_x = x;
-            _mouse_y = y;
-            have_mouse_event = true;
-          });
-    }
-
-    if (have_mouse_event)
-      _report_mouse_events();
   }
 
 public:
   unsigned char *pixels = nullptr;
 
   void refresh_screen() {
-    _framebuffer_session->refresh(_view_attributes.rect);
+    _gui.framebuffer.refresh(_view_attributes.rect);
 
     Gui::Rect geometry(_view_attributes.rect);
     _gui.enqueue<Gui::Session::Command::Geometry>(_view.id(), geometry);
@@ -154,27 +129,8 @@ public:
     _gui.execute();
 
     _gui.buffer({_view_attributes.rect.area, false});
-    *_framebuffer_session = _gui.framebuffer;
-    *_input_session = _gui.input;
 
-    Genode::Region_map::Attr attributes{
-        .size =
-            Genode::Dataspace_client(_framebuffer_session->dataspace()).size(),
-        .offset = 0,
-        .use_at = false,
-        .executable = false,
-        .writeable = true};
-
-    _env.rm()
-        .attach(_framebuffer_session->dataspace(), attributes)
-        .with_result(
-            [this](Genode::Env::Local_rm::Attachment &attachment) {
-              pixels = (unsigned char *)attachment.ptr;
-              attachment.deallocate = false;
-            },
-            [](auto) { throw; });
-
-    _input_session->sigh(_input_signal_handler);
+    _gui.input.sigh(_input_signal_handler);
 
     Genode::log("Framebuffer and input initialized");
   }
