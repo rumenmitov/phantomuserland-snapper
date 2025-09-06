@@ -21,6 +21,10 @@ build {
 
 set mke2fs [installed_command mke2fs]
 set dd     [installed_command dd]
+
+catch { exec $dd if=/dev/zero of=bin/block0.raw bs=1M count=0 seek=2048 }
+catch { exec $dd dd conv=notrunc bs=4096 count=1 seek=16 if=/phantomuserland/src/run/img/phantom.superblock of=bin/block0.raw }
+
 catch { exec $dd if=/dev/zero of=bin/snapper_block.raw bs=1M count=16 }
 catch { exec $mke2fs -F bin/snapper_block.raw }
 

@@ -25,6 +25,10 @@ import_from_depot [depot_user]/pkg/[drivers_interactive_pkg] \
 
 set mke2fs [installed_command mke2fs]
 set dd     [installed_command dd]
+
+catch { exec $dd if=/dev/zero of=bin/block0.raw bs=1M count=0 seek=2048 }
+catch { exec $dd dd conv=notrunc bs=4096 count=1 seek=16 if=/phantomuserland/src/run/img/phantom.superblock of=bin/block0.raw }
+
 catch { exec $dd if=/dev/zero of=bin/snapper_block.raw bs=1M count=16 }
 catch { exec $mke2fs -F bin/snapper_block.raw }
 
@@ -156,6 +160,7 @@ install_config {
 		<config>
 			<capture/> <event/>
 			<domain name="default" layer="1" content="client" label="no" hover="always" focus="click" width="1024" height="768"/>
+
 			<default-policy domain="default"/>
 		</config>
 		<route> <any-service> <parent/> <any-child/> </any-service> </route>
@@ -203,7 +208,7 @@ install_config {
   </start>
 
  	<start name="isomem" caps="2000">
- 		<resource name="RAM" quantum="700M"/>
+ 		<resource name="RAM" quantum="1G"/>
  
  		<config verbose="yes" ld_verbose="yes">
  		</config>
@@ -220,12 +225,9 @@ install_config {
 build_boot_image [list {*}[build_artifacts] phantom_classes isomem]
 
 append qemu_args " -smp 2 "
-# append qemu_args " -enable-kvm "
-# append qemu_args " -s -S "
-# append qemu_args " -m 1024 "
+append qemu_args " -m 8000 "
 append qemu_args " -device ahci,id=ahci -boot d "
 append qemu_args " -drive id=disk,file=bin/block0.raw,format=raw,if=none             -device ide-hd,drive=disk,bus=ahci.0 "
 append qemu_args " -drive id=snapper,file=bin/snapper_block.raw,format=raw,if=none   -device ide-hd,drive=snapper,bus=ahci.1 "
-# append qemu_args " -drive id=cd,file=[run_dir]/../ahci_block.iso,if=none,media=cdrom -device ide-cd,drive=cd,bus=ahci.1 "
 
 run_genode_until forever

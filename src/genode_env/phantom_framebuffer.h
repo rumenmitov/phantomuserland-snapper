@@ -57,6 +57,8 @@ protected:
 
   Gui::Top_level_view _view{_gui, _view_attributes.rect};
 
+  Genode::Constructible<Genode::Attached_dataspace> _fb_ds { };
+
   Genode::Signal_handler<FramebufferAdapter> _input_signal_handler{
       _ep, *this, &FramebufferAdapter::_handle_input};
 
@@ -129,6 +131,10 @@ public:
     _gui.execute();
 
     _gui.buffer({_view_attributes.rect.area, false});
+
+    _fb_ds.construct(_env.rm(), _gui.framebuffer.dataspace());
+
+    pixels = (unsigned char*)_fb_ds->local_addr<Genode::Pixel_rgb888>();
 
     _gui.input.sigh(_input_signal_handler);
 
