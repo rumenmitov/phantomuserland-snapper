@@ -43,8 +43,6 @@
 #  define PHYSALLOC_MAXPAGES 0x400000
 #endif
 
-static void cmd_mem_stat( int ac, char **av );
-
 
 #define USE_RESERVE 0
 
@@ -661,32 +659,8 @@ static void replentishThread(void *arg)
 
 #define PG2KB(__p) ((__p) * 4)
 
-static void dump_mem_stat( physalloc_t *map, const char *name, long div, const char *unit )
-{
-    int total = PG2MB(map->allocable_size, div);
-    int free = PG2MB( (map->allocable_size - map->n_used_pages), div );
-    int used = PG2MB(map->n_used_pages, div);
-    ph_printf("  %-14s: %5d %s, %5d %s free, %5d %s used\n", name, total, unit, free, unit, used, unit );
-}
-
 // size_t pahantom_total_phys_mem_kb() { return PG2KB(pm_map.allocable_size); }
 // size_t pahantom_free_phys_mem_kb() { return PG2KB( pm_map.allocable_size - pm_map.n_used_pages ); }
-
-
-
-static void cmd_mem_stat( int ac, char **av )
-{
-    (void) ac;
-    (void) av;
-
-    dump_mem_stat( &vm_map, "Address space", 1024L, "Mb" );
-    // dump_mem_stat( &pm_map, "Hi mem", 1024L, "Mb"  );
-    // dump_mem_stat( &low_map, "Low mem", 1L, "Kb"  );
-}
-
-
-
-
 
 
 

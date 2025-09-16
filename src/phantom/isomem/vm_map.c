@@ -77,8 +77,6 @@
 #if USE_SNAP_WAIT
 
 static void init_snap_wait( void );
-static void signal_snap_snap_passed( void );
-static void signal_snap_done_passed( void );
 
 #endif
 
@@ -111,15 +109,11 @@ static hal_mutex_t vm_map_mutex;
 
 
 static void vm_map_deferred_disk_alloc_thread(void);
-static void vm_map_lazy_pageout_thread(void);
 static void vm_map_snapshot_thread(void);
 
 
 static void page_clear_engine_init(void);
 static void page_clear_engine_clear_page(physaddr_t p);
-
-static void vm_verify_snap(disk_page_no_t head);
-static void vm_verify_vm(void);
 
 
 static hal_cond_t      deferred_alloc_thread_sleep;
@@ -500,7 +494,6 @@ vm_map_init(unsigned long page_count)
 
 #if 1
     hal_start_kernel_thread(vm_map_deferred_disk_alloc_thread);
-    // hal_start_kernel_thread(vm_map_lazy_pageout_thread);
     hal_start_kernel_thread(vm_map_snapshot_thread);
 #endif
 
@@ -1320,40 +1313,6 @@ static void kick_pageout(vm_page *p)
 }
 
 
-// NB! Call with vm_map_mutex taken
-static void finalize_snap(vm_page *p)
-{
-    page_touch_history(p);
-    if(SNAP_DEBUG) hal_printf("finalize_snap 0x%X: ", p->virt_addr );
-
-    if(p->flag_have_make)
-    {
-        page_touch_history(p);
-        if(SNAP_DEBUG) hal_printf("has make 1\n" );
-        return;
-    }
-
-    while (p->flag_pager_io_busy)
-    {
-        if(SNAP_DEBUG) hal_printf("waiting for pager io\n" );
-        hal_cond_wait(&p->done, &p->lock);
-    }
-
-    if(p->flag_have_make)
-    {
-        page_touch_history(p);
-        if(SNAP_DEBUG) hal_printf("has make 2\n" );
-        return;
-    }
-
-    assert(!p->flag_phys_dirty);
-
-    select_make_page(p);
-
-    if(SNAP_DEBUG) hal_printf(" done, " );
-}
-
-
 pagelist *snap_saver = 0;
 
 static void save_snap(vm_page *p)
@@ -1385,17 +1344,6 @@ static void save_snap(vm_page *p)
     p->flag_have_prev = 1;
 }
 
-
-static void wait_commit_snap(vm_page *p)
-{
-    if (p->flag_pager_io_busy && p->flag_have_curr && p->pager_io.disk_page == p->curr_page)
-        return;
-
-    while (p->flag_pager_io_busy)
-    {
-        hal_cond_wait(&p->done, &p->lock);
-    }
-}
 
 // TODO if we page out page, which is unchanged since THE SNAP and page fault comes (somebody wants to write to that
 // page) we need to do COW too! (but why?)
@@ -1531,21 +1479,6 @@ static inline void balance_clean_dirty(void)
 
 #endif
 
-static void vm_map_lazy_pageout_thread(void)
-{
-    SHOW_FLOW0( 1, "Ready");
-    t_current_set_name("LazyPageout");
-
-    while(1)
-    {
-        if( stop_lazy_pageout_thread )
-            hal_exit_kernel_thread();
-
-        hal_sleep_msec( 100 ); // TODO: cond_wait?
-
-        balance_clean_dirty();
-    }
-}
 static int request_snap_flag = 0;
 static int seconds_between_snaps = 5;
 
@@ -1728,165 +1661,11 @@ static size_t vm_verify_object(void *p)
     return curr->_ah.exact_size;
 }
 
-/**
- * Verify objects in the page.
- *
- * When object's pvm_object_storage crosses page boundary, part of it is stored in
- * the hdr for reassembly with the next page.
- *
- * @param data: page data
- * @param page_offset: relative to the vm_map_start_of_virtual_address_space
- * @param current: current object offset relative to the vm_map_start_of_virtual_address_space
- * @param sz: size of VM, limit for the current
- *
- * @return offset of the object out of the current page, unless current object's
- * pvm_object_storage crosses page boundary
- */
-static size_t vm_verify_page(void *data, size_t page_offset, size_t current, size_t sz)
-{
-    static struct pvm_object_storage hdr;
-
-    if (current < page_offset && page_offset - current < sizeof(hdr))
-    {
-        ph_memcpy(((void*)&hdr) + (page_offset - current), data,
-                sizeof(hdr) - (page_offset - current));
-        // SHOW_FLOW(0, "verifying object (case 0) at %p", (void*)(current));
-        current += vm_verify_object(&hdr);
-    }
-    while (current < sz && current - page_offset < ARCH_PAGE_SIZE)
-    {
-        if (current + sizeof(hdr) - page_offset <= ARCH_PAGE_SIZE){
-            // SHOW_FLOW(0, "verifying object (case 1) at %p", (void*)(current));
-            current += vm_verify_object(data + (current - page_offset));
-        }
-        else
-        {
-            ph_memcpy(&hdr, data + (current - page_offset), ARCH_PAGE_SIZE - (current - page_offset));
-            break;
-        }
-    }
-    return current;
-}
-
-#endif
-
-#if VERIFY_VM_SNAP
-
-static void vm_verify_vm(void)
-{
-    size_t current = 0;
-    int np;
-
-    if(SNAP_STEPS_DEBUG) hal_printf("Verifying VM before snapshot...\n");
-    for (np = 0; np < vm_map_map_end - vm_map_map; np++)
-    {
-        size_t page_offset = np * ARCH_PAGE_SIZE;
-        current = vm_verify_page(vm_map_start_of_virtual_address_space + page_offset,
-                page_offset, current, hal.object_vsize);
-    }
-    if(SNAP_STEPS_DEBUG) hal_printf("VM verification icomplete\n");
-}
-
-#else
-
-static void vm_verify_vm(void)
-{
-}
-
 #endif
 
 #if VERIFY_SNAP
 
 #define USE_SYNC_IO 1
-
-static void vm_verify_snap(disk_page_no_t head)
-{
-    int progress = 0;
-    int np;
-    pagelist loader;
-    size_t current = 0;
-
-
-    if (!head)
-        return;
-
-    if (SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: verification started...");
-
-#if !USE_SYNC_IO
-    disk_page_io page_io;
-
-    disk_page_io_init(&page_io);
-    disk_page_io_allocate(&page_io);
-#endif
-
-    pagelist_init(&loader, head, 0, DISK_STRUCT_MAGIC_SNAP_LIST);
-
-    pagelist_seek(&loader);
-
-    for(np = 0; np < vm_map_map_end - vm_map_map; np++)
-    {
-        size_t page_offset = np * ARCH_PAGE_SIZE;
-        disk_page_no_t block;
-	short percentage = np * 100 / (vm_map_map_end - vm_map_map);
-
-        if (progress != percentage)
-        {
-            progress = percentage;
-            if (SNAP_STEPS_DEBUG)
-	    {
-		if (progress % 10) hal_printf(". ", progress);
-		else hal_printf(".%d%%\n", progress);
-	    }
-        }
-        if (!pagelist_read_seq(&loader, &block))
-        {
-            ph_printf("Incomplete pagelist\n");
-            //panic("Incomplete pagelist\n");
-            break;
-        }
-
-        if (current < page_offset || current - page_offset < ARCH_PAGE_SIZE)
-        {
-#if USE_SYNC_IO
-            extern phantom_disk_partition_t *pp; // BUG
-
-            char buf[DISK_STRUCT_BS];
-
-            errno_t rc = phantom_sync_read_block( pp, buf, block, 1 );
-            if( rc )
-            {
-                ph_syslog( 0, "snap: verification read err %d", rc );
-                return;
-            }
-
-            // SHOW_FLOW(0, "verifying page %p, current=%p", (void*)page_offset, (void*)current);
-            current = vm_verify_page(buf, page_offset, current, hal.object_vsize);
-#else
-            page_io.req.disk_page = block;
-            disk_page_io_load_me_async(&page_io);
-            disk_page_io_wait(&page_io);
-            current = vm_verify_page(page_io.mem, page_offset, current, hal.object_vsize);
-#endif
-        }
-    }
-
-    pagelist_finish( &loader );
-#if !USE_SYNC_IO
-    disk_page_io_release(&page_io);
-#endif
-    if (SNAP_STEPS_DEBUG)
-    {
-	hal_printf("\n");
-	ph_syslog( 0, "snap: verification completed");
-    }
-}
-
-#else
-
-static inline void vm_verify_snap(disk_page_no_t head)
-{
-    (void)head;
-}
 
 #endif
 
@@ -2043,17 +1822,6 @@ void phantom_wait_4_snapshot_done( void )
     assert ( 0 == hal_mutex_unlock( &wait_snap_mutex ) );
 }
 
-
-
-static void signal_snap_snap_passed( void )
-{
-    assert ( 0 == hal_cond_broadcast( &wait_snap_snap ) );
-}
-
-static void signal_snap_done_passed( void )
-{
-    assert ( 0 == hal_cond_broadcast( &wait_snap_snap ) );
-}
 
 #endif
 
