@@ -1359,21 +1359,9 @@ pagelist *snap_saver = 0;
 static void save_snap(vm_page *p)
 {
     page_touch_history(p);
-    // TODO added for safety - remove or do in a more smart way?
-    // HACK! We set have make and make_page = 0 on unused page
-
-    // What is the purpose of this? no idea, so removed it
-    // if(! (p->flag_have_make && p->make_page == 0 && !p->flag_have_curr && !p->flag_have_prev) )
-    // {
-    //     page_touch_history(p);
-    //     vm_page_req_pageout(p);
-    // }
-
-    assert(p->flag_have_make);
 
     hal_mutex_unlock(&p->lock);
     if(SNAP_LISTS_DEBUG) hal_printf("pg0 %d, ", p->make_page);
-    pagelist_write_seq( snap_saver, p->make_page);
 
     struct Snapper_result res =
       snapper_take_snapshot(p, sizeof(*p), p->snapper_identifier);
@@ -1431,148 +1419,29 @@ void do_snapshot(void)
     t_current_get_priority(&prio);
     t_current_set_priority( THREAD_PRIO_LOWEST );
 
-
-    vm_map_for_all( kick_pageout ); // Try to pageout all of them - NOT IN LOCK!
-    if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: wait 4 pgout to settle");
-
-    // Back to orig prio
-    t_current_set_priority( prio );
-
-    // commented out to stress the pager
-    //hal_sleep_msec(30000); // sleep for 10 sec - why 10?
-
     if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: stop world");
-
-
-    // MUST BE BEFORE hal_mutex_lock!
     phantom_snapper_wait_4_threads();
-
     if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: threads stopped");
 
+    t_smp_enable(0); // make sure other CPUs don't mess here
+
     enabled = hal_save_cli();
-
-    vm_verify_vm();
-
-    // START!
-    is_in_snapshot_process = 1;
-
-    // Terrible and mighty step - ALL the pages will be marked
-    // as not snapped and access to them will be locked here, so
-    // that page faults will bring them to us on write attempts and we'll
-    // make a copies (COW).
-
-    // !!!! SnapShot !!!!
-
-    ph_syslog( 0, "snap: hold still, say 'cheese!'...");
-
-    // TODO: we have top do more. such as stop oher CPUS, force VMs into the
-    // special snap-friendly state, etc
-    //t_smp_enable(0); // make sure other CPUs don't mess here
     t_migrate_to_boot_CPU();
-    vm_map_for_all_locked( mark_for_snap );
-    t_smp_enable(1);
-
-    ph_syslog( 0, "snap: thank you ladies");
-
     if(enabled) hal_sti();
 
-    phantom_snapper_reenable_threads();
-#if USE_SNAP_WAIT
-    signal_snap_snap_passed(); // or before enabling threads?
-#endif
+    ph_syslog( 0, "snap: hold still, say 'cheese!'...");
+    snapper_init_snapshot();
+    is_in_snapshot_process = 1;
 
-    // YES, YES, YES, Snap is nearly done.
+    vm_map_for_all( save_snap );
+    ph_syslog( 0, "snap: thank you ladies");
 
-    // Here we have to wait a little and start processing pages manually
-    // because no one can be sure that all the pages will be accessed for
-    // write in a short time.
-
-    // This pageout request is needed - if I skip it, snaps are incomplete
-    if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: pgout");
-    vm_map_for_all( kick_pageout ); // Try to pageout all of them - NOT IN LOCK!
-
-    ph_syslog( 0, "snap: will finalize_snap");
-    // scan nonsnapped pages, snap them manually (or just access to cause
-    // page fault?)
-    vm_map_for_all( finalize_snap );
-
-    // now all pages must have make_page.
-    // will save them now and move make_page -> prev_page,
-    // don't want page_fault_write to create them another make_page as we do this.
     is_in_snapshot_process = 0;
+    t_smp_enable(1);
+    phantom_snapper_reenable_threads();
+    snapper_commit_snapshot();
 
-    // now all the pages for snapshot are done. Now create
-    // the disk data structure for them
-
-    // TODO - free prev snap first! -- (why?)
-
-    disk_page_no_t new_snap_head = 0;
-
-
-    if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: creating primary pagelist root");
-    if( !pager_alloc_page_locked(&new_snap_head) ) panic("out of disk!");
-
-
-    if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: creating pagelist 0...");
-
-    {
-        // TODO snapper error handling
-        snapper_init_snapshot();
-      
-        pagelist saver;
-        pagelist_init( &saver, new_snap_head, 1, DISK_STRUCT_MAGIC_SNAP_LIST );
-
-        if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: creating pagelist 1...");
-        pagelist_clear(&saver);
-        if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: creating pagelist 2...");
-        snap_saver = &saver;
-        vm_map_for_all( save_snap );
-        if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: creating pagelist 3...");
-        snap_saver = 0;
-        pagelist_flush(&saver);
-        if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: creating pagelist 4...");
-        pagelist_finish(&saver);
-        if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: creating pagelist 5 (fin)...");
-
-        // TODO snapper error handling
-        snapper_commit_snapshot();
-    }
-
-    if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: waiting for all pages to be flushed...");
-    // make sure page data has been written
-    vm_map_for_all( wait_commit_snap );
-
-    // XXX : Takes a lot of time
-    // TODO : Optimize if possible
-    // vm_verify_snap(new_snap_head);
-
-    // ok, now we have current snap and previous one. come fix the superblock
-    pager_superblock_ptr()->snap_to_free = pager_superblock_ptr()->prev_snap;
-    pager_superblock_ptr()->prev_snap = pager_superblock_ptr()->last_snap;
-    pager_superblock_ptr()->last_snap = new_snap_head;
-    pager_commit_active_free_list();
-    pager_update_superblock();
-    
-    pager_free_blocklist_pages();
-    // these two are probably unnecessary, but they should slightly reduce disk leak
-    pager_commit_active_free_list();
-    pager_update_superblock();
-
-    //#error not impl
-    // free journal part, which was created before this snap
-    // was started
-
-    // DONE!
-    ph_syslog( 0, "Snapshot done!");
-
-    STAT_INC_CNT(STAT_CNT_SNAPSHOT);
-
-#if USE_SNAP_WAIT
-    signal_snap_done_passed();
-#endif
-
-    // for tracking disk leak, remove once it is resolved
-    pager_calculate_free_block_count();
+    return;
 }
 
 
