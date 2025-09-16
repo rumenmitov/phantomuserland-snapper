@@ -154,7 +154,6 @@ void       	vm_page_req_pageout();
     //static volatile bool last_snap_is_done;
 
     //void         	vm_map_page_fault_handler( void *address, int is_write );
-    //void         	vm_map_lazy_pageout_thread(void);
     //void         	vm_map_deferred_disk_alloc_thread(void);
 
     void                vm_map_do_for( vmem_page_func_t func, bool_vmem_page_func_t predicate );
