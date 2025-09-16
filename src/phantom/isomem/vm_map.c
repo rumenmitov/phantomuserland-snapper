@@ -1313,6 +1313,43 @@ static void kick_pageout(vm_page *p)
 }
 
 
+static void recover_snap(vm_page *p) 
+{
+    struct Snapper_result res =
+      snapper_restore(p, sizeof(*p), p->snapper_identifier);
+
+    snapper_handle_result(&res);
+}
+
+void recover_snapshot(void) 
+{
+  int prio = 0, enabled = 0;
+  t_current_get_priority(&prio);
+  t_current_set_priority( THREAD_PRIO_HIGHEST );
+
+  if(SNAP_STEPS_DEBUG) ph_syslog( 0, "recovery: stop world");
+  phantom_snapper_wait_4_threads();
+  if(SNAP_STEPS_DEBUG) ph_syslog( 0, "recovery: threads stopped");
+
+  t_smp_enable(0); // make sure other CPUs don't mess here
+  enabled = hal_save_cli();
+  t_migrate_to_boot_CPU();
+  if(enabled) hal_sti();
+
+  ph_syslog( 0, "recovery: try to recover previous state");
+  struct Snapper_result res = snapper_open_generation("");
+  if (snapper_handle_result(&res) == 0) {
+    vm_map_for_all( recover_snap );
+  }
+
+  t_smp_enable(1);
+  phantom_snapper_reenable_threads();
+  t_current_set_priority(prio);
+
+  res = snapper_close_generation();
+  snapper_handle_result(&res);
+}
+
 pagelist *snap_saver = 0;
 
 static void save_snap(vm_page *p)
@@ -1325,15 +1362,8 @@ static void save_snap(vm_page *p)
     struct Snapper_result res =
       snapper_take_snapshot(p, sizeof(*p), p->snapper_identifier);
 
-    if (res.Tag != Recoverable) {
-    // TODO should crash here
-      ph_syslog(1, "SNAPPER CRASH STATE!!!");
-    }
+    snapper_handle_result(&res);
 
-    if (res.Result.recoverableState != Ok) {
-      // TODO handle recoverable error
-      ph_syslog(1, "SNAPPER ERROR!");
-    }
 
     if(SNAP_LISTS_DEBUG) hal_printf("pg1 %d, ", p->make_page);
     hal_mutex_lock(&p->lock);
@@ -1345,12 +1375,13 @@ static void save_snap(vm_page *p)
 }
 
 
+
 // TODO if we page out page, which is unchanged since THE SNAP and page fault comes (somebody wants to write to that
 // page) we need to do COW too! (but why?)
 
 void do_snapshot(void)
 {
-    int			  enabled; // interrupts
+    int			  enabled = 0; // interrupts
 
     ph_syslog( 0, "snap: started");
     // prerequisites
@@ -1378,7 +1409,10 @@ void do_snapshot(void)
     if(enabled) hal_sti();
 
     ph_syslog( 0, "snap: hold still, say 'cheese!'...");
-    snapper_init_snapshot();
+
+    struct Snapper_result res = snapper_init_snapshot();
+    snapper_handle_result(&res);
+
     is_in_snapshot_process = 1;
 
     vm_map_for_all( save_snap );
@@ -1387,9 +1421,11 @@ void do_snapshot(void)
     is_in_snapshot_process = 0;
     t_smp_enable(1);
     phantom_snapper_reenable_threads();
-    snapper_commit_snapshot();
 
-    return;
+    res = snapper_commit_snapshot();
+    snapper_handle_result(&res);
+
+    t_current_set_priority(prio);
 }
 
 

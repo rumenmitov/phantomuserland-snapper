@@ -645,4 +645,5 @@ void start_phantom()
     // allocator insists on trying to access the byte
     // just after the memory arena. Fix that and remove this +1 after.
     vm_map_init( N_OBJMEM_PAGES+1 );
+    recover_snapshot();
 }
