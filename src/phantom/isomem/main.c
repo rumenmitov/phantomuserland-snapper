@@ -437,7 +437,7 @@ int phantom_main_entry_point(int argc, char **argv, char **envp)
 
     // If we are in test environment, start tests. Otherwise run VM
 
-    #ifdef PHANTOM_TESTS_ONLY
+#ifdef PHANTOM_TESTS_ONLY
     ph_printf("Starting persistent memory test\n");
     {
         // Trying to trigger page faults on certain pages
@@ -511,6 +511,8 @@ int phantom_main_entry_point(int argc, char **argv, char **envp)
             }
         }
 
+        recover_snapshot();
+          
         // Performing a snapshot
 
         do_snapshot();
@@ -629,7 +631,12 @@ void start_phantom()
     //pressEnter("will init pager");
     pager_init(&pdev);
 #else
-    partition_pager_init(select_phantom_partition());
+    /*
+      BUG
+      Race-condition + deadlock :)
+      Problem seems to be when blocking the thread.
+     */
+    // partition_pager_init(select_phantom_partition());
 #endif
 
     SHOW_FLOW0( 5, "Will init vm map... ");
