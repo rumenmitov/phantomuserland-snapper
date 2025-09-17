@@ -158,7 +158,7 @@ This section contains commands that would prepare the environment to build Phant
 cd ./genode/
 
 # Switch to supported version
-git checkout 25.05
+git switch --detach sculpt-25.04
 
 # Creating build directory
 ./tool/create_builddir x86_64
@@ -176,6 +176,11 @@ echo "REPOSITORIES += \$(GENODE_DIR)/repos/snapper" >> build/x86_64/etc/build.co
 
 # go back
 cd ../
+
+# Extract Snapper Library
+DEPOT_DIR=$(pwd)/var/depot ./genode/tool/depot/extract phantom/src/snap
+
+# NB: Make sure the phantom/src/snap version matches the one in the `used_apis` file!
 
 # Creating soft link required to assemble system image
 mkdir -p genode/build/x86_64/bin
