@@ -49,10 +49,14 @@ extern "C"
         // XXX : Seems that the legit way is to return from Thread::entry
         main_obj->_env.cpu().kill_thread(Thread::myself()->cap());
 
+#ifndef PHANTOM_BUILD_LINUX
         while (true)
         {
-            Genode::error("Error: Phantom kernel thread %s was not terminated!", Thread::myself()->name.string());
+          Genode::error("Error: Phantom kernel thread ",
+                        Thread::myself()->name.string(),
+                        " was not terminated!");
         }
+#endif // PHANTOM_BUILD_LINUX
     }
 
     tid_t hal_start_thread(void (*thread)(void *arg), void *arg, int flags)

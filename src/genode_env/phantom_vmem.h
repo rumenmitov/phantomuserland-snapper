@@ -152,8 +152,8 @@ typedef Registered<Phys_region> Phys_region_handle;
 struct Phantom::Vmem_adapter {
   const bool _debug = false;
 
-  const addr_t OBJECT_SPACE_START = 0x80000000;
-  const addr_t OBJECT_SPACE_SIZE = 0x40000000;
+  addr_t OBJECT_SPACE_START = 0x80000000;
+  addr_t OBJECT_SPACE_SIZE = 0x40000000;
   // TODO : defined as a macro that is required for other Phantom, need to
   // fix!!! const size_t ARCH_PAGE_SIZE = 4096;
 
@@ -185,12 +185,14 @@ struct Phantom::Vmem_adapter {
 
     // Initializing obj space allocator
     _obj_space_allocator.add_range(OBJECT_SPACE_START + ARCH_PAGE_SIZE * 0x10,
-                                   OBJECT_SPACE_SIZE);
+                                   OBJECT_SPACE_SIZE).with_error([](auto error) {throw;});
 
     // Initializing pseudo phys allocator
-    _pseudo_phys_addr_allocator.add_range(ARCH_PAGE_SIZE * 0x10, _phys_space_limit);
+    _pseudo_phys_addr_allocator.add_range(ARCH_PAGE_SIZE * 0x10, _phys_space_limit).with_error([](auto error) {throw;});
 
+    addr_t ptr_obj = 0;
 
+#ifndef PHANTOM_LINUX
     // ATTENTION! _obj_space is attached to the env's rm!
     // void *ptr_obj = env.rm().attach(_obj_space.dataspace(), 0, 0, true,
     // OBJECT_SPACE_START, false, true);
@@ -201,18 +203,32 @@ struct Phantom::Vmem_adapter {
                                 .executable = false,
                                 .writeable = true};
 
-    addr_t ptr_obj = 0;
     env.rm()
-    .attach(_obj_space.dataspace(), attributes)
-        .with_result(
-            [&ptr_obj](Genode::Env::Local_rm::Attachment &attachment) {
-              ptr_obj = (Genode::addr_t)attachment.ptr;
-              attachment.deallocate = false;
-            },
-            [](auto) {
-              error("couldn't attach dataspace!");
-              throw;
-            });
+      .attach(_obj_space.dataspace(), attributes)
+      .with_result(
+        [&ptr_obj](Genode::Env::Local_rm::Attachment &attachment) {
+          ptr_obj = (Genode::addr_t)attachment.ptr;
+          attachment.deallocate = false;
+        },
+        [](auto) {
+          error("couldn't attach dataspace!");
+          throw;
+        });
+#else
+
+    Region_map::Attr attributes{.size = OBJECT_SPACE_SIZE,
+                                .offset = 0,
+                                .use_at = false,
+                                .at = OBJECT_SPACE_START,
+                                .executable = false,
+                                .writeable = true};
+
+    env.rm().attach(_ram_ds, attributes).with_result([&](Genode::Env::Local_rm::Attachment &attachment) {
+      ptr_obj = (Genode::addr_t)attachment.ptr;
+      attachment.deallocate = false;
+      OBJECT_SPACE_START = ptr_obj;
+    }, [](auto) {throw;});
+#endif // PHANTOM_LINUX
 
     Dataspace_client rm_obj_client(_obj_space.dataspace());
     log(_obj_space.dataspace());

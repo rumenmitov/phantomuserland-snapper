@@ -236,7 +236,7 @@ int phantom_main_entry_point(int argc, char **argv, char **envp)
     SHOW_FLOW0( 0, "intr reg overflow test PASSED" );
 #endif
 
-    hal_init((void *)PHANTOM_AMAP_START_VM_POOL, N_OBJMEM_PAGES*4096L);
+    hal_init(hal_get_objspace_start(), N_OBJMEM_PAGES*4096L);
 
     // Threads startup
     arch_threads_init();
