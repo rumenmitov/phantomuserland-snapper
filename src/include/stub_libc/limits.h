@@ -43,4 +43,4 @@
 #define LLONG_MAX       INT64_MAX
 #define ULLONG_MAX      UINT64_MAX
 
-#define 	UINTPTR_MAX   UINT32_MAX
+#define 	UINTPTR_MAX   UINT64_MAX

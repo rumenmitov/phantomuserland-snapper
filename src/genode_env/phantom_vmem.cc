@@ -99,6 +99,12 @@ extern "C"
      *
      */
 
+    
+  vmem_ptr_t hal_get_objspace_start(void) 
+  {
+    return (void*) Phantom::main_obj->_vmem_adapter.OBJECT_SPACE_START;
+  }
+
     // Used to map and unmap pages
     void hal_page_control_etc(
         physaddr_t p, void *page_start_addr,

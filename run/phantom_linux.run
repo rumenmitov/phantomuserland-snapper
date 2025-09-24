@@ -1,0 +1,194 @@
+assert_spec x86
+
+create_boot_directory
+build {
+	core init timer
+	lib/ld lib/vfs
+	driver/rtc
+	server/nitpicker
+  server/vfs
+  server/lx_fs
+  server/vfs_block
+  snapper
+  lib/snap
+  lib/vfs_lwext4
+}
+
+import_from_depot [depot_user]/pkg/[drivers_interactive_pkg] \
+                  [depot_user]/src/gui_fb
+
+#
+# Build EXT2-file-system image
+#
+
+set mke4fs [installed_command mkfs.ext4]
+set dd     [installed_command dd]
+
+catch { exec $dd if=/dev/zero of=bin/block0.raw bs=1M count=0 seek=2048 }
+catch { exec $dd dd conv=notrunc bs=4096 count=1 seek=16 if=/phantomuserland/src/run/img/phantom.superblock of=bin/block0.raw }
+
+catch { exec $dd if=/dev/zero of=bin/snapper_block.raw bs=1M count=256 }
+catch { exec $mke4fs -O^metadata_csum -F bin/snapper_block.raw }
+
+install_config {
+<config>
+	<parent-provides>
+		<service name="ROM"/>
+		<service name="IRQ"/>
+		<service name="IO_MEM"/>
+		<service name="IO_PORT"/>
+		<service name="PD"/>
+		<service name="RM"/>
+		<service name="CPU"/>
+		<service name="LOG"/>
+	</parent-provides>
+	<default-route>
+		<any-service> <parent/> <any-child/> </any-service>
+	</default-route>
+	<default caps="100"/>
+
+	<start name="timer" priority="0">
+		<resource name="RAM" quantum="1M"/>
+		<resource name="CPU" quantum="5"/>
+		<provides><service name="Timer"/></provides>
+	</start>
+
+	<start name="linux_rtc" ram="1M" ld="no">
+		<provides>
+			<service name="Rtc"/>
+		</provides>
+	</start>
+
+  <start name="lx_fs" caps="200" ram="4M" ld="no">
+	  <provides> <service name="File_system"/> </provides>
+	  <config>
+		  <policy label_prefix="snapper_block"  root="/"  writeable="yes"/>
+		  <policy label_prefix="isomem_block"  root="/"  writeable="yes"/>
+	  </config>
+	</start>
+
+
+  <start name="snapper_block" ram="1G">
+    <binary name="vfs_block"/>
+	  <provides><service name="Block"/></provides>
+	  <config>
+      <vfs>
+        <fs />
+		  </vfs>
+		  <policy label_prefix="vfs"
+		          file="/snapper_block.raw" block_size="512" writeable="yes"/>
+    </config>
+    <route>
+      <service name="File_system">
+        <child name="lx_fs"/>
+      </service>
+      <any-service> <parent/> </any-service>
+    </route>
+	</start>
+
+  <start name="isomem_block" ram="1G">
+    <binary name="vfs_block"/>
+	  <provides><service name="Block"/></provides>
+	  <config>
+      <vfs>
+        <fs />
+		  </vfs>
+		  <policy label_prefix="isomem"
+		          file="/block0.raw" block_size="512" writeable="yes"/>
+    </config>
+    <route>
+      <service name="File_system">
+        <child name="lx_fs"/>
+      </service>
+      <any-service> <parent/> </any-service>
+    </route>
+	</start>
+
+	<start name="drivers" caps="1500" ram="120M" managing_system="yes">
+		<binary name="init"/>
+		<route>
+			<service name="ROM" label="config"> <parent label="drivers.config"/> </service>
+			<service name="Timer">   <child name="timer"/> </service>
+			<service name="Capture"> <child name="nitpicker"/> </service>
+			<service name="Event">   <child name="nitpicker"/> </service>
+			<any-service> <parent/> </any-service>
+		</route>
+	</start>
+
+	<start name="nitpicker" ram="4M">
+		<provides>
+			<service name="Gui"/> <service name="Capture"/> <service name="Event"/>
+		</provides>
+		<config>
+			<capture/> <event/>
+			<domain name="default" layer="1" content="client" label="no" hover="always" focus="click" width="1024" height="768"/>
+
+			<default-policy domain="default"/>
+		</config>
+		<route> <any-service> <parent/> <any-child/> </any-service> </route>
+	</start>
+
+  <start name="vfs" ram="200M" caps="200">
+   	<provides><service name="File_system"/></provides>
+   	<config>
+   		<vfs>
+   			<dir name="dev">
+   				<block name="block" block_buffer_count="128"/>
+   			</dir>
+        <lwext4 block_device="/dev/block" cache_write_back="yes"
+				          expand_via_io="yes" writeable="yes"
+				          reporting="no"
+				          external_cache_size="0M" report_cache="no"/>
+   		</vfs>
+   		<policy label_prefix="snapper" root="/" writeable="yes"/>
+   	</config>
+		<route>
+      <service name="Block"> <child name="snapper_block"/> </service>
+      <any-service> <parent/> <any-child/> </any-service>
+    </route>
+  </start>
+
+  <start name="snapper" ram="1G" caps="400">
+    <provides>
+      <service name="Snapper"/>
+    </provides>
+
+    <config
+        verbose="true"
+        redundancy="2"
+        integrity="true"
+        max_snapshots="0"
+        min_snapshots="0"
+        threshold="1000"
+        expiration="3600">
+
+      <rtc/>
+
+      <vfs>
+        <fs/>
+      </vfs>
+    </config>
+	<route>
+		<service name="File_system"><child name="vfs"/></service>
+		<any-service> <parent/> <any-child /> </any-service>
+	</route>
+  </start>
+
+ 	<start name="isomem" caps="2000">
+ 		<resource name="RAM" quantum="1G"/>
+ 
+ 		<config verbose="yes" ld_verbose="yes">
+ 		</config>
+ 		<route>
+ 			<service name="Block"><child name="isomem_block"/></service>
+ 			<any-service> <parent/> <any-child /> </any-service>
+ 		</route>
+ 	</start>
+</config> }
+
+#
+# Boot modules
+#
+build_boot_image [list {*}[build_artifacts] phantom_classes isomem snapper_block.raw block0.raw]
+
+run_genode_until forever

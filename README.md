@@ -234,6 +234,9 @@ When building phantom you may want to configure some of the options:
 `PHANTOM_BUILD_TESTS_ONLY`:
 * 0 to build phantom kernel, 1 to build only kernel tests. Default: 0
 
+`PHANTOM_BUILD_LINUX`:
+* 0 to build phantom kernel for base-hw, 1 to build for base-linux. Default: 0
+
 ---
 
 You can specify build options by setting environment variables passed to goa, e.g.:
