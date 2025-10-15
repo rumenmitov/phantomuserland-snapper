@@ -511,12 +511,6 @@ int phantom_main_entry_point(int argc, char **argv, char **envp)
             }
         }
 
-        recover_snapshot();
-          
-        // Performing a snapshot
-
-        do_snapshot();
-
         ph_printf("Finishing the test\n");
 
     }
@@ -566,6 +560,8 @@ int phantom_main_entry_point(int argc, char **argv, char **envp)
     SHOW_FLOW0( 2, "Will run phantom threads... ");
     // Virtual machine will be run now in normal mode
     activate_all_threads();
+
+    recover_snapshot();
 
     vm_enable_regular_snaps();
 
@@ -645,5 +641,4 @@ void start_phantom()
     // allocator insists on trying to access the byte
     // just after the memory arena. Fix that and remove this +1 after.
     vm_map_init( N_OBJMEM_PAGES+1 );
-    recover_snapshot();
 }

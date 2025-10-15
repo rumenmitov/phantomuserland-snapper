@@ -103,7 +103,7 @@ bool test_hal()
 	return ok;
 }
 
-// extern "C" void wait_for_continue(void);
+extern "C" void wait_for_continue(void);
 
 // void Libc::Component::construct(Libc::Env &env)
 void Component::construct(Env &env)
@@ -143,7 +143,7 @@ void Component::construct(Env &env)
 
 
 		log("Waiting for continue");
-		// wait_for_continue();
+		wait_for_continue();
 		log("GO");
 
 		{

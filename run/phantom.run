@@ -1,3 +1,5 @@
+# PhantomOS run script.
+
 assert_spec x86
 
 create_boot_directory
@@ -89,3 +91,7 @@ if {[have_board pc]} {
 }
 
 run_genode_until forever
+
+# Local Variables:
+# mode: tcl
+# End:
