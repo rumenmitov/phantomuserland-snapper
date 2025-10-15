@@ -1316,7 +1316,7 @@ static void kick_pageout(vm_page *p)
 static void recover_snap(vm_page *p) 
 {
     struct Snapper_result res =
-      snapper_restore(p, sizeof(*p), p->snapper_identifier);
+      snapper_restore(p->virt_addr, ARCH_PAGE_SIZE, p->snapper_identifier);
 
     snapper_handle_result(&res);
 }
@@ -1342,12 +1342,12 @@ void recover_snapshot(void)
     vm_map_for_all( recover_snap );
   }
 
+  res = snapper_close_generation();
+  snapper_handle_result(&res);
+
   t_smp_enable(1);
   phantom_snapper_reenable_threads();
   t_current_set_priority(prio);
-
-  res = snapper_close_generation();
-  snapper_handle_result(&res);
 }
 
 pagelist *snap_saver = 0;
@@ -1360,7 +1360,7 @@ static void save_snap(vm_page *p)
     if(SNAP_LISTS_DEBUG) hal_printf("pg0 %d, ", p->make_page);
 
     struct Snapper_result res =
-      snapper_take_snapshot(p, sizeof(*p), p->snapper_identifier);
+      snapper_take_snapshot(p->virt_addr, ARCH_PAGE_SIZE, p->snapper_identifier);
 
     snapper_handle_result(&res);
 

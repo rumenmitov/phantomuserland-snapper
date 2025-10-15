@@ -101,13 +101,6 @@ void hal_log( char *format, ... )
 
 
 
-void
-hal_init_object_vmem(void *start_of_virtual_address_space)
-{
-    (void) start_of_virtual_address_space;
-}
-
-
 
 int
 hal_addr_is_in_object_vmem( void *test )

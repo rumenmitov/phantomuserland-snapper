@@ -232,6 +232,57 @@ extern "C"
         hal_free_phys_pages(paddr, 1);
     }
 
+
+  void
+  hal_init_object_vmem(void *start_of_virtual_address_space)
+  {
+    // INFO This is only necessary for base-linux since, on Linux the
+    // dataspaces are emulated and need to be explicitly mapped to the
+    // physical RAM.
+#ifdef PHANTOM_LINUX
+
+    Genode::retry<Genode::Out_of_ram>([&]() {
+      Genode::retry<Genode::Out_of_caps>([&]() {
+        // INFO Mapping the range
+        // [attribute.offset = 0, OBJECT_SPACE_SIZE] in _ram_ds to
+        // [attribute.at = 0, OBJECT_SPACE_SIZE] in _obj_space.
+        Region_map::Attr attribute {
+          .size = main_obj->_vmem_adapter.OBJECT_SPACE_SIZE,
+          .offset = 0,
+          .use_at = true,
+          .at = 0,
+          .executable = false,
+          .writeable = true};
+
+        main_obj->_vmem_adapter._obj_space
+          .attach(main_obj->_vmem_adapter._ram_ds, attribute)
+          .with_result([&](const Genode::Region_map::Range&) {
+            Genode::log("virtual address space inited");
+          },
+            [](const Region_map::Attach_error &e) {
+              switch (e) {
+              case Region_map::Attach_error::INVALID_DATASPACE:
+                Genode::error("couldn't attach region map: invalid ds");
+                break;
+              case Region_map::Attach_error::REGION_CONFLICT:
+                Genode::error("couldn't attach region map: region conflict");
+                break;
+              case Region_map::Attach_error::OUT_OF_CAPS:
+                throw Genode::Out_of_caps();
+              case Region_map::Attach_error::OUT_OF_RAM:
+                throw Genode::Out_of_ram();
+              }
+              throw;
+            });
+      },
+        [&]() { main_obj->_vmem_adapter._rm.upgrade_caps(10); }, 16U);
+    },
+      [&]() { main_obj->_vmem_adapter._rm.upgrade_ram(8 * 1024); });
+
+#endif // PHANTOM_LINUX
+  }
+
+
     // Required by page fault handler. It is always enabled, so return 1
     int arch_is_object_land_access_enabled()
     {
