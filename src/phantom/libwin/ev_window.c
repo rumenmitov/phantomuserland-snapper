@@ -101,7 +101,7 @@ void w_event_deliver_thread(void)
 
         queue_iterate_back(&allwindows, w, drv_video_window_t *, chain)
         {
-            if( w->events_count )
+            if( w && w->events_count )
             {
                 if(w->eventDeliverSema)
                     hal_sem_release(w->eventDeliverSema);
