@@ -1319,6 +1319,7 @@ static void recover_snap(vm_page *p)
       snapper_restore(p->virt_addr, ARCH_PAGE_SIZE, p->snapper_identifier);
 
     snapper_handle_result(&res);
+    p->flag_have_prev = 1;
 }
 
 void recover_snapshot(void) 

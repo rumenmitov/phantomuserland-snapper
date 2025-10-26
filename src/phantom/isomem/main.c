@@ -340,9 +340,6 @@ int phantom_main_entry_point(int argc, char **argv, char **envp)
     if(!bootflag_no_vesa) phantom_init_vesa();
 #endif
 #endif
-    //pressEnter("will init graphics");
-    phantom_start_video_driver();
-
     //SHOW_FLOW0( 0, "Will sleep" );
     //hal_sleep_msec( 120000 );
 
@@ -548,6 +545,12 @@ int phantom_main_entry_point(int argc, char **argv, char **envp)
     //     *obj_addr = 0x0;
     // }
 
+    // recover last system state
+    recover_snapshot();
+
+    //pressEnter("will init graphics");
+    phantom_start_video_driver();
+
 
     SHOW_FLOW0( 2, "Will init phantom root... ");
     // Start virtual machine in special startup (single thread) mode
@@ -560,8 +563,6 @@ int phantom_main_entry_point(int argc, char **argv, char **envp)
     SHOW_FLOW0( 2, "Will run phantom threads... ");
     // Virtual machine will be run now in normal mode
     activate_all_threads();
-
-    recover_snapshot();
 
     vm_enable_regular_snaps();
 
