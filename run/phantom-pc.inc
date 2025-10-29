@@ -42,7 +42,7 @@
 </start>
 
 <start name="platform" caps="100" managing_system="yes">
-	<resource name="RAM" quantum="1M"/>
+	<resource name="RAM" quantum="20M"/>
 	<provides>
 		<service name="Platform"/>
 	</provides>
@@ -72,7 +72,7 @@
 </start>
 
 <start name="ahci">
-	<resource name="RAM" quantum="1M" />
+	<resource name="RAM" quantum="20M" />
 	<provides><service name="Block" /></provides>
 	<config atapi="no">
 		<report ports="yes"/>
@@ -100,7 +100,7 @@
   </config>
 </start>
 
-<start name="snapper" ram="400M" caps="100">
+<start name="snapper" ram="400M" caps="200">
   <provides>
     <service name="Snapper"/>
   </provides>

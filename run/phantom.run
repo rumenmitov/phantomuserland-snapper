@@ -1,6 +1,6 @@
 # PhantomOS run script.
 
-assert_spec x86
+# assert_spec x86
 
 create_boot_directory
 
