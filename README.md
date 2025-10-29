@@ -100,8 +100,9 @@ git clone https://github.com/skalk/genode-devel-docker
 git clone https://github.com/genodelabs/genode
 # Setting up with goa - tool for building genode applications
 git clone https://github.com/genodelabs/goa
-# Setting up Snapper
+# Setting up Snapper and Lwext4
 git clone --depth 1 https://github.com/rumenmitov/snapper genode/repos/snapper
+git clone -b 25.05-2025-07-07 --depth 1 https://codeberg.org/jws/genode-wundertuete.git genode/repos/wundertuete
 ```
 
 ### Genode development container
@@ -171,14 +172,18 @@ sed -i 's/#REPOSITORIES/REPOSITORIES/g' build/x86_64/etc/build.conf
 # Remove `-no-kvm` qemu option
 sed -i '/QEMU_OPT += -no-kvm/d' build/x86_64/etc/build.conf
 
-# Enable Snapper
+# Enable Snapper and Lwext4
 echo "REPOSITORIES += \$(GENODE_DIR)/repos/snapper" >> build/x86_64/etc/build.conf
+echo "REPOSITORIES += \$(GENODE_DIR)/repos/wundertuete" >> build/x86_64/etc/build.conf
 
 # go back
 cd ../
 
-# Extract Snapper Library
-DEPOT_DIR=$(pwd)/var/depot ./genode/tool/depot/extract phantom/src/snap
+# Extract Snapper and Lwext4 Libraries
+DEPOT_DIR=$(pwd)/var/depot UPDATE_VERSIONS=1 FORCE=1 ./genode/tool/depot/extract phantom/src/snap
+
+./genode/tool/ports/prepare_port lwext4
+DEPOT_DIR=$(pwd)/var/depot FORCE_VERSION=2025-07-09 ./genode/tool/depot/create phantom/bin/x86_64/vfs_lwext4
 
 # NB: Make sure the phantom/src/snap version matches the one in the `used_apis` file!
 
