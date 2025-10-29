@@ -103,7 +103,9 @@ bool test_hal()
 	return ok;
 }
 
+#ifdef PHANTOM_LINUX
 extern "C" void wait_for_continue(void);
+#endif // PHANTOM_LINUX
 
 // void Libc::Component::construct(Libc::Env &env)
 void Component::construct(Env &env)
@@ -142,8 +144,11 @@ void Component::construct(Env &env)
 
 
 
+#ifdef PHANTOM_LINUX
 		log("Waiting for continue");
-		wait_for_continue();
+    wait_for_continue();
+#endif // PHANTOM_LINUX
+
 		log("GO");
 
 		{
