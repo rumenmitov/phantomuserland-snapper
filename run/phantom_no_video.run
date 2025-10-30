@@ -60,15 +60,14 @@ if {[have_board linux]} {
 
 if {[have_board pc]} {
     lappend build_components driver/platform driver/acpi driver/ahci app/pci_decode server/report_rom 
-   append config [ exec $cat [genode_dir]/repos/ports/run/phantom-pc.inc ]
+    append config [ exec $cat [genode_dir]/repos/ports/run/phantom-pc.inc ]
 }
 
 append config { </config> }
 
 build $build_components
 
-import_from_depot [depot_user]/pkg/[drivers_interactive_pkg] \
-                  [depot_user]/src/gui_fb
+import_from_depot [depot_user]/pkg/[drivers_interactive_pkg]
 
 install_config $config
 

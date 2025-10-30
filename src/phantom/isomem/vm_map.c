@@ -1312,15 +1312,7 @@ static void kick_pageout(vm_page *p)
     }
 }
 
-
-static void recover_snap(vm_page *p) 
-{
-    struct Snapper_result res =
-      snapper_restore(p->virt_addr, ARCH_PAGE_SIZE, p->snapper_identifier);
-
-    snapper_handle_result(&res);
-    p->flag_have_prev = 1;
-}
+#define PAGES_PER_SNAPSHOT_FILE 8
 
 void recover_snapshot(void) 
 {
@@ -1340,7 +1332,32 @@ void recover_snapshot(void)
   ph_syslog( 0, "recovery: try to recover previous state");
   struct Snapper_result res = snapper_open_generation("");
   if (snapper_handle_result(&res) == 0) {
-    vm_map_for_all( recover_snap );
+    char *payload_buffer = ph_malloc(ARCH_PAGE_SIZE * PAGES_PER_SNAPSHOT_FILE);
+    int buf_idx = 0;
+    int snapper_id = 0;
+
+    vm_page *i;
+    for( i = vm_map_map; i < vm_map_map_end; i++ )
+    {
+      if (buf_idx == 0) {
+        struct Snapper_result res =
+          snapper_restore(payload_buffer, PAGES_PER_SNAPSHOT_FILE * ARCH_PAGE_SIZE, snapper_id);
+
+        snapper_handle_result(&res);
+      }
+
+
+      hal_mutex_lock(&i->lock);
+      ph_memcpy(i->virt_addr, payload_buffer + buf_idx,  ARCH_PAGE_SIZE);
+      buf_idx = (buf_idx + 1) % PAGES_PER_SNAPSHOT_FILE;
+      snapper_id++;
+
+      i->flag_have_prev = 1;
+      hal_mutex_unlock(&i->lock);
+    }
+
+    ph_free(payload_buffer);
+    payload_buffer = NULL;
   }
 
   res = snapper_close_generation();
@@ -1352,29 +1369,6 @@ void recover_snapshot(void)
 }
 
 pagelist *snap_saver = 0;
-
-static void save_snap(vm_page *p)
-{
-    page_touch_history(p);
-
-    hal_mutex_unlock(&p->lock);
-    if(SNAP_LISTS_DEBUG) hal_printf("pg0 %d, ", p->make_page);
-
-    struct Snapper_result res =
-      snapper_take_snapshot(p->virt_addr, ARCH_PAGE_SIZE, p->snapper_identifier);
-
-    snapper_handle_result(&res);
-
-
-    if(SNAP_LISTS_DEBUG) hal_printf("pg1 %d, ", p->make_page);
-    hal_mutex_lock(&p->lock);
-
-    page_touch_history(p);
-    p->prev_page = p->make_page;
-    p->flag_have_make = 0;
-    p->flag_have_prev = 1;
-}
-
 
 
 // TODO if we page out page, which is unchanged since THE SNAP and page fault comes (somebody wants to write to that
@@ -1416,7 +1410,37 @@ void do_snapshot(void)
 
     is_in_snapshot_process = 1;
 
-    vm_map_for_all( save_snap );
+    // save the pages (buffer multiple pages into one snapshot file
+    // for faster snapshots)
+    char *payload_buffer = ph_malloc(ARCH_PAGE_SIZE * PAGES_PER_SNAPSHOT_FILE);
+    int buf_idx = 0;
+    int snapper_id = 0;
+
+    vm_page *i;
+    for( i = vm_map_map; i < vm_map_map_end; i++ )
+    {
+      ph_memcpy(payload_buffer + buf_idx, i->virt_addr, ARCH_PAGE_SIZE);
+      buf_idx = (buf_idx + 1) % PAGES_PER_SNAPSHOT_FILE;
+      snapper_id++;
+
+      if (buf_idx == 0) {
+        struct Snapper_result res =
+          snapper_take_snapshot(payload_buffer, PAGES_PER_SNAPSHOT_FILE * ARCH_PAGE_SIZE, snapper_id);
+
+        snapper_handle_result(&res);
+      }
+    }
+
+    if (buf_idx != 0) {
+      struct Snapper_result res =
+        snapper_take_snapshot(payload_buffer, buf_idx * ARCH_PAGE_SIZE, snapper_id);
+
+      snapper_handle_result(&res);
+    }
+
+    ph_free(payload_buffer);
+    payload_buffer = NULL;
+
     ph_syslog( 0, "snap: thank you ladies");
 
     is_in_snapshot_process = 0;
