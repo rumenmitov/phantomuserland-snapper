@@ -56,10 +56,10 @@
       <dir name="dev">
         <block name="block" block_buffer_count="128"/>
       </dir>
-      <lwext4 block_device="/dev/block" cache_write_back="no"
+      <lwext4 block_device="/dev/block" cache_write_back="yes"
               expand_via_io="no" writeable="yes"
               reporting="no"
-              external_cache_size="0M" report_cache="no"/>
+              external_cache_size="32M" report_cache="yes"/>
     </vfs>
     <policy label_prefix="snapper" root="/" writeable="yes"/>
   </config>
