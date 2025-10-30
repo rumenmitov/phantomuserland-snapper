@@ -15,6 +15,7 @@ build {
 	server/nitpicker
   server/vfs
   snapper
+  lib/vfs_lwext4
   lib/snap
 
   server/tcp_terminal lib/libc lib/libm
@@ -180,11 +181,12 @@ install_config {
    			<dir name="dev">
    				<block name="block" block_buffer_count="128"/>
    			</dir>
-        <dir name="snapper">
-          <ram/>
-        </dir>
+        <lwext4 block_device="/dev/block" cache_write_back="yes"
+              expand_via_io="no" writeable="yes"
+              reporting="no"
+              external_cache_size="32M" report_cache="yes"/>
    		</vfs>
-   		<policy label_prefix="snapper" root="/snapper" writeable="yes"/>
+   		<policy label_prefix="snapper" root="/" writeable="yes"/>
    	</config>
     <route>
       <service name="Block"><child name="ahci"/></service>

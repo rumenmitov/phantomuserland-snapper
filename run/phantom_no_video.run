@@ -11,6 +11,7 @@ set build_components {
     server/nitpicker
     server/vfs
     snapper
+    lib/vfs_lwext4
     lib/snap
 }
 
@@ -53,12 +54,12 @@ set config {
 }
 
 if {[have_board linux]} {
-    lappend build_components server/lx_fs server/vfs_block lib/vfs_lwext4
+    lappend build_components server/lx_fs server/vfs_block
     append config [ exec $cat [genode_dir]/repos/ports/run/phantom-linux.inc ]
 }
 
 if {[have_board pc]} {
-    lappend build_components driver/platform driver/acpi driver/ahci app/pci_decode server/report_rom
+    lappend build_components driver/platform driver/acpi driver/ahci app/pci_decode server/report_rom 
    append config [ exec $cat [genode_dir]/repos/ports/run/phantom-pc.inc ]
 }
 
