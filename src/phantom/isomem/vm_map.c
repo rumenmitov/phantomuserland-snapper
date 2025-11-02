@@ -1568,6 +1568,8 @@ static void vm_map_snapshot_thread(void)
     t_current_set_name("SnapShot");
     t_set_snapper_flag(); // Tell 'em IM THE SNAPPER, don't you ever try to stop me :)
 
+    int snapshots = 0;
+
     while(1)
     {
         SHOW_FLOW0( 1, "Snapshot loop");
@@ -1603,6 +1605,12 @@ static void vm_map_snapshot_thread(void)
         if( vm_regular_snaps_enabled || request_snap_flag ){
             SHOW_FLOW0(0, "about to snap");
             do_snapshot();
+            snapshots++;
+        }
+
+        if (snapshots % 2 == 0) {
+          struct Snapper_result res = snapper_purge("");
+          snapper_handle_result(&res);
         }
 
         request_snap_flag = 0;
