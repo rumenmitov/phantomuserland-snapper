@@ -144,7 +144,7 @@ For a container setup with less steps, run the following:
 ```bash
 cd <PATH_TO_PHANTOMUSERLAND>
 
-docker run -d --name phantomuserland --replace --cap-add SYS_PTRACE -v .:/phantomuserland -w /phantomuserland rmitov/genode:latest tail -f /dev/null
+docker run -d --name phantomuserland  --cap-add SYS_PTRACE -v .:/phantomuserland -w /phantomuserland rmitov/genode:25.05 tail -f /dev/null
 
 docker exec phantomuserland sed -i "s|/genode/goa|/phantomuserland/goa|g" /root/.bashrc
 ```
