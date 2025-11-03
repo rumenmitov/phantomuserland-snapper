@@ -1341,16 +1341,15 @@ void recover_snapshot(void)
     {
       if (buf_idx == 0) {
         struct Snapper_result res =
-          snapper_restore(payload_buffer, PAGES_PER_SNAPSHOT_FILE * ARCH_PAGE_SIZE, snapper_id);
+          snapper_restore(payload_buffer, PAGES_PER_SNAPSHOT_FILE * ARCH_PAGE_SIZE, snapper_id++);
 
         snapper_handle_result(&res);
       }
 
 
       hal_mutex_lock(&i->lock);
-      ph_memcpy(i->virt_addr, payload_buffer + buf_idx,  ARCH_PAGE_SIZE);
+      ph_memcpy(i->virt_addr, payload_buffer + (buf_idx * ARCH_PAGE_SIZE),  ARCH_PAGE_SIZE);
       buf_idx = (buf_idx + 1) % PAGES_PER_SNAPSHOT_FILE;
-      snapper_id++;
 
       i->flag_have_prev = 1;
       hal_mutex_unlock(&i->lock);
@@ -1419,13 +1418,12 @@ void do_snapshot(void)
     vm_page *i;
     for( i = vm_map_map; i < vm_map_map_end; i++ )
     {
-      ph_memcpy(payload_buffer + buf_idx, i->virt_addr, ARCH_PAGE_SIZE);
+      ph_memcpy(payload_buffer + (buf_idx * ARCH_PAGE_SIZE), i->virt_addr, ARCH_PAGE_SIZE);
       buf_idx = (buf_idx + 1) % PAGES_PER_SNAPSHOT_FILE;
-      snapper_id++;
 
       if (buf_idx == 0) {
         struct Snapper_result res =
-          snapper_take_snapshot(payload_buffer, PAGES_PER_SNAPSHOT_FILE * ARCH_PAGE_SIZE, snapper_id);
+          snapper_take_snapshot(payload_buffer, PAGES_PER_SNAPSHOT_FILE * ARCH_PAGE_SIZE, snapper_id++);
 
         snapper_handle_result(&res);
       }
