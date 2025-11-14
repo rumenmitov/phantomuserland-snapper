@@ -1270,6 +1270,7 @@ void
 pager_refill_free_reserve()
 {
     SHOW_FLOW0( 10, "Refill free reserve... ");
+
 #if USE_SYNC_IO
     struct phantom_disk_blocklist *list = &u.free_head;
 #else
@@ -1278,7 +1279,7 @@ pager_refill_free_reserve()
 
     while( free_reserve_n < free_reserve_size )
         {
-        if( list->head.used > 0 )
+        if( list->head.used > 0 && list->head.used < N_REF_PER_BLOCK )
             free_reserve[free_reserve_n++] = list->list[--list->head.used];
         else {
             if (list->head.next == 0) {

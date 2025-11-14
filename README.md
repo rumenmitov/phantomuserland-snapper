@@ -240,7 +240,10 @@ When building phantom you may want to configure some of the options:
 * 0 to build phantom kernel, 1 to build only kernel tests. Default: 0
 
 `PHANTOM_BUILD_LINUX`:
-* 0 to build phantom kernel for base-hw, 1 to build for base-linux. Default: 0
+* 0 to build phantom kernel for base-hw, 1 to build for base-linux. Default: 0  
+
+`PHANTOM_BUILD_LEGACY_SNAP`:
+* 0 to build phantom kernel with Snapper 2.0, 1 to build with legacy snapshot mechanism (**does not work on base-linux!**). Default: 0
 
 ---
 

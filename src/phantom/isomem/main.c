@@ -633,7 +633,7 @@ void start_phantom()
       Race-condition + deadlock :)
       Problem seems to be when blocking the thread.
      */
-    // partition_pager_init(select_phantom_partition());
+    partition_pager_init(select_phantom_partition());
 #endif
 
     SHOW_FLOW0( 5, "Will init vm map... ");

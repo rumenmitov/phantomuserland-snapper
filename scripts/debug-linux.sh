@@ -6,5 +6,5 @@ gdb -p $port \
     -ex "set interactive-mode off" \
     -ex "symbol-file /phantomuserland/var/build/x86_64/isomem.debug" \
     -ex "add-symbol-file /phantomuserland/genode/build/x86_64/debug/ld-linux.lib.so" \
-    -ex "b pvm_exec_do_throw_object" \
+    -ex "b pager_refill_free_reserve" \
     -ex "c &"
