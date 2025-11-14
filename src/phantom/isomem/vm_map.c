@@ -77,6 +77,8 @@
 #if USE_SNAP_WAIT
 
 static void init_snap_wait( void );
+static void signal_snap_snap_passed( void );
+static void signal_snap_done_passed( void );
 
 #endif
 
@@ -109,12 +111,15 @@ static hal_mutex_t vm_map_mutex;
 
 
 static void vm_map_deferred_disk_alloc_thread(void);
+static void vm_map_lazy_pageout_thread(void);
 static void vm_map_snapshot_thread(void);
 
 
 static void page_clear_engine_init(void);
 static void page_clear_engine_clear_page(physaddr_t p);
 
+static void vm_verify_snap(disk_page_no_t head);
+static void vm_verify_vm(void);
 
 static hal_cond_t      deferred_alloc_thread_sleep;
 
@@ -494,6 +499,7 @@ vm_map_init(unsigned long page_count)
 
 #if 1
     hal_start_kernel_thread(vm_map_deferred_disk_alloc_thread);
+    // hal_start_kernel_thread(vm_map_lazy_pageout_thread);
     hal_start_kernel_thread(vm_map_snapshot_thread);
 #endif
 
@@ -1312,6 +1318,240 @@ static void kick_pageout(vm_page *p)
     }
 }
 
+// NB! Call with vm_map_mutex taken
+static void finalize_snap(vm_page *p)
+{
+    page_touch_history(p);
+    if(SNAP_DEBUG) hal_printf("finalize_snap 0x%X: ", p->virt_addr );
+
+    if(p->flag_have_make)
+    {
+        page_touch_history(p);
+        if(SNAP_DEBUG) hal_printf("has make 1\n" );
+        return;
+    }
+
+    while (p->flag_pager_io_busy)
+    {
+        if(SNAP_DEBUG) hal_printf("waiting for pager io\n" );
+        hal_cond_wait(&p->done, &p->lock);
+    }
+
+    if(p->flag_have_make)
+    {
+        page_touch_history(p);
+        if(SNAP_DEBUG) hal_printf("has make 2\n" );
+        return;
+    }
+
+    assert(!p->flag_phys_dirty);
+
+    select_make_page(p);
+
+    if(SNAP_DEBUG) hal_printf(" done, " );
+}
+
+pagelist *snap_saver = 0;
+
+static void save_snap(vm_page *p)
+{
+    page_touch_history(p);
+    // TODO added for safety - remove or do in a more smart way?
+    // HACK! We set have make and make_page = 0 on unused page
+
+    // What is the purpose of this? no idea, so removed it
+    // if(! (p->flag_have_make && p->make_page == 0 && !p->flag_have_curr && !p->flag_have_prev) )
+    // {
+    //     page_touch_history(p);
+    //     vm_page_req_pageout(p);
+    // }
+
+    assert(p->flag_have_make);
+
+    hal_mutex_unlock(&p->lock);
+    if(SNAP_LISTS_DEBUG) hal_printf("pg0 %d, ", p->make_page);
+    pagelist_write_seq( snap_saver, p->make_page);
+    if(SNAP_LISTS_DEBUG) hal_printf("pg1 %d, ", p->make_page);
+    hal_mutex_lock(&p->lock);
+
+    page_touch_history(p);
+    p->prev_page = p->make_page;
+    p->flag_have_make = 0;
+    p->flag_have_prev = 1;
+}
+
+
+static void wait_commit_snap(vm_page *p)
+{
+    if (p->flag_pager_io_busy && p->flag_have_curr && p->pager_io.disk_page == p->curr_page)
+        return;
+
+    while (p->flag_pager_io_busy)
+    {
+        hal_cond_wait(&p->done, &p->lock);
+    }
+}
+
+// TODO if we page out page, which is unchanged since THE SNAP and page fault comes (somebody wants to write to that
+// page) we need to do COW too! (but why?)
+
+void do_legacy_snapshot(void)
+{
+    int			  enabled; // interrupts
+
+    ph_syslog( 0, "snap: started");
+    // prerequisites
+    //
+    // - no pages with flag_have_make can exist! check that?
+    //
+
+    // This pageout request is not nesessary, but makes snap to catch a more later state.
+    // If we skip this pageout, a lot of pages will go to 'after snap' state.
+    // TODO try to find some heuristic to pageout just pages modified long ago?
+
+    // Do it in lowest prio (but not IDLE) or else massive IO will kill world
+    int prio;
+    t_current_get_priority(&prio);
+    t_current_set_priority( THREAD_PRIO_LOWEST );
+
+
+    vm_map_for_all( kick_pageout ); // Try to pageout all of them - NOT IN LOCK!
+    if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: wait 4 pgout to settle");
+
+    // Back to orig prio
+    t_current_set_priority( prio );
+
+    // commented out to stress the pager
+    //hal_sleep_msec(30000); // sleep for 10 sec - why 10?
+
+    if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: stop world");
+
+
+    // MUST BE BEFORE hal_mutex_lock!
+    phantom_snapper_wait_4_threads();
+
+    if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: threads stopped");
+
+    enabled = hal_save_cli();
+
+    vm_verify_vm();
+
+    // START!
+    is_in_snapshot_process = 1;
+
+    // Terrible and mighty step - ALL the pages will be marked
+    // as not snapped and access to them will be locked here, so
+    // that page faults will bring them to us on write attempts and we'll
+    // make a copies (COW).
+
+    // !!!! SnapShot !!!!
+
+    ph_syslog( 0, "snap: hold still, say 'cheese!'...");
+
+    // TODO: we have top do more. such as stop oher CPUS, force VMs into the
+    // special snap-friendly state, etc
+    //t_smp_enable(0); // make sure other CPUs don't mess here
+    t_migrate_to_boot_CPU();
+    vm_map_for_all_locked( mark_for_snap );
+    t_smp_enable(1);
+
+    ph_syslog( 0, "snap: thank you ladies");
+
+    if(enabled) hal_sti();
+
+    phantom_snapper_reenable_threads();
+#if USE_SNAP_WAIT
+    signal_snap_snap_passed(); // or before enabling threads?
+#endif
+
+    // YES, YES, YES, Snap is nearly done.
+
+    // Here we have to wait a little and start processing pages manually
+    // because no one can be sure that all the pages will be accessed for
+    // write in a short time.
+
+    // This pageout request is needed - if I skip it, snaps are incomplete
+    if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: pgout");
+    vm_map_for_all( kick_pageout ); // Try to pageout all of them - NOT IN LOCK!
+
+    ph_syslog( 0, "snap: will finalize_snap");
+    // scan nonsnapped pages, snap them manually (or just access to cause
+    // page fault?)
+    vm_map_for_all( finalize_snap );
+
+    // now all pages must have make_page.
+    // will save them now and move make_page -> prev_page,
+    // don't want page_fault_write to create them another make_page as we do this.
+    is_in_snapshot_process = 0;
+
+    // now all the pages for snapshot are done. Now create
+    // the disk data structure for them
+
+    // TODO - free prev snap first! -- (why?)
+
+    disk_page_no_t new_snap_head = 0;
+
+
+    if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: creating primary pagelist root");
+    if( !pager_alloc_page_locked(&new_snap_head) ) panic("out of disk!");
+
+
+    if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: creating pagelist 0...");
+
+    {
+        pagelist saver;
+        pagelist_init( &saver, new_snap_head, 1, DISK_STRUCT_MAGIC_SNAP_LIST );
+
+        if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: creating pagelist 1...");
+        pagelist_clear(&saver);
+        if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: creating pagelist 2...");
+        snap_saver = &saver;
+        vm_map_for_all( save_snap );
+        if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: creating pagelist 3...");
+        snap_saver = 0;
+        pagelist_flush(&saver);
+        if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: creating pagelist 4...");
+        pagelist_finish(&saver);
+        if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: creating pagelist 5 (fin)...");
+    }
+
+    if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: waiting for all pages to be flushed...");
+    // make sure page data has been written
+    vm_map_for_all( wait_commit_snap );
+
+    // XXX : Takes a lot of time
+    // TODO : Optimize if possible
+    // vm_verify_snap(new_snap_head);
+
+    // ok, now we have current snap and previous one. come fix the superblock
+    pager_superblock_ptr()->snap_to_free = pager_superblock_ptr()->prev_snap;
+    pager_superblock_ptr()->prev_snap = pager_superblock_ptr()->last_snap;
+    pager_superblock_ptr()->last_snap = new_snap_head;
+    pager_commit_active_free_list();
+    pager_update_superblock();
+    
+    pager_free_blocklist_pages();
+    // these two are probably unnecessary, but they should slightly reduce disk leak
+    pager_commit_active_free_list();
+    pager_update_superblock();
+
+    //#error not impl
+    // free journal part, which was created before this snap
+    // was started
+
+    // DONE!
+    ph_syslog( 0, "Snapshot done!");
+
+    STAT_INC_CNT(STAT_CNT_SNAPSHOT);
+
+#if USE_SNAP_WAIT
+    signal_snap_done_passed();
+#endif
+
+    // for tracking disk leak, remove once it is resolved
+    pager_calculate_free_block_count();
+}
+
 #define PAGES_PER_SNAPSHOT_FILE 8
 
 void recover_snapshot(void) 
@@ -1366,8 +1606,6 @@ void recover_snapshot(void)
   phantom_snapper_reenable_threads();
   t_current_set_priority(prio);
 }
-
-pagelist *snap_saver = 0;
 
 
 // TODO if we page out page, which is unchanged since THE SNAP and page fault comes (somebody wants to write to that
@@ -1538,6 +1776,22 @@ static inline void balance_clean_dirty(void)
 
 #endif
 
+static void vm_map_lazy_pageout_thread(void)
+{
+    SHOW_FLOW0( 1, "Ready");
+    t_current_set_name("LazyPageout");
+
+    while(1)
+    {
+        if( stop_lazy_pageout_thread )
+            hal_exit_kernel_thread();
+
+        hal_sleep_msec( 100 ); // TODO: cond_wait?
+
+        balance_clean_dirty();
+    }
+}
+
 static int request_snap_flag = 0;
 static int seconds_between_snaps = 5;
 
@@ -1577,7 +1831,13 @@ static void vm_map_snapshot_thread(void)
 
         if( stop_lazy_pageout_thread )
         {
-            do_snapshot();
+
+#ifdef LEGACY_SNAP
+          do_legacy_snapshot();
+#else
+          do_snapshot();
+#endif
+
             stop_deferred_disk_alloc_thread = 1;
 
             hal_cond_broadcast( &deferred_alloc_thread_sleep );
@@ -1602,7 +1862,13 @@ static void vm_map_snapshot_thread(void)
 
         if( vm_regular_snaps_enabled || request_snap_flag ){
             SHOW_FLOW0(0, "about to snap");
-            do_snapshot();
+
+#ifdef LEGACY_SNAP
+          do_legacy_snapshot();
+#else
+          do_snapshot();
+#endif
+
             snapshots++;
         }
 
@@ -1728,11 +1994,165 @@ static size_t vm_verify_object(void *p)
     return curr->_ah.exact_size;
 }
 
+/**
+ * Verify objects in the page.
+ *
+ * When object's pvm_object_storage crosses page boundary, part of it is stored in
+ * the hdr for reassembly with the next page.
+ *
+ * @param data: page data
+ * @param page_offset: relative to the vm_map_start_of_virtual_address_space
+ * @param current: current object offset relative to the vm_map_start_of_virtual_address_space
+ * @param sz: size of VM, limit for the current
+ *
+ * @return offset of the object out of the current page, unless current object's
+ * pvm_object_storage crosses page boundary
+ */
+static size_t vm_verify_page(void *data, size_t page_offset, size_t current, size_t sz)
+{
+    static struct pvm_object_storage hdr;
+
+    if (current < page_offset && page_offset - current < sizeof(hdr))
+    {
+        ph_memcpy(((void*)&hdr) + (page_offset - current), data,
+                sizeof(hdr) - (page_offset - current));
+        // SHOW_FLOW(0, "verifying object (case 0) at %p", (void*)(current));
+        current += vm_verify_object(&hdr);
+    }
+    while (current < sz && current - page_offset < ARCH_PAGE_SIZE)
+    {
+        if (current + sizeof(hdr) - page_offset <= ARCH_PAGE_SIZE){
+            // SHOW_FLOW(0, "verifying object (case 1) at %p", (void*)(current));
+            current += vm_verify_object(data + (current - page_offset));
+        }
+        else
+        {
+            ph_memcpy(&hdr, data + (current - page_offset), ARCH_PAGE_SIZE - (current - page_offset));
+            break;
+        }
+    }
+    return current;
+}
+
+#endif
+
+#if VERIFY_VM_SNAP
+
+static void vm_verify_vm(void)
+{
+    size_t current = 0;
+    int np;
+
+    if(SNAP_STEPS_DEBUG) hal_printf("Verifying VM before snapshot...\n");
+    for (np = 0; np < vm_map_map_end - vm_map_map; np++)
+    {
+        size_t page_offset = np * PAGE_SIZE;
+        current = vm_verify_page(vm_map_start_of_virtual_address_space + page_offset,
+                page_offset, current, hal.object_vsize);
+    }
+    if(SNAP_STEPS_DEBUG) hal_printf("VM verification icomplete\n");
+}
+
+#else
+
+static void vm_verify_vm(void)
+{
+}
+
 #endif
 
 #if VERIFY_SNAP
 
 #define USE_SYNC_IO 1
+
+static void vm_verify_snap(disk_page_no_t head)
+{
+    int progress = 0;
+    int np;
+    pagelist loader;
+    size_t current = 0;
+
+
+    if (!head)
+        return;
+
+    if (SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: verification started...");
+
+#if !USE_SYNC_IO
+    disk_page_io page_io;
+
+    disk_page_io_init(&page_io);
+    disk_page_io_allocate(&page_io);
+#endif
+
+    pagelist_init(&loader, head, 0, DISK_STRUCT_MAGIC_SNAP_LIST);
+
+    pagelist_seek(&loader);
+
+    for(np = 0; np < vm_map_map_end - vm_map_map; np++)
+    {
+        size_t page_offset = np * ARCH_PAGE_SIZE;
+        disk_page_no_t block;
+	short percentage = np * 100 / (vm_map_map_end - vm_map_map);
+
+        if (progress != percentage)
+        {
+            progress = percentage;
+            if (SNAP_STEPS_DEBUG)
+	    {
+		if (progress % 10) hal_printf(". ", progress);
+		else hal_printf(".%d%%\n", progress);
+	    }
+        }
+        if (!pagelist_read_seq(&loader, &block))
+        {
+            ph_printf("Incomplete pagelist\n");
+            //panic("Incomplete pagelist\n");
+            break;
+        }
+
+        if (current < page_offset || current - page_offset < ARCH_PAGE_SIZE)
+        {
+#if USE_SYNC_IO
+            extern phantom_disk_partition_t *pp; // BUG
+
+            char buf[DISK_STRUCT_BS];
+
+            errno_t rc = phantom_sync_read_block( pp, buf, block, 1 );
+            if( rc )
+            {
+                ph_syslog( 0, "snap: verification read err %d", rc );
+                return;
+            }
+
+            // SHOW_FLOW(0, "verifying page %p, current=%p", (void*)page_offset, (void*)current);
+            current = vm_verify_page(buf, page_offset, current, hal.object_vsize);
+#else
+            page_io.req.disk_page = block;
+            disk_page_io_load_me_async(&page_io);
+            disk_page_io_wait(&page_io);
+            current = vm_verify_page(page_io.mem, page_offset, current, hal.object_vsize);
+#endif
+        }
+    }
+
+    pagelist_finish( &loader );
+#if !USE_SYNC_IO
+    disk_page_io_release(&page_io);
+#endif
+    if (SNAP_STEPS_DEBUG)
+    {
+	hal_printf("\n");
+	ph_syslog( 0, "snap: verification completed");
+    }
+}
+
+#else
+
+static inline void vm_verify_snap(disk_page_no_t head)
+{
+    (void)head;
+}
 
 #endif
 
@@ -1889,6 +2309,15 @@ void phantom_wait_4_snapshot_done( void )
     assert ( 0 == hal_mutex_unlock( &wait_snap_mutex ) );
 }
 
+static void signal_snap_snap_passed( void )
+{
+    assert ( 0 == hal_cond_broadcast( &wait_snap_snap ) );
+}
+
+static void signal_snap_done_passed( void )
+{
+    assert ( 0 == hal_cond_broadcast( &wait_snap_snap ) );
+}
 
 #endif
 

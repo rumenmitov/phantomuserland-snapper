@@ -59,6 +59,9 @@ extern "C"
 
     errno_t hal_mutex_destroy(hal_mutex_t *m)
     {
+        if (!m || !m->impl || !m->impl->lock)
+            return 0;
+      
         m->impl->lock->~Phantom_mutex_wrapper();
         // main_obj->_heap.free(m->impl->lock, sizeof(Genode::Mutex));
         ph_free(m->impl->lock);

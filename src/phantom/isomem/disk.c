@@ -260,6 +260,9 @@ errno_t disk_fence( struct phantom_disk_partition *p )
 // Partitions list management
 // ------------------------------------------------------------
 
+static void find_subpartitions(phantom_disk_partition_t *p);
+//static void dump_partition(phantom_disk_partition_t *p);
+
 static phantom_disk_partition_t partitions[MAX_DISK_PARTITIONS];
 static int nPartitions = 0;
 
@@ -276,6 +279,7 @@ static void register_partition(phantom_disk_partition_t *p)
     partitions[nPartitions] = *p;
     //dump_partition(p);
     print_partition(p);
+    find_subpartitions(p);
 }
 
 
@@ -330,6 +334,81 @@ errno_t phantom_register_disk_drive(phantom_disk_partition_t *p)
 // Partitions parsing
 // ------------------------------------------------------------
 
+static void lookup_old_pc_partitions(phantom_disk_partition_t *p);
+//static void lookup_phantom_fs(phantom_disk_partition_t *p);
+
+static void find_subpartitions(phantom_disk_partition_t *p)
+{
+    if( 0 == lookup_fs(p) )
+        return;
+
+    lookup_old_pc_partitions(p);
+    //lookup_phantom_fs(p);
+}
+
+
+static void lookup_old_pc_partitions(phantom_disk_partition_t *p)
+{
+    unsigned char buf[512];
+
+    int lookAt =
+        (p->flags & PART_FLAG_IS_WHOLE_DISK) ||
+        (p->type == 0x05) ||
+        (p->type == 0x0F) ||
+        (p->type == 0x85);
+
+    if(!lookAt ) return;
+
+    //p->syncRead( p, buf, 0, 1 );
+    if( phantom_sync_read_sector( p, buf, 0, 1 ))
+        return;
+
+    //hexdump(buf, 512, "pc partition block", 0);
+
+
+    //SHOW_FLOW0( 1, "Got block 0" );
+    if( debug_level_flow > 10) hexdump( buf, sizeof(buf), "", 0);
+
+    if( (buf[0x1FE] != 0x55) || (buf[0x1FF] != 0xAA) )
+    {
+        SHOW_ERROR0( 1, "No part table magic" );
+        return;
+    }
+
+    SHOW_FLOW0( 1, "Has part table magic!" );
+
+    p->flags |= PART_FLAG_IS_DIVIDED;
+
+    int i; int pno = 0;
+    for( i = 0x1BE; i <= 0x1EE; i += 16, pno++ )
+    {
+        struct pc_partition *pp = (struct pc_partition *)(buf+i);
+
+        SHOW_FLOW( 2, "Check partition %d, start %d, size %d, type 0x%02X", pno, pp->start, pp->size, pp->type );
+
+        if(pp->size == 0)
+            continue; // break?
+
+        phantom_disk_partition_t * newp = phantom_create_partition_struct( p, pp->start, pp->size );
+        newp->type = pp->type;
+
+
+        if(newp->type == PHANTOM_PARTITION_TYPE_ID)
+        {
+            ph_printf("!! Phantom Partition found !!\n");
+            p->flags |= PART_FLAG_IS_PHANTOM_TYPE;
+
+        }
+
+        char pn[4] = "PC0";
+        //pn[2] += pno++;
+        pn[2] += pno;
+        ph_strlcpy(newp->name, pn, PARTITION_NAME_LEN);
+
+        register_partition( newp );
+    }
+
+}
 
 //! Get full name for partition (incl subparts)
 static errno_t doPartGetName( phantom_disk_partition_t *p, char *buf, size_t bufsz )
