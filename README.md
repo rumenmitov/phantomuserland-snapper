@@ -90,7 +90,7 @@ Here are the instructions you should follow before proceeding to building and ru
 ### Cloning required repositories
 
 ```bash
-git clone -b dev --recurse-submodules https://github.com/Phantom-OS/phantomuserland
+git clone --recurse-submodules https://github.com/rumenmitov/phantomuserland-snapper phantomuserland
 
 cd phantomuserland
 
@@ -105,48 +105,15 @@ git clone --depth 1 https://github.com/rumenmitov/snapper genode/repos/snapper
 git clone -b 25.05-2025-07-07 --depth 1 https://codeberg.org/jws/genode-wundertuete.git genode/repos/wundertuete
 ```
 
-### Genode development container
-
-We use genode development container to use genode build toolchain. You first have to create or import docker image:
-
-> Note: you can omit `SUDO=sudo` if your docker is set up to work without root priviliges
-
-```bash
-cd genode-devel-docker
-
-# Recommended: import exising docker image
-./docker import SUDO=sudo
-
-# Alternative: build the image on your machine
-./docker build SUDO=sudo
-```
-
-#### Starting the container
-
-Start the genode development container and return to the working directory:
-
-```bash
-./docker run SUDO=sudo DOCKER_CONTAINER_ARGS=" --network host "
-
-cd <PATH_TO_PHANTOMUSERLAND>
-
-# You should add goa to $PATH every time you restart the conatiner
-export PATH=$PATH:$(pwd)/goa/bin
-```
-
-> Note: you can also add goa to your `PATH` permanently (i.e. in `.bashrc`), in which case you won't need to manually add it every time container is started.
-
-> `--network host` is optional, but it helps to avoid the process of setting up the network for debugging. You can omit `DOCKER_CONTAINER_ARGS=" --network host "` if you won't use debuggers.
-
-#### Alternative Container Setup
-For a container setup with less steps, run the following:  
+### Container Setup
+For a container setup, run the following:  
 
 ```bash
 cd <PATH_TO_PHANTOMUSERLAND>
 
-docker run -d --name phantomuserland  --cap-add SYS_PTRACE -v .:/phantomuserland -w /phantomuserland rmitov/genode:25.05 tail -f /dev/null
+./scripts/container.sh
 
-docker exec phantomuserland sed -i "s|/genode/goa|/phantomuserland/goa|g" /root/.bashrc
+podman exec phantomuserland sed -i "s|/genode/goa|/phantomuserland/goa|g" /root/.bashrc
 ```
 
 ### Initial setup
@@ -176,8 +143,11 @@ sed -i '/QEMU_OPT += -no-kvm/d' build/x86_64/etc/build.conf
 echo "REPOSITORIES += \$(GENODE_DIR)/repos/snapper" >> build/x86_64/etc/build.conf
 echo "REPOSITORIES += \$(GENODE_DIR)/repos/wundertuete" >> build/x86_64/etc/build.conf
 
-# go back
+# Go back
 cd ../
+
+# Initialize goa depot
+goa depot-dir
 
 # Extract Snapper and Lwext4 Libraries
 DEPOT_DIR=$(pwd)/var/depot UPDATE_VERSIONS=1 FORCE=1 ./genode/tool/depot/extract phantom/src/snap
