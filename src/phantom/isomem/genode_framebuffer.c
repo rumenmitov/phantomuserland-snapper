@@ -116,6 +116,8 @@ void phantom_start_video_driver(void) {
 // linked to C++ adapater code
 void ph_framebuffer_report_mouse_event(int x, int y, unsigned int state)
 {
+  // BUG For some the y-axis is inverted is for the mouse, hence the
+  // hack below.
     int new_y = video_drv->ysize - y;
 
     struct ui_event e;

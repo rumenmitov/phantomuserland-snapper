@@ -227,6 +227,5 @@ int kernel_keyboard_hook( unsigned key, unsigned shifts);
 
 #endif // KERNEL
 
-
 #endif // EVENT_H
 

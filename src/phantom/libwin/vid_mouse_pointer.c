@@ -36,6 +36,9 @@ static void get_mouse()
     interlock--;
 }
 
+// INFO Deprecated because PhantomOS will use the mouse from Genode's
+// nipicker component.
+__attribute__((deprecated))
 static void put_mouse()
 {
     if(mouse_on <= 0) return;
@@ -61,7 +64,7 @@ static void put_mouse()
 void vid_mouse_draw_deflt()
 {
     if( interlock || (mpointer == 0) ) return;
-    put_mouse();
+    // put_mouse();
 }
 
 void vid_mouse_set_cursor_deflt(drv_video_bitmap_t *nc)
@@ -86,8 +89,8 @@ void vid_mouse_on_deflt()
 {
     interlock++;
     mouse_on++;
-    if(mouse_on == 1)
-        put_mouse();
+    /* if(mouse_on == 1) */
+    /*     put_mouse(); */
     interlock--;
 }
 

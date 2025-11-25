@@ -351,7 +351,7 @@ int phantom_main_entry_point(int argc, char **argv, char **envp)
 
     // Let's skip. Probably, should be reimplemented
     /*
-    init_main_event_q();
+    nit_main_event_q();
     */
 
     //pressEnter("will look for drv stage 2");
@@ -616,9 +616,11 @@ void start_phantom()
 
     SHOW_FLOW0( 5, "Will init paging dev... ");
 
+#ifdef LEGACY_SNAP
     // A: Assuming we can init all of genode stuff here
     driver_genode_disk_probe(); // <- Will init virtual dev
     driver_genode_disk_init();  // <- Will register device in Phantom and create necessary structs
+#endif // LEGACY SNAP
 
 
 #if !PAGING_PARTITION
@@ -633,7 +635,7 @@ void start_phantom()
       Race-condition + deadlock :)
       Problem seems to be when blocking the thread.
      */
-    partition_pager_init(select_phantom_partition());
+    //partition_pager_init(select_phantom_partition());
 #endif
 
     SHOW_FLOW0( 5, "Will init vm map... ");

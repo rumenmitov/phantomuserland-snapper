@@ -92,12 +92,11 @@
    		<dir name="dev">
    			<block name="block" block_buffer_count="128"/>
    		</dir>
-      <lwext4 block_device="/dev/block" cache_write_back="yes"
-              expand_via_io="no" writeable="yes"
-              reporting="no"
-              external_cache_size="32M" report_cache="yes"/>
+      <dir name="snapper">
+        <ram/>
+      </dir>
    	</vfs>
-   	<policy label_prefix="snapper" root="/" writeable="yes"/>
+   	<policy label_prefix="snapper" root="/snapper" writeable="yes"/>
   </config>
 </start>
 
@@ -122,6 +121,7 @@
     </vfs>
   </config>
 	<route>
+		<service name="Block"><child name="ahci"/></service>
 		<any-service> <parent/> <any-child /> </any-service>
 	</route>
 </start>

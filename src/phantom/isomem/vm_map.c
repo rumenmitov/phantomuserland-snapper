@@ -1793,7 +1793,7 @@ static void vm_map_lazy_pageout_thread(void)
 }
 
 static int request_snap_flag = 0;
-static int seconds_between_snaps = 5;
+static int seconds_between_snaps = 1200;
 
 static void free_old_snapshot() {
     if (pager_superblock_ptr()->snap_to_free == 0) return;

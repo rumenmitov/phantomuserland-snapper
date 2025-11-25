@@ -46,7 +46,7 @@ protected:
   FramebufferAdapter &operator=(const FramebufferAdapter &) = delete;
 
   Genode::Env &_env;
-  Genode::Entrypoint _ep{_env, 2048, "framebuffer_ep",
+  Genode::Entrypoint _ep{_env, 1<<18, "framebuffer_ep",
                          Genode::Affinity::Location()};
 
   Gui::Connection _gui{_env};
@@ -57,7 +57,7 @@ protected:
 
   Gui::Top_level_view _view{_gui, _view_attributes.rect};
 
-  Genode::Constructible<Genode::Attached_dataspace> _fb_ds { };
+  Genode::Constructible<Genode::Attached_dataspace> _fb_ds{};
 
   Genode::Signal_handler<FramebufferAdapter> _input_signal_handler{
       _ep, *this, &FramebufferAdapter::_handle_input};
@@ -71,14 +71,21 @@ protected:
   }
 
   void _handle_input() {
-    while (!_gui.input.pending()) {
-      _gui.input.for_each_event([&] (Input::Event const &ev) {     
+    if (_gui.input.pending()) {
+      _gui.input.for_each_event([&](Input::Event const &ev) {
         bool have_mouse_event = false;
 
         ev.handle_absolute_motion([&](int x, int y) {
-            _mouse_x = x;
-            _mouse_y = y;
-            have_mouse_event = true;
+          _mouse_x = x;
+          _mouse_y = y;
+          have_mouse_event = true;
+        });
+
+        /*
+         * Handling relative motion
+         */
+        ev.handle_relative_motion([&](int x, int y) {
+          Genode::warning("relative mouse motion is not implemented yet!");
         });
 
         ev.handle_press([&](Input::Keycode key, Input::Codepoint codepoint) {
@@ -89,6 +96,8 @@ protected:
 
           _mouse_flags |= flags;
           have_mouse_event = true;
+
+          Genode::log("button pressed");
         });
 
         ev.handle_release([&](Input::Keycode key) {
@@ -98,14 +107,17 @@ protected:
 
           _mouse_flags &= ~flags;
           have_mouse_event = true;
+
+          Genode::log("button released");
         });
 
-        if (have_mouse_event)
+        if (have_mouse_event) {
+          ev_q_put_mouse(_mouse_x, _mouse_y, _mouse_flags);
           _report_mouse_events();
+          refresh_screen();
+        }
       });
     }
-
-
 
     // XXX: middle mouse press / release seem to always appear in the same
     // event buffer,
@@ -118,8 +130,7 @@ public:
   void refresh_screen() {
     _gui.framebuffer.refresh(_view_attributes.rect);
 
-    Gui::Rect geometry(_view_attributes.rect);
-    _gui.enqueue<Gui::Session::Command::Geometry>(_view.id(), geometry);
+    _gui.enqueue<Gui::Session::Command::Geometry>(_view.id(), _view_attributes.rect);
     _gui.execute();
   }
 
@@ -134,7 +145,7 @@ public:
 
     _fb_ds.construct(_env.rm(), _gui.framebuffer.dataspace());
 
-    pixels = (unsigned char*)_fb_ds->local_addr<Genode::Pixel_rgb888>();
+    pixels = (unsigned char *)_fb_ds->local_addr<Genode::Pixel_rgb888>();
 
     _gui.input.sigh(_input_signal_handler);
 

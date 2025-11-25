@@ -106,11 +106,10 @@ void ev_q_put_key( int vkey, int ch, int modifiers )
     ev_put_event(e);
 }
 
-/*
 //! Put mouse event onto the main e q
 void ev_q_put_mouse( int x, int y, int buttons )
 {
-    if(!event_engine_active) return; // Just ignore
+    if(!ev_engine_active) return; // Just ignore
 
     ui_event_t *e = ev_get_unused();
 
@@ -126,7 +125,6 @@ void ev_q_put_mouse( int x, int y, int buttons )
 
     ev_put_event(e);
 }
-*/
 
 #if NEW_WINDOWS
 

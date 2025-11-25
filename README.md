@@ -121,10 +121,9 @@ This section contains commands that would prepare the environment to build Phant
 > Following commands should be executed inside the container!
 
 ```bash
-cd ./goa/
-goa update-goa 25.04 || (echo "Could not update goa to required version!" && exit 1)
+goa update-goa 25.04 || (echo "Could not update goa to required version! Retry running this command!" && exit 1)
 
-cd ../genode/
+cd ./genode/
 
 # Switch to supported version (depends on the supported versions for lwext4 port which follows goa releases)
 git switch --detach sculpt-25.04
