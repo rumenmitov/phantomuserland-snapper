@@ -96,13 +96,8 @@ cd phantomuserland
 
 # Repostory with Genode
 git clone https://github.com/genodelabs/genode
-
 # Setting up with goa - tool for building genode applications
 git clone https://github.com/genodelabs/goa
-cd goa
-goa update-goa 25.04 || (echo "Could not update goa to required version!" && exit 1)
-cd ..
-
 # Setting up Snapper and Lwext4
 git clone --depth 1 https://github.com/rumenmitov/snapper genode/repos/snapper
 git clone -b 25.05-2025-07-07 --depth 1 https://codeberg.org/jws/genode-wundertuete.git genode/repos/wundertuete
@@ -126,7 +121,10 @@ This section contains commands that would prepare the environment to build Phant
 > Following commands should be executed inside the container!
 
 ```bash
-cd ./genode/
+cd ./goa/
+goa update-goa 25.04 || (echo "Could not update goa to required version!" && exit 1)
+
+cd ../genode/
 
 # Switch to supported version (depends on the supported versions for lwext4 port which follows goa releases)
 git switch --detach sculpt-25.04
