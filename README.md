@@ -25,18 +25,18 @@ What is done:
 - [x] Phantom Virtual Machine is able to work on Genode in 64 bits
 - [x] The subset of kernel sources required to run PVM in a persistent environment
 - [x] Adapters from Genode to Phantom OS low-level interfaces are implemented
+- [x] The debugging and testing of adapters
 
 What is in progress:
-
-- [ ] The debugging and testing of adapters is in progress
-
-What are the future plans:
-
+  
 - [ ] Finish the port
-  - [ ] Make PVM work in persistent environment
+  - [x] Make PVM work in persistent environment
   - [ ] Rework driver system
   - [ ] Rework and enable networking
-  - [ ] Rework and enable graphics
+  - [x] Rework and enable graphics
+  
+What are the future plans:
+
 - [ ] Add support to more languages using a WebAssembly runtime
 
 ### Project layout
@@ -94,12 +94,15 @@ git clone --recurse-submodules https://github.com/rumenmitov/phantomuserland-sna
 
 cd phantomuserland
 
-# Repository with Genode build container wrapper
-git clone https://github.com/skalk/genode-devel-docker
 # Repostory with Genode
 git clone https://github.com/genodelabs/genode
+
 # Setting up with goa - tool for building genode applications
 git clone https://github.com/genodelabs/goa
+cd goa
+goa update-goa 25.04 || (echo "Could not update goa to required version!" && exit 1)
+cd ..
+
 # Setting up Snapper and Lwext4
 git clone --depth 1 https://github.com/rumenmitov/snapper genode/repos/snapper
 git clone -b 25.05-2025-07-07 --depth 1 https://codeberg.org/jws/genode-wundertuete.git genode/repos/wundertuete
@@ -125,7 +128,7 @@ This section contains commands that would prepare the environment to build Phant
 ```bash
 cd ./genode/
 
-# Switch to supported version
+# Switch to supported version (depends on the supported versions for lwext4 port which follows goa releases)
 git switch --detach sculpt-25.04
 
 # Creating build directory
