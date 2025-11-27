@@ -23,6 +23,10 @@ build {
 }
 
 import_from_depot [depot_user]/pkg/[drivers_interactive_pkg] \
+                  [depot_user]/src/rom_filter \
+                  [depot_user]/src/nit_focus \
+                  [depot_user]/src/nitpicker \
+                  [depot_user]/src/global_keys_handler \
                   [depot_user]/src/gui_fb \
                   [depot_user]/src/init \
                   [depot_user]/src/sandbox \
@@ -33,6 +37,7 @@ import_from_depot [depot_user]/pkg/[drivers_interactive_pkg] \
 #
 set mke4fs [installed_command mkfs.ext4]
 set dd     [installed_command dd]
+set cat     [installed_command cat]
 
 catch { exec $dd if=/dev/zero of=bin/block0.raw bs=1M count=0 seek=2048 }
 catch { exec $dd dd conv=notrunc bs=4096 count=1 seek=16 if=/phantomuserland/src/run/img/phantom.superblock of=bin/block0.raw }
@@ -40,7 +45,7 @@ catch { exec $dd dd conv=notrunc bs=4096 count=1 seek=16 if=/phantomuserland/src
 catch { exec $dd if=/dev/zero of=bin/snapper_block.raw bs=1M count=256 }
 catch { exec $mke4fs -O^metadata_csum -F bin/snapper_block.raw }
 
-install_config {
+set config {
 <config>
 	<parent-provides>
 		<service name="ROM"/>
@@ -70,64 +75,50 @@ install_config {
 		</provides>
 	</start>
 
-	<start name="report_rom">
-		<resource name="RAM" quantum="2M"/>
-		<provides> <service name="Report"/> <service name="ROM"/> </provides>
-		<config>
-			<policy label="pci_decode -> system"    report="acpi -> acpi"/>
-			<policy label="platform -> devices" report="pci_decode -> devices"/>
-		</config>
-	</start>
+  <start name="report_rom">
+  	<resource name="RAM" quantum="2M"/>
+  	<provides> <service name="Report"/> <service name="ROM"/> </provides>
+  	<config>
+  		<policy label="pci_decode -> system"    report="acpi -> acpi"/>
+  		<policy label="platform -> devices" report="pci_decode -> devices"/>
+  		<policy label="usb_hid -> report"    report="usb -> devices"/>
+  	</config>
+  </start>
 
-	<start name="acpi" caps="350">
-		<resource name="RAM" quantum="4M"/>
-		<route>
-			<service name="Report"> <child name="report_rom"/> </service>
-			<service name="IO_MEM"> <parent/> </service>
-			<service name="LOG">    <parent/> </service>
-			<service name="PD">     <parent/> </service>
-			<service name="RM">     <parent/> </service>
-			<service name="CPU">    <parent/> </service>
-			<service name="ROM">    <parent/> </service>
-		</route>
-	</start>
-
-	<start name="pci_decode" caps="350">
-		<resource name="RAM" quantum="2M"/>
-		<route>
-			<service name="Report">             <child name="report_rom"/> </service>
-			<service name="ROM" label="system"> <child name="report_rom"/> </service>
-			<service name="IO_MEM"> <parent/> </service>
-			<service name="LOG">    <parent/> </service>
-			<service name="PD">     <parent/> </service>
-			<service name="RM">     <parent/> </service>
-			<service name="CPU">    <parent/> </service>
-			<service name="ROM">    <parent/> </service>
-		</route>
-	</start>
-
-	<start name="platform" caps="100" managing_system="yes">
-		<resource name="RAM" quantum="1M"/>
-		<provides>
-			<service name="Platform"/>
-		</provides>
-		<route>
-			<service name="ROM" label="devices"> <child name="report_rom"/> </service>
-			<service name="Report"> <child name="report_rom"/> </service>
-			<service name="IRQ">     <parent/> </service>
-			<service name="IO_MEM">  <parent/> </service>
-			<service name="IO_PORT"> <parent/> </service>
-			<service name="ROM">     <parent/> </service>
-			<service name="PD">      <parent/> </service>
-			<service name="CPU">     <parent/> </service>
-			<service name="LOG">     <parent/> </service>
-			<service name="Timer">   <child name="timer"/> </service>
-		</route>
-		<config>
-			<report devices="yes"/>
-			<policy label="ahci -> "> <pci class="AHCI"/> </policy>
-		</config>
-	</start>
+  <start name="acpi" caps="350">
+  	<resource name="RAM" quantum="4M"/>
+  	<route>
+  		<service name="Report"> <child name="report_rom"/> </service>
+  		<any-service> <parent/> <any-child /> </any-service>
+  	</route>
+  </start>
+  
+  <start name="pci_decode" caps="350">
+  	<resource name="RAM" quantum="2M"/>
+	<route>
+  		<service name="Report">             <child name="report_rom"/> </service>
+  		<service name="ROM" label="system"> <child name="report_rom"/> </service>
+  		<any-service> <parent/> <any-child /> </any-service>
+  	</route>
+  </start>
+  
+  <start name="platform" ram="300M" caps="200" managing_system="yes">
+  	<provides>
+  		<service name="Platform"/>
+  	</provides>
+  	<route>
+  		<service name="ROM" label="devices"> <child name="report_rom"/> </service>
+  		<service name="Report"> <child name="report_rom"/> </service>
+  		<any-service> <parent/> <any-child /> </any-service>
+  	</route>
+  	<config>
+  		<report devices="yes"/>
+  		<policy label="ahci -> "> <pci class="AHCI"/> </policy>
+  		<policy label_prefix="ps2"> <device name="ps2"/> </policy>
+  		<policy label_prefix="fb"  info="yes"> <pci class="VGA"/> </policy>
+  		<policy label_prefix="usb" info="yes"> <pci class="USB"/> </policy>
+  	</config>
+  </start>
 
 	<start name="ahci_report_rom">
 		<binary name="report_rom"/>
@@ -148,30 +139,6 @@ install_config {
 			<service name="Report"> <child name="ahci_report_rom"/> </service>
 			<any-service> <parent/> <any-child/> </any-service>
 		</route>
-	</start>
-
-	<start name="drivers" caps="1500" ram="120M" managing_system="yes">
-		<binary name="init"/>
-		<route>
-			<service name="ROM" label="config"> <parent label="drivers.config"/> </service>
-			<service name="Timer">   <child name="timer"/> </service>
-			<service name="Capture"> <child name="nitpicker"/> </service>
-			<service name="Event">   <child name="nitpicker"/> </service>
-			<any-service> <parent/> </any-service>
-		</route>
-	</start>
-
-	<start name="nitpicker" ram="4M">
-		<provides>
-			<service name="Gui"/> <service name="Capture"/> <service name="Event"/>
-		</provides>
-		<config>
-			<capture/> <event/>
-			<domain name="default" layer="1" content="client" label="no" hover="always" focus="click" width="1024" height="768"/>
-
-			<default-policy domain="default"/>
-		</config>
-		<route> <any-service> <parent/> <any-child/> </any-service> </route>
 	</start>
 
   <start name="vfs" ram="200M" caps="200">
@@ -272,8 +239,14 @@ install_config {
       <any-service> <parent/> <any-child/> </any-service>
     </route>
 	</start>
+}
 
-</config> }
+append config [ exec $cat [genode_dir]/repos/ports/run/phantom_gui_drivers-pc.inc ]
+append config [ exec $cat [genode_dir]/repos/ports/run/phantom_gui-common.inc ]
+
+append config { </config> }
+
+install_config $config
 
 #
 # Boot modules

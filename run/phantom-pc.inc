@@ -11,6 +11,7 @@
 	<config>
 		<policy label="pci_decode -> system"    report="acpi -> acpi"/>
 		<policy label="platform -> devices" report="pci_decode -> devices"/>
+		<policy label="usb_hid -> report"    report="usb -> devices"/>
 	</config>
 </start>
 
@@ -18,12 +19,7 @@
 	<resource name="RAM" quantum="4M"/>
 	<route>
 		<service name="Report"> <child name="report_rom"/> </service>
-		<service name="IO_MEM"> <parent/> </service>
-		<service name="LOG">    <parent/> </service>
-		<service name="PD">     <parent/> </service>
-		<service name="RM">     <parent/> </service>
-		<service name="CPU">    <parent/> </service>
-		<service name="ROM">    <parent/> </service>
+		<any-service> <parent/> <any-child /> </any-service>
 	</route>
 </start>
 
@@ -32,35 +28,25 @@
 	<route>
 		<service name="Report">             <child name="report_rom"/> </service>
 		<service name="ROM" label="system"> <child name="report_rom"/> </service>
-		<service name="IO_MEM"> <parent/> </service>
-		<service name="LOG">    <parent/> </service>
-		<service name="PD">     <parent/> </service>
-		<service name="RM">     <parent/> </service>
-		<service name="CPU">    <parent/> </service>
-		<service name="ROM">    <parent/> </service>
+		<any-service> <parent/> <any-child /> </any-service>
 	</route>
 </start>
 
-<start name="platform" caps="100" managing_system="yes">
-	<resource name="RAM" quantum="20M"/>
+<start name="platform" ram="300M" caps="200" managing_system="yes">
 	<provides>
 		<service name="Platform"/>
 	</provides>
 	<route>
 		<service name="ROM" label="devices"> <child name="report_rom"/> </service>
 		<service name="Report"> <child name="report_rom"/> </service>
-		<service name="IRQ">     <parent/> </service>
-		<service name="IO_MEM">  <parent/> </service>
-		<service name="IO_PORT"> <parent/> </service>
-		<service name="ROM">     <parent/> </service>
-		<service name="PD">      <parent/> </service>
-		<service name="CPU">     <parent/> </service>
-		<service name="LOG">     <parent/> </service>
-		<service name="Timer">   <child name="timer"/> </service>
+		<any-service> <parent/> <any-child /> </any-service>
 	</route>
 	<config>
 		<report devices="yes"/>
 		<policy label="ahci -> "> <pci class="AHCI"/> </policy>
+		<policy label_prefix="ps2"> <device name="ps2"/> </policy>
+		<policy label_prefix="fb"  info="yes"> <pci class="VGA"/> </policy>
+		<policy label_prefix="usb" info="yes"> <pci class="USB"/> </policy>
 	</config>
 </start>
 
@@ -92,11 +78,12 @@
    		<dir name="dev">
    			<block name="block" block_buffer_count="128"/>
    		</dir>
-      <dir name="snapper">
-        <ram/>
-      </dir>
+      <lwext4 block_device="/dev/block" cache_write_back="yes"
+              expand_via_io="no" writeable="yes"
+              reporting="no"
+              external_cache_size="32M" report_cache="yes"/>
    	</vfs>
-   	<policy label_prefix="snapper" root="/snapper" writeable="yes"/>
+   	<policy label_prefix="snapper" root="/" writeable="yes"/>
   </config>
 </start>
 

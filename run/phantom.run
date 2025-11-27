@@ -54,21 +54,21 @@ set config {
 	</start>
 }
 
-append config [ exec $cat [genode_dir]/repos/ports/run/phantom_gui-common.inc ]
-
 if {[have_board linux]} {
     lappend build_components server/lx_fs server/vfs_block
+    append config [ exec $cat [genode_dir]/repos/ports/run/phantom_gui_drivers-linux.inc ]
     append config [ exec $cat [genode_dir]/repos/ports/run/phantom-linux.inc ]
 }
 
 if {[have_board pc]} {
     lappend build_components driver/platform driver/acpi driver/ahci app/pci_decode server/report_rom
+    append config [ exec $cat [genode_dir]/repos/ports/run/phantom_gui_drivers-pc.inc ]
     append config [ exec $cat [genode_dir]/repos/ports/run/phantom-pc.inc ]
 }
 
-append config { </config> }
+append config [ exec $cat [genode_dir]/repos/ports/run/phantom_gui-common.inc ]
 
-build $build_components
+append config { </config> }
 
 import_from_depot [depot_user]/pkg/[drivers_interactive_pkg] \
                   [depot_user]/src/rom_filter \
@@ -76,6 +76,8 @@ import_from_depot [depot_user]/pkg/[drivers_interactive_pkg] \
                   [depot_user]/src/nitpicker \
                   [depot_user]/src/global_keys_handler \
                   [depot_user]/src/gui_fb
+
+build $build_components
 
 install_config $config
 

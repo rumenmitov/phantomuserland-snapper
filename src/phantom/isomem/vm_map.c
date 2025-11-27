@@ -497,11 +497,9 @@ vm_map_init(unsigned long page_count)
     //hal_cond_init(&deferred_alloc_thread_sleep, "Deferred");
     //hal_mutex_unlock(&vm_map_mutex);
 
-#if 1
     hal_start_kernel_thread(vm_map_deferred_disk_alloc_thread);
     // hal_start_kernel_thread(vm_map_lazy_pageout_thread);
     hal_start_kernel_thread(vm_map_snapshot_thread);
-#endif
 
     // Ok, everything is ready now. Turn on pagefaults handling
 #ifdef ARCH_ia32
@@ -1586,13 +1584,8 @@ void recover_snapshot(void)
         snapper_handle_result(&res);
       }
 
-
-      hal_mutex_lock(&i->lock);
       ph_memcpy(i->virt_addr, payload_buffer + (buf_idx * ARCH_PAGE_SIZE),  ARCH_PAGE_SIZE);
       buf_idx = (buf_idx + 1) % PAGES_PER_SNAPSHOT_FILE;
-
-      i->flag_have_prev = 1;
-      hal_mutex_unlock(&i->lock);
     }
 
     ph_free(payload_buffer);
@@ -1605,6 +1598,8 @@ void recover_snapshot(void)
   t_smp_enable(1);
   phantom_snapper_reenable_threads();
   t_current_set_priority(prio);
+
+  ph_syslog(0, "recovery complete!");
 }
 
 
@@ -1793,7 +1788,7 @@ static void vm_map_lazy_pageout_thread(void)
 }
 
 static int request_snap_flag = 0;
-static int seconds_between_snaps = 1200;
+static int seconds_between_snaps = 5;
 
 static void free_old_snapshot() {
     if (pager_superblock_ptr()->snap_to_free == 0) return;
@@ -1878,7 +1873,6 @@ static void vm_map_snapshot_thread(void)
         }
 
         request_snap_flag = 0;
-
     }
 }
 

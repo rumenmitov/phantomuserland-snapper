@@ -1,18 +1,7 @@
-<start name="drivers" caps="1500" ram="64M" managing_system="yes">
-	<binary name="init"/>
-	<route>
-		<service name="ROM" label="config"> <parent label="drivers.config"/> </service>
-		<service name="Timer">   <child name="timer"/> </service>
-		<service name="Capture"> <child name="nitpicker"/> </service>
-		<service name="Event">   <child name="nitpicker"/> </service>
-		<any-service> <parent/> </any-service>
-	</route>
-</start>
-
 <start name="gui_report_rom" ram="1M" caps="100">
   <binary name="report_rom"/>
 	<provides> <service name="Report"/> <service name="ROM"/> </provides>
-	<config verbose="no">
+	<config verbose="yes">
 		<policy label_suffix="status_bar -> focus"          report="nitpicker -> focus"/>
 		<policy label_suffix="nitpicker_config -> xray"     report="global_keys_handler -> xray"/>
 		<policy label_suffix="global_keys_handler -> hover" report="nitpicker -> hover"/>
