@@ -99,7 +99,8 @@
       max_snapshots="0"
       min_snapshots="0"
       threshold="1000"
-      expiration="3600">
+      expiration="3600"
+      bufsize="10M">
 
     <rtc/>
 

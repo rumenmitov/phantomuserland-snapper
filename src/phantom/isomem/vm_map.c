@@ -1550,7 +1550,9 @@ void do_legacy_snapshot(void)
     pager_calculate_free_block_count();
 }
 
-#define PAGES_PER_SNAPSHOT_FILE 8
+// INFO PAGES_PER_SNAPSHOT_FILE x ARCH_PAGES_SIZE should not
+// exceeed the `bufsize` in the Snapper configuration!
+#define PAGES_PER_SNAPSHOT_FILE 128
 
 void recover_snapshot(void) 
 {
