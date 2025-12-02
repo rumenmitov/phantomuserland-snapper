@@ -32,7 +32,7 @@ catch { exec $dd if=/dev/zero of=bin/snapper_block.raw bs=1M count=256 }
 catch { exec $mke4fs -O^metadata_csum -F bin/snapper_block.raw }
 
 set config {
-<config>
+<config verbose="yes">
 	<parent-provides>
 		<service name="ROM"/>
 		<service name="IRQ"/>
@@ -93,7 +93,7 @@ if {[have_board pc]} {
     build_boot_image [list {*}[build_artifacts] phantom_classes isomem ]
 
     append qemu_args " -smp 2 "
-    append qemu_args " -m 8000 "
+    append qemu_args " -m 12000 "
     append qemu_args " -device ahci,id=ahci -boot d "
     append qemu_args " -drive id=disk,file=bin/block0.raw,format=raw,if=none             -device ide-hd,drive=disk,bus=ahci.0 "
     append qemu_args " -drive id=snapper,file=bin/snapper_block.raw,format=raw,if=none   -device ide-hd,drive=snapper,bus=ahci.1 "

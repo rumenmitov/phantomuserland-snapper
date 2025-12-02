@@ -1,6 +1,6 @@
-<start name="fb" caps="120" ram="20M">
+<start name="fb" caps="200" ram="32M">
 	<binary name="vesa_fb"/>
-  <config width="1024" height="768" buffered="yes"/>
+  <config width="1024" height="768" buffered="yes" verbose="yes"/>
 	<route>
 		<service name="Report">  <child name="report_rom"/> </service>
 		<service name="Platform"> <child name="platform"/> </service>

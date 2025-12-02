@@ -32,7 +32,7 @@
 	</route>
 </start>
 
-<start name="platform" ram="300M" caps="200" managing_system="yes">
+<start name="platform" ram="500M" caps="400" managing_system="yes">
 	<provides>
 		<service name="Platform"/>
 	</provides>
@@ -87,7 +87,7 @@
   </config>
 </start>
 
-<start name="snapper" ram="400M" caps="200">
+<start name="snapper" ram="500M" caps="300">
   <provides>
     <service name="Snapper"/>
   </provides>
@@ -115,7 +115,7 @@
 </start>
 
 <start name="isomem" caps="2000">
- 	<resource name="RAM" quantum="1G"/>
+ 	<resource name="RAM" quantum="500M"/>
   
  	<config verbose="yes" ld_verbose="yes">
  	</config>
