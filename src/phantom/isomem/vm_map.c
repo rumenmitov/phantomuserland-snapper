@@ -1552,7 +1552,7 @@ void do_legacy_snapshot(void)
 
 // INFO PAGES_PER_SNAPSHOT_FILE x ARCH_PAGES_SIZE should not
 // exceeed the `bufsize` in the Snapper configuration!
-#define PAGES_PER_SNAPSHOT_FILE 128
+#define PAGES_PER_SNAPSHOT_FILE 1024
 
 void recover_snapshot(void) 
 {
@@ -1644,37 +1644,39 @@ void do_snapshot(void)
 
     is_in_snapshot_process = 1;
 
-    // save the pages (buffer multiple pages into one snapshot file
-    // for faster snapshots)
-    char *payload_buffer = ph_malloc(ARCH_PAGE_SIZE * PAGES_PER_SNAPSHOT_FILE);
-    int buf_idx = 0;
     int snapper_id = 0;
 
-    vm_page *i;
-    for( i = vm_map_map; i < vm_map_map_end; i++ )
-    {
-      ph_memcpy(payload_buffer + (buf_idx * ARCH_PAGE_SIZE), i->virt_addr, ARCH_PAGE_SIZE);
-      buf_idx = (buf_idx + 1) % PAGES_PER_SNAPSHOT_FILE;
+    /* INFO
+       Group the persistent memory into chunks with size
+       PAGES_PER_SNAPSHOT_FILE * ARCH_PAGE_SIZE.
+     */
+    addr_t persistent_addr_space_end =
+        (addr_t)vm_map_start_of_virtual_address_space +
+        vm_map_vm_page_count * ARCH_PAGE_SIZE;
 
-      if (buf_idx == 0) {
-        struct Snapper_result res =
-          snapper_take_snapshot(payload_buffer, PAGES_PER_SNAPSHOT_FILE * ARCH_PAGE_SIZE, snapper_id++);
+    size_t chunk_size = PAGES_PER_SNAPSHOT_FILE * ARCH_PAGE_SIZE;
 
-        snapper_handle_result(&res);
-      }
-    }
+    addr_t ptr;
+    for (ptr = (addr_t)vm_map_start_of_virtual_address_space;
+         ptr < persistent_addr_space_end - chunk_size;
+         ptr += chunk_size) {
 
-    if (buf_idx != 0) {
       struct Snapper_result res =
-        snapper_take_snapshot(payload_buffer, buf_idx * ARCH_PAGE_SIZE, snapper_id);
+        snapper_take_snapshot((char*)ptr, chunk_size, snapper_id++);
 
       snapper_handle_result(&res);
     }
 
-    ph_free(payload_buffer);
-    payload_buffer = NULL;
+    /*
+      Handle leftover pages (handled separately because the number of
+      pages may not be aligned with PAGES_PER_SNAPSHOT_FILE).
+    */
+   res = snapper_take_snapshot(
+        (char *)ptr, persistent_addr_space_end - ptr, snapper_id++);
 
-    ph_syslog( 0, "snap: thank you ladies");
+    snapper_handle_result(&res);
+
+    ph_syslog(0, "snap: thank you ladies");
 
     is_in_snapshot_process = 0;
     t_smp_enable(1);
