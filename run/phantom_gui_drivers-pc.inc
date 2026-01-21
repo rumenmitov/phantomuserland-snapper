@@ -1,4 +1,4 @@
-<start name="fb" caps="200" ram="32M">
+<start name="fb" caps="200" ram="100M">
 	<binary name="vesa_fb"/>
   <config width="1024" height="768" buffered="yes" verbose="yes"/>
 	<route>

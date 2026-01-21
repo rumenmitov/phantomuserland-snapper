@@ -7,6 +7,8 @@ podman run -d \
        -v $XDG_RUNTIME_DIR:$XDG_RUNTIME_DIR:rw \
        -e WAYLAND_DISPLAY=$WAYLAND_DISPLAY \
        -e XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR \
+       --device /dev/kvm \
+       --privileged \
        --cap-add SYS_PTRACE \
        --user root \
        --group-add keep-groups \

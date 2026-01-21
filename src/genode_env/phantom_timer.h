@@ -34,7 +34,7 @@ public:
 
 struct Phantom::Timer_adapter {
   Genode::Env &_env;
-  Genode::Entrypoint _ep_timer{_env, sizeof(addr_t) * 2048, "timer_ep",
+  Genode::Entrypoint _ep_timer{_env, sizeof(Genode::addr_t) * 2048, "timer_ep",
                                Genode::Affinity::Location()};
   Timer::Connection _timer{_env, _ep_timer, "Phantom timer"};
   const unsigned int rate_us = 1000;

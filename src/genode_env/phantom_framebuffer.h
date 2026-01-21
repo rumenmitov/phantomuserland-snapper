@@ -5,6 +5,7 @@
 #include <gui_session/connection.h>
 #include <gui_session/gui_session.h>
 #include <input/keycodes.h>
+#include <timer_session/connection.h>
 
 // Phantom includes
 extern "C" {
@@ -40,16 +41,18 @@ static unsigned int keycode_to_mouse_flags(Input::Keycode key) {
  */
 class Phantom::FramebufferAdapter : private Genode::Noncopyable {
 protected:
-  // for some reason inheriting from noncopyable does not get rid of warnings
-  // so defining these 2 here explicitly
   FramebufferAdapter(const FramebufferAdapter &) = delete;
   FramebufferAdapter &operator=(const FramebufferAdapter &) = delete;
 
   Genode::Env &_env;
-  Genode::Entrypoint _ep{_env, 1<<18, "framebuffer_ep",
+
+  Genode::Entrypoint _ep{_env, 1 << 18, "framebuffer_ep",
                          Genode::Affinity::Location()};
 
   Gui::Connection _gui{_env};
+
+  /* SCREEN DISPLAY */
+  
   Gui::Session::View_attr _view_attributes{
       .title = "View",
       .rect = {.at = {0, 0}, .area = {1024, 768}},
@@ -57,11 +60,35 @@ protected:
 
   Gui::Top_level_view _view{_gui, _view_attributes.rect};
 
-  Genode::Constructible<Genode::Attached_dataspace> _fb_ds{};
+  Genode::Dataspace_capability _init_fb_ds(void) {
+    _gui.buffer({_view_attributes.rect.area, false});
+    return _gui.framebuffer.dataspace();
+  }
+
+  Genode::Attached_dataspace _fb_ds{_env.rm(), _init_fb_ds()};
+
+  void _handle_refresh_screen(Genode::Duration duration) {
+    (void)duration;
+    _gui.framebuffer.panning(_view_attributes.rect.p1());
+  }
+
+  /* INFO
+     Screen refresh handler runs 1 / rate.
+     Want 60 fps := 60 / 1s = 1 / (1s / 60) => rate := 1s / 60
+   */
+  const unsigned FPS = 60;
+
+  Timer::Connection _screen_refresh_timer{_env, _ep};
+  Timer::Periodic_timeout<Phantom::FramebufferAdapter> _screen_refresh_timeout{
+      _screen_refresh_timer, *this,
+      &Phantom::FramebufferAdapter::_handle_refresh_screen,
+      Genode::Microseconds(1000000UL / FPS)};
+
+  /* INPUT */
 
   Genode::Signal_handler<FramebufferAdapter> _input_signal_handler{
       _ep, *this, &FramebufferAdapter::_handle_input};
-
+  
   int _mouse_x = 0;
   int _mouse_y = 0;
   unsigned int _mouse_flags = 0;
@@ -114,7 +141,7 @@ protected:
         if (have_mouse_event) {
           ev_q_put_mouse(_mouse_x, _mouse_y, _mouse_flags);
           _report_mouse_events();
-          refresh_screen();
+          //          refresh_screen();
         }
       });
     }
@@ -125,27 +152,14 @@ protected:
   }
 
 public:
-  unsigned char *pixels = nullptr;
+  using PT = Genode::Pixel_rgb888;
+  PT *pixels = nullptr;
 
-  void refresh_screen() {
-    _gui.framebuffer.refresh(_view_attributes.rect);
-
-    _gui.enqueue<Gui::Session::Command::Geometry>(_view.id(), _view_attributes.rect);
-    _gui.execute();
-  }
+  void refresh_screen(void) { _gui.framebuffer.refresh(_view_attributes.rect); }
 
   FramebufferAdapter(Genode::Env &env) : _env(env) {
-    _gui.view(Gui::View_id{0}, _view_attributes);
 
-    _gui.enqueue<Gui::Session::Command::Front>(_view.id());
-
-    _gui.execute();
-
-    _gui.buffer({_view_attributes.rect.area, false});
-
-    _fb_ds.construct(_env.rm(), _gui.framebuffer.dataspace());
-
-    pixels = (unsigned char *)_fb_ds->local_addr<Genode::Pixel_rgb888>();
+    pixels = (PT *)_fb_ds.local_addr<PT>();
 
     _gui.input.sigh(_input_signal_handler);
 

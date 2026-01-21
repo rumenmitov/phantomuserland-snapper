@@ -31,40 +31,11 @@
 // TODO looses events?!
 static void w_do_deliver_event(window_handle_t w)
 {
-    //if(w != 0 && w->eventDeliverSema)        hal_sem_release(w->eventDeliverSema);
-
     if(w != 0 && w->inKernelEventProcess)
     {
         struct ui_event e;
-        int got = ev_w_get_event( w, &e, 0 );
-
-        while(got)
-        {
-            struct ui_event e2;
-            if( ev_w_get_event( w, &e2, 0 ) )
-            {
-                // 2 repaints follow
-                if((e.type == e2.type) && (e.w.info == e2.w.info) && (e.focus == e2.focus))
-                {
-                    if((e.w.info == UI_EVENT_WIN_REPAINT) || (e.w.info == UI_EVENT_WIN_REDECORATE))
-                    {
-                        LOG_FLOW0( 1, "combined repaint" );
-                        // Choose more powerful spell
-                        //e.w.info = UI_EVENT_WIN_REDECORATE;
-                        // Eat one
-                        //e = e2;
-                        continue;
-                    }
-                }
-            }
-            else
-                got = 0;
-
-            LOG_FLOW(8, "%p, w=%p, us=%p", &e, e.focus, w);
-
-            w->inKernelEventProcess(w, &e);
-            e = e2;
-        }
+        (void) ev_w_get_event(w, &e, 0);
+        w->inKernelEventProcess(w, &e);
     }
 }
 

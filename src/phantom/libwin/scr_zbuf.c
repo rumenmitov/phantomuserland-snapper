@@ -305,7 +305,7 @@ void scr_zbuf_paint()
     if(scr_get_bpp() == 24)
     {
         zbuf_t *zbp = zbuf;
-        rgb_t *d = (void *)video_drv->screen;
+        rgb_t *d = (void *)video_drv->screen();
         while( np-- )
         {
             d->r = d->g = d->b = 4 * *zbp++;
@@ -316,7 +316,7 @@ void scr_zbuf_paint()
 #endif
     {
         zbuf_t *zbp = zbuf;
-        rgba_t *d = (void *)video_drv->screen;
+        rgba_t *d = (void *)video_drv->screen();
         while( np-- )
         {
             d->r = d->g = d->b = 4 * *zbp++;

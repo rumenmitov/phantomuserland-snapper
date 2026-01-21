@@ -92,8 +92,9 @@ if {[have_board linux]} {
 if {[have_board pc]} {
     build_boot_image [list {*}[build_artifacts] phantom_classes isomem ]
 
-    append qemu_args " -smp 2 "
+    append qemu_args " -smp 8 "
     append qemu_args " -m 12000 "
+    append qemu_args " -device virtio-vga -enable-kvm -cpu host "
     append qemu_args " -device ahci,id=ahci -boot d "
     append qemu_args " -drive id=disk,file=bin/block0.raw,format=raw,if=none             -device ide-hd,drive=disk,bus=ahci.0 "
     append qemu_args " -drive id=snapper,file=bin/snapper_block.raw,format=raw,if=none   -device ide-hd,drive=snapper,bus=ahci.1 "
