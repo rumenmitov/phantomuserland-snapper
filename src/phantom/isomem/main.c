@@ -629,14 +629,14 @@ void start_phantom()
 
     //pressEnter("will init pager");
     pager_init(&pdev);
+    
 #else
-    /*
-      BUG
-      Race-condition + deadlock :)
-      Problem seems to be when blocking the thread.
-     */
-    //partition_pager_init(select_phantom_partition());
-#endif
+    
+#ifdef LEGACY_SNAP
+    partition_pager_init(select_phantom_partition());
+#endif // LEGACY_SNAP
+    
+#endif // !PAGING_PARTITION
 
     SHOW_FLOW0( 5, "Will init vm map... ");
     //pressEnter("will init VM map");

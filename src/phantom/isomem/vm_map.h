@@ -135,7 +135,7 @@ void		vm_page_init( vm_page *me, void *my_vaddr);
 
 // These helpers are to be called with CLI!!
 void		vm_page_req_deferred_disk_alloc();
-void       	vm_page_req_pageout();
+void       	vm_page_req_pageout(vm_page *me);
 
 
 // Need access queue(s?) so that accessed pages will go to the beginning of
