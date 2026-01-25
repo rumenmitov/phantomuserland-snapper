@@ -714,11 +714,12 @@ vm_page_req_pageout(vm_page *me)
         {
             panic("can't alloc disk page in req pageout");
         }
+
         me->flag_have_curr = 1;
         if(PAGING_DEBUG) hal_printf("got disk block for 0x%X\n", me->virt_addr );
     }
 
-    hal_page_control(me->phys_addr, me->virt_addr, page_map, page_ro );
+    hal_page_control(me->phys_addr, me->virt_addr, page_map, page_ro);
 
     me->flag_phys_protect = 1;
     me->flag_pager_io_busy = 1;
@@ -1576,14 +1577,21 @@ void recover_snapshot(void)
     int buf_idx = 0;
     int snapper_id = 0;
 
+    const size_t chunk_size = PAGES_PER_SNAPSHOT_FILE * ARCH_PAGE_SIZE;
+    const size_t total_size = vm_map_vm_page_count * ARCH_PAGE_SIZE;
+    size_t remaining        = total_size;
+
     vm_page *i;
     for( i = vm_map_map; i < vm_map_map_end; i++ )
     {
       if (buf_idx == 0) {
+        size_t restore_size = (chunk_size < remaining) ? chunk_size : remaining;
         struct Snapper_result res =
-          snapper_restore(payload_buffer, PAGES_PER_SNAPSHOT_FILE * ARCH_PAGE_SIZE, snapper_id++);
+          snapper_restore(payload_buffer, restore_size, snapper_id++);
 
         snapper_handle_result(&res);
+
+        remaining -= restore_size;
       }
 
       ph_memcpy(i->virt_addr, payload_buffer + (buf_idx * ARCH_PAGE_SIZE),  ARCH_PAGE_SIZE);
@@ -1592,6 +1600,8 @@ void recover_snapshot(void)
 
     ph_free(payload_buffer);
     payload_buffer = NULL;
+
+    assert(remaining == 0);
   }
 
   res = snapper_close_generation();
@@ -1610,39 +1620,29 @@ void recover_snapshot(void)
 
 void do_snapshot(void)
 {
-    int			  enabled = 0; // interrupts
+    int prio = 0;
+    size_t chunk_size = PAGES_PER_SNAPSHOT_FILE * ARCH_PAGE_SIZE;
+    size_t total_size = vm_map_vm_page_count * ARCH_PAGE_SIZE;
 
-    ph_syslog( 0, "snap: started");
-    // prerequisites
-    //
-    // - no pages with flag_have_make can exist! check that?
-    //
-
-    // This pageout request is not nesessary, but makes snap to catch a more later state.
-    // If we skip this pageout, a lot of pages will go to 'after snap' state.
-    // TODO try to find some heuristic to pageout just pages modified long ago?
-
-    // Do it in lowest prio (but not IDLE) or else massive IO will kill world
-    int prio;
     t_current_get_priority(&prio);
-    t_current_set_priority( THREAD_PRIO_LOWEST );
+    t_current_set_priority( THREAD_PRIO_HIGHEST );
 
-    if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: stop world");
+    ph_syslog(0, "snap: started");
+    is_in_snapshot_process = 1;
+    
     phantom_snapper_wait_4_threads();
-    if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: threads stopped");
 
-    t_smp_enable(0); // make sure other CPUs don't mess here
+    void *persistent_addr_space_snapshot = ph_malloc(total_size);
+    ph_memcpy(persistent_addr_space_snapshot,
+              vm_map_start_of_virtual_address_space, total_size);
 
-    enabled = hal_save_cli();
-    t_migrate_to_boot_CPU();
-    if(enabled) hal_sti();
+    is_in_snapshot_process = 0;
+    phantom_snapper_reenable_threads();
 
-    ph_syslog( 0, "snap: hold still, say 'cheese!'...");
+    t_current_set_priority( prio );
 
     struct Snapper_result res = snapper_init_snapshot();
     snapper_handle_result(&res);
-
-    is_in_snapshot_process = 1;
 
     int snapper_id = 0;
 
@@ -1651,13 +1651,11 @@ void do_snapshot(void)
        PAGES_PER_SNAPSHOT_FILE * ARCH_PAGE_SIZE.
      */
     addr_t persistent_addr_space_end =
-        (addr_t)vm_map_start_of_virtual_address_space +
+        (addr_t)persistent_addr_space_snapshot +
         vm_map_vm_page_count * ARCH_PAGE_SIZE;
 
-    size_t chunk_size = PAGES_PER_SNAPSHOT_FILE * ARCH_PAGE_SIZE;
-
     addr_t ptr;
-    for (ptr = (addr_t)vm_map_start_of_virtual_address_space;
+    for (ptr = (addr_t)persistent_addr_space_snapshot;
          ptr < persistent_addr_space_end - chunk_size;
          ptr += chunk_size) {
 
@@ -1671,21 +1669,13 @@ void do_snapshot(void)
       Handle leftover pages (handled separately because the number of
       pages may not be aligned with PAGES_PER_SNAPSHOT_FILE).
     */
-   res = snapper_take_snapshot(
+    res = snapper_take_snapshot(
         (char *)ptr, persistent_addr_space_end - ptr, snapper_id++);
 
     snapper_handle_result(&res);
 
-    ph_syslog(0, "snap: thank you ladies");
-
-    is_in_snapshot_process = 0;
-    t_smp_enable(1);
-    phantom_snapper_reenable_threads();
-
     res = snapper_commit_snapshot();
     snapper_handle_result(&res);
-
-    t_current_set_priority(prio);
 }
 
 
