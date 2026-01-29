@@ -616,11 +616,9 @@ void start_phantom()
 
     SHOW_FLOW0( 5, "Will init paging dev... ");
 
-#ifdef LEGACY_SNAP
     // A: Assuming we can init all of genode stuff here
     driver_genode_disk_probe(); // <- Will init virtual dev
     driver_genode_disk_init();  // <- Will register device in Phantom and create necessary structs
-#endif // LEGACY SNAP
 
 
 #if !PAGING_PARTITION
@@ -632,9 +630,7 @@ void start_phantom()
     
 #else
     
-#ifdef LEGACY_SNAP
     partition_pager_init(select_phantom_partition());
-#endif // LEGACY_SNAP
     
 #endif // !PAGING_PARTITION
 

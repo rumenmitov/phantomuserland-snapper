@@ -145,6 +145,10 @@ static size_t           dirty_q_size;
 static void *              vm_map_start_of_virtual_address_space;
 static unsigned long       vm_map_vm_page_count = 0;         // how many pages VM has, if 0 = we are not running yet
 
+// INFO pages_per_snapshot_file x ARCH_PAGES_SIZE should not
+// exceeed the `bufsize` in the Snapper configuration!
+static unsigned long       pages_per_snapshot_file = 64;    // how many VM pages will be saved in one snapshot file
+
 static vm_page *           vm_map_map;                       // array of pages
 static vm_page *           vm_map_map_end;                   // a byte after map
 
@@ -543,9 +547,6 @@ vm_page_init( vm_page *me, void *my_vaddr)
     hal_mutex_init(&me->lock, "VM PG" );
     page_touch_history(me);
     pager_io_request_init( &me->pager_io );
-
-    static u_int64_t identifier = 0;
-    me->snapper_identifier = identifier++;
 }
 
 
@@ -1380,6 +1381,76 @@ static void save_snap(vm_page *p)
 }
 
 
+#if ! LEGACY_SNAP
+static void snapper_batch_snapshot(void)
+{
+    struct Snapper_result res = snapper_init_snapshot();
+    snapper_handle_result(&res);
+
+    /* INFO
+       Group the persistent memory into chunks with size
+       pages_per_snapshot_file * ARCH_PAGE_SIZE.
+     */
+    size_t chunk_size = pages_per_snapshot_file * ARCH_PAGE_SIZE;
+    size_t remaining_size = vm_map_vm_page_count * ARCH_PAGE_SIZE;
+
+    ph_syslog(0, "snap: started");
+
+    void *chunk_buffer = ph_malloc(chunk_size);
+
+    int snapper_id = 0;
+
+    vm_page *p;
+    u_int64_t i = 0;
+    for (p = vm_map_map; p < vm_map_map_end; p++) {
+      page_touch_history(p);
+      assert(p->flag_have_make);
+
+      /* INFO
+         Need to explicitly page fault the current page,
+         otherwise the memcpy operations hangs occasionally.
+       */
+#if ! PHANTOM_LINUX
+    page_fault_read(p);
+#endif // PHANTOM_LINUX
+      
+      ph_memcpy(chunk_buffer + (i * ARCH_PAGE_SIZE), p->virt_addr, ARCH_PAGE_SIZE);
+
+      page_touch_history(p);
+      p->prev_page = p->make_page;
+      p->flag_have_make = 0;
+      p->flag_have_prev = 1;
+      
+      i = (i + 1) % pages_per_snapshot_file;
+
+      if (i == 0) {
+        struct Snapper_result res =
+          snapper_take_snapshot(chunk_buffer, chunk_size, snapper_id++);
+
+        snapper_handle_result(&res);
+
+        remaining_size -= chunk_size;
+      }
+    }
+
+    /*
+      Handle leftover pages (handled separately because the number of
+      pages may not be aligned with `pages_per_snapshot_file').
+    */
+    res = snapper_take_snapshot(
+        chunk_buffer, remaining_size, snapper_id++);
+
+    snapper_handle_result(&res);
+
+    ph_free(chunk_buffer);
+    chunk_buffer = NULL;
+
+    res = snapper_commit_snapshot();
+    snapper_handle_result(&res);
+}
+#endif // ! LEGACY_SNAP
+
+
 static void wait_commit_snap(vm_page *p)
 {
     if (p->flag_pager_io_busy && p->flag_have_curr && p->pager_io.disk_page == p->curr_page)
@@ -1394,7 +1465,7 @@ static void wait_commit_snap(vm_page *p)
 // TODO if we page out page, which is unchanged since THE SNAP and page fault comes (somebody wants to write to that
 // page) we need to do COW too! (but why?)
 
-void do_legacy_snapshot(void)
+void do_snapshot(void)
 {
     int			  enabled; // interrupts
 
@@ -1413,8 +1484,8 @@ void do_legacy_snapshot(void)
     t_current_get_priority(&prio);
     t_current_set_priority( THREAD_PRIO_LOWEST );
 
-
     vm_map_for_all( kick_pageout ); // Try to pageout all of them - NOT IN LOCK!
+    
     if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: wait 4 pgout to settle");
 
     // Back to orig prio
@@ -1424,7 +1495,6 @@ void do_legacy_snapshot(void)
     //hal_sleep_msec(30000); // sleep for 10 sec - why 10?
 
     if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: stop world");
-
 
     // MUST BE BEFORE hal_mutex_lock!
     phantom_snapper_wait_4_threads();
@@ -1472,17 +1542,18 @@ void do_legacy_snapshot(void)
     // This pageout request is needed - if I skip it, snaps are incomplete
     if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: pgout");
     vm_map_for_all( kick_pageout ); // Try to pageout all of them - NOT IN LOCK!
-
+    
     ph_syslog( 0, "snap: will finalize_snap");
     // scan nonsnapped pages, snap them manually (or just access to cause
     // page fault?)
-    vm_map_for_all( finalize_snap );
-
+    vm_map_for_all(finalize_snap);
+    
     // now all pages must have make_page.
     // will save them now and move make_page -> prev_page,
     // don't want page_fault_write to create them another make_page as we do this.
     is_in_snapshot_process = 0;
 
+#if LEGACY_SNAP
     // now all the pages for snapshot are done. Now create
     // the disk data structure for them
 
@@ -1534,9 +1605,13 @@ void do_legacy_snapshot(void)
     pager_commit_active_free_list();
     pager_update_superblock();
 
-    //#error not impl
-    // free journal part, which was created before this snap
-    // was started
+    // #error not impl
+    //  free journal part, which was created before this snap
+    //  was started
+
+#else // LEGACY_SNAP
+    snapper_batch_snapshot();
+#endif // LEGACY_SNAP
 
     // DONE!
     ph_syslog( 0, "Snapshot done!");
@@ -1550,10 +1625,6 @@ void do_legacy_snapshot(void)
     // for tracking disk leak, remove once it is resolved
     pager_calculate_free_block_count();
 }
-
-// INFO PAGES_PER_SNAPSHOT_FILE x ARCH_PAGES_SIZE should not
-// exceeed the `bufsize` in the Snapper configuration!
-#define PAGES_PER_SNAPSHOT_FILE 1024
 
 void recover_snapshot(void) 
 {
@@ -1573,11 +1644,11 @@ void recover_snapshot(void)
   ph_syslog( 0, "recovery: try to recover previous state");
   struct Snapper_result res = snapper_open_generation("");
   if (snapper_handle_result(&res) == 0) {
-    char *payload_buffer = ph_malloc(ARCH_PAGE_SIZE * PAGES_PER_SNAPSHOT_FILE);
+    char *payload_buffer = ph_malloc(ARCH_PAGE_SIZE * pages_per_snapshot_file);
     int buf_idx = 0;
     int snapper_id = 0;
 
-    const size_t chunk_size = PAGES_PER_SNAPSHOT_FILE * ARCH_PAGE_SIZE;
+    const size_t chunk_size = pages_per_snapshot_file * ARCH_PAGE_SIZE;
     const size_t total_size = vm_map_vm_page_count * ARCH_PAGE_SIZE;
     size_t remaining        = total_size;
 
@@ -1595,7 +1666,7 @@ void recover_snapshot(void)
       }
 
       ph_memcpy(i->virt_addr, payload_buffer + (buf_idx * ARCH_PAGE_SIZE),  ARCH_PAGE_SIZE);
-      buf_idx = (buf_idx + 1) % PAGES_PER_SNAPSHOT_FILE;
+      buf_idx = (buf_idx + 1) % pages_per_snapshot_file;
     }
 
     ph_free(payload_buffer);
@@ -1612,70 +1683,6 @@ void recover_snapshot(void)
   t_current_set_priority(prio);
 
   ph_syslog(0, "recovery complete!");
-}
-
-
-// TODO if we page out page, which is unchanged since THE SNAP and page fault comes (somebody wants to write to that
-// page) we need to do COW too! (but why?)
-
-void do_snapshot(void)
-{
-    int prio = 0;
-    size_t chunk_size = PAGES_PER_SNAPSHOT_FILE * ARCH_PAGE_SIZE;
-    size_t total_size = vm_map_vm_page_count * ARCH_PAGE_SIZE;
-
-    t_current_get_priority(&prio);
-    t_current_set_priority( THREAD_PRIO_HIGHEST );
-
-    ph_syslog(0, "snap: started");
-    is_in_snapshot_process = 1;
-    
-    phantom_snapper_wait_4_threads();
-
-    void *persistent_addr_space_snapshot = ph_malloc(total_size);
-    ph_memcpy(persistent_addr_space_snapshot,
-              vm_map_start_of_virtual_address_space, total_size);
-
-    is_in_snapshot_process = 0;
-    phantom_snapper_reenable_threads();
-
-    t_current_set_priority( prio );
-
-    struct Snapper_result res = snapper_init_snapshot();
-    snapper_handle_result(&res);
-
-    int snapper_id = 0;
-
-    /* INFO
-       Group the persistent memory into chunks with size
-       PAGES_PER_SNAPSHOT_FILE * ARCH_PAGE_SIZE.
-     */
-    addr_t persistent_addr_space_end =
-        (addr_t)persistent_addr_space_snapshot +
-        vm_map_vm_page_count * ARCH_PAGE_SIZE;
-
-    addr_t ptr;
-    for (ptr = (addr_t)persistent_addr_space_snapshot;
-         ptr < persistent_addr_space_end - chunk_size;
-         ptr += chunk_size) {
-
-      struct Snapper_result res =
-        snapper_take_snapshot((char*)ptr, chunk_size, snapper_id++);
-
-      snapper_handle_result(&res);
-    }
-
-    /*
-      Handle leftover pages (handled separately because the number of
-      pages may not be aligned with PAGES_PER_SNAPSHOT_FILE).
-    */
-    res = snapper_take_snapshot(
-        (char *)ptr, persistent_addr_space_end - ptr, snapper_id++);
-
-    snapper_handle_result(&res);
-
-    res = snapper_commit_snapshot();
-    snapper_handle_result(&res);
 }
 
 
@@ -1821,11 +1828,7 @@ static void vm_map_snapshot_thread(void)
         if( stop_lazy_pageout_thread )
         {
 
-#ifdef LEGACY_SNAP
-          do_legacy_snapshot();
-#else
-          do_snapshot();
-#endif
+            do_snapshot();
 
             stop_deferred_disk_alloc_thread = 1;
 
@@ -1852,12 +1855,7 @@ static void vm_map_snapshot_thread(void)
         if( vm_regular_snaps_enabled || request_snap_flag ){
             SHOW_FLOW0(0, "about to snap");
 
-#ifdef LEGACY_SNAP
-          do_legacy_snapshot();
-#else
-          do_snapshot();
-#endif
-
+            do_snapshot();
             snapshots++;
         }
 
