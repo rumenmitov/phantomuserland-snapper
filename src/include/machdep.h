@@ -7,7 +7,7 @@
  * Functions, defined in architecture/machine dependent way.
  *
  *
-**/
+ **/
 
 #include <sys/types.h>
 

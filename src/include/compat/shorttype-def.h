@@ -12,5 +12,4 @@
 #define s64 int64_t
 
 
-#endif // SHORTTYPE_DEF_H
-
+#endif  // SHORTTYPE_DEF_H

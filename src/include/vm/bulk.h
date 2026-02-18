@@ -6,7 +6,7 @@
  *
  * Bulk (class contaier, poor man's JAR) interface.
  *
-**/
+ **/
 
 #ifndef BULK_H
 #define BULK_H
@@ -24,9 +24,9 @@ typedef int (*pvm_bulk_read_t)(int count, void *data);
 typedef int (*pvm_bulk_write_t)(int count, const void *data);
 typedef int (*pvm_bulk_seek_t)(int pos);
 
-int pvm_load_class_from_module( const char *class_name, pvm_object_t *out );
-int pvm_load_class_from_memory( const void *data, int fsize, pvm_object_t *out );
-void pvm_bulk_init( pvm_bulk_seek_t sf, pvm_bulk_read_t rd );
+int pvm_load_class_from_module(const char *class_name, pvm_object_t *out);
+int pvm_load_class_from_memory(const void *data, int fsize, pvm_object_t *out);
+void pvm_bulk_init(pvm_bulk_seek_t sf, pvm_bulk_read_t rd);
 
 // Just load a file to mem
 int load_code(void **out_code, unsigned int *out_size, const char *fn);
@@ -37,11 +37,9 @@ int load_code(void **out_code, unsigned int *out_size, const char *fn);
 
 struct pvm_bulk_class_head
 {
-    char        name[PVM_BULK_CN_LENGTH];
-    u_int32_t   data_length;
+	char name[PVM_BULK_CN_LENGTH];
+	u_int32_t data_length;
 };
 
 
-
-#endif // BULK_H
-
+#endif  // BULK_H

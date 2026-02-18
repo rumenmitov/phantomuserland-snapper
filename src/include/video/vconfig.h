@@ -6,7 +6,7 @@
  *
  * Video subsystem config.
  *
-**/
+ **/
 
 #ifndef VCONFIG_H
 #define VCONFIG_H
@@ -29,10 +29,10 @@
 #define MAX_WINDOW_EVENTS 512
 
 
-
 //! If 1, VESA will be used if found, even if other driver is found
 //! If 0, VESA will fight for itself as usual driver
-//! Now using 0, which is normal. (was: 1 for kernel was trapping if trying to do VM86 too late in boot process)
+//! Now using 0, which is normal. (was: 1 for kernel was trapping if trying to do VM86 too
+//! late in boot process)
 #define VESA_ENFORCE 0
 
 
@@ -46,4 +46,4 @@
 
 #define VIDEO_DRV_WINBLT 0
 
-#endif // VCONFIG_H
+#endif  // VCONFIG_H

@@ -1,23 +1,31 @@
 #ifndef _WCHAR_H_
 #define _WCHAR_H_
 
-#include <sys/types.h>
 #include <errno.h>
+#include <sys/types.h>
 
-size_t	wcslen (const wchar_t *);
+size_t wcslen(const wchar_t *);
 
-size_t	wcslcat (wchar_t *, const wchar_t *, size_t);
-size_t	wcslcpy (wchar_t *, const wchar_t *, size_t);
+size_t wcslcat(wchar_t *, const wchar_t *, size_t);
+size_t wcslcpy(wchar_t *, const wchar_t *, size_t);
 
-size_t	wcsnlen (const wchar_t *, size_t);
-int	wcsncmp (const wchar_t *, const wchar_t *, size_t);
+size_t wcsnlen(const wchar_t *, size_t);
+int wcsncmp(const wchar_t *, const wchar_t *, size_t);
 
-wchar_t	*wmemset (wchar_t *, wchar_t, size_t);
-wchar_t	*wmemchr (const wchar_t *, wchar_t, size_t);
+wchar_t *wmemset(wchar_t *, wchar_t, size_t);
+wchar_t *wmemchr(const wchar_t *, wchar_t, size_t);
 
 
-errno_t utf8to32( wchar_t *dest, const char *src, size_t destSize, size_t srcSize, size_t *count ); //! count = wchars excl zero
-errno_t utf32to8( char *dest, const wchar_t *src, size_t destSize, size_t srcSize, size_t *count ); //! count = chars excl zero
+errno_t utf8to32(wchar_t *dest,
+				 const char *src,
+				 size_t destSize,
+				 size_t srcSize,
+				 size_t *count);  //! count = wchars excl zero
+errno_t utf32to8(char *dest,
+				 const wchar_t *src,
+				 size_t destSize,
+				 size_t srcSize,
+				 size_t *count);  //! count = chars excl zero
 
 
 #endif /* _WCHAR_H_ */
@@ -26,9 +34,7 @@ errno_t utf32to8( char *dest, const wchar_t *src, size_t destSize, size_t srcSiz
 #if 0
 
 
-
 #include <_ansi.h>
-
 #include <sys/reent.h>
 
 #define __need_size_t
@@ -64,7 +70,7 @@ typedef __gnuc_va_list va_list;
 #endif
 
 #ifndef WEOF
-# define WEOF ((wint_t)-1)
+#define WEOF ((wint_t) - 1)
 #endif
 
 /* This must match definition in <stdint.h> */
@@ -99,7 +105,7 @@ _BEGIN_STD_C
 /* As in stdio.h, <sys/reent.h> defines __FILE. */
 #if !defined(__FILE_defined)
 typedef __FILE FILE;
-# define __FILE_defined
+#define __FILE_defined
 #endif
 #endif
 
@@ -295,7 +301,7 @@ __FILE *_open_wmemstream_r (struct _reent *, wchar_t **, size_t *);
 #ifdef __GNUC__
 #define __VALIST __gnuc_va_list
 #else
-#define __VALIST char*
+#define __VALIST char *
 #endif
 #endif
 
@@ -337,16 +343,16 @@ int	_vswscanf_r (struct _reent *, const wchar_t *, const wchar_t *, __VALIST);
 int	_vwscanf_r (struct _reent *, const wchar_t *, __VALIST);
 int	_wscanf_r (struct _reent *, const wchar_t *, ...);
 
-#define getwc(fp)	fgetwc(fp)
-#define putwc(wc,fp)	fputwc((wc), (fp))
-#define getwchar()	fgetwc(_REENT->_stdin)
-#define putwchar(wc)	fputwc((wc), _REENT->_stdout)
+#define getwc(fp)     fgetwc(fp)
+#define putwc(wc, fp) fputwc((wc), (fp))
+#define getwchar()    fgetwc(_REENT->_stdin)
+#define putwchar(wc)  fputwc((wc), _REENT->_stdout)
 
 #if __GNU_VISIBLE
-#define getwc_unlocked(fp)	fgetwc_unlocked(fp)
-#define putwc_unlocked(wc,fp)	fputwc_unlocked((wc), (fp))
-#define getwchar_unlocked()	fgetwc_unlocked(_REENT->_stdin)
-#define putwchar_unlocked(wc)	fputwc_unlocked((wc), _REENT->_stdout)
+#define getwc_unlocked(fp)     fgetwc_unlocked(fp)
+#define putwc_unlocked(wc, fp) fputwc_unlocked((wc), (fp))
+#define getwchar_unlocked()    fgetwc_unlocked(_REENT->_stdin)
+#define putwchar_unlocked(wc)  fputwc_unlocked((wc), _REENT->_stdout)
 #endif
 
 _END_STD_C

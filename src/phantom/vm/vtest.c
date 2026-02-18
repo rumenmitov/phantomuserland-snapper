@@ -1,20 +1,19 @@
-#if 0 // moved to video_test.c
+#if 0  // moved to video_test.c
 
 #define DEBUG_MSG_PREFIX "vm.vtest"
 #include <debug_ext.h>
-#define debug_level_flow 10
+#define debug_level_flow  10
 #define debug_level_error 10
-#define debug_level_info 10
-
-#include <phantom_libc.h>
-
-#include <video/screen.h>
-#include <video/font.h>
+#define debug_level_info  10
 
 #include "winhal.h"
 
-#define WXS (240*2)
-#define WYS (160*2)
+#include <phantom_libc.h>
+#include <video/font.h>
+#include <video/screen.h>
+
+#define WXS (240 * 2)
+#define WYS (160 * 2)
 
 void videotest(void)
 {
@@ -79,7 +78,6 @@ void videotest(void)
     (void) getchar();
 
 }
-
 
 
 #if 0
@@ -186,14 +184,6 @@ void flame(drv_video_window_t *w)
 
 
 }
-
-
-
-
-
-
-
-
 
 
 #define wysize 60
@@ -355,15 +345,10 @@ void videotest()
 }
 
 
-
-
-
 #endif
-
 
 
 #endif
 
 
 #endif
-

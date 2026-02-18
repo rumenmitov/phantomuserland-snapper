@@ -45,33 +45,33 @@
 #include <sys/cdefs.h>
 
 #ifdef __ELF__
-# define _C_LABEL(x)	x
+#define _C_LABEL(x) x
 #else
-# ifdef __STDC__
-#  define _C_LABEL(x)	_ ## x
-# else
-#  define _C_LABEL(x)	_/**/x
-# endif
+#ifdef __STDC__
+#define _C_LABEL(x) _##x
+#else
+#define _C_LABEL(x) _ /**/ x
 #endif
-#define	_ASM_LABEL(x)	x
+#endif
+#define _ASM_LABEL(x) x
 
-#define EXT(x) _C_LABEL(x)
+#define EXT(x)  _C_LABEL(x)
 #define LEXT(x) _C_LABEL(x) :
 
 
 #ifndef _JB_MAGIC__SETJMP
-#define _JB_MAGIC__SETJMP       0x4278f500
-#define _JB_MAGIC_SETJMP        0x4278f501
+#define _JB_MAGIC__SETJMP 0x4278f500
+#define _JB_MAGIC_SETJMP  0x4278f501
 #endif
 
-#define I32_bit (1 << 7)	/* IRQ disable */
-#define F32_bit (1 << 6)        /* FIQ disable */
+#define I32_bit (1 << 7) /* IRQ disable */
+#define F32_bit (1 << 6) /* FIQ disable */
 
 #define CPU_CONTROL_32BP_ENABLE 0x00000010 /* P: 32-bit exception handlers */
 #define CPU_CONTROL_32BD_ENABLE 0x00000020 /* D: 32-bit addressing */
 
 #ifndef _ALIGN_TEXT
-# define _ALIGN_TEXT .align 0
+#define _ALIGN_TEXT .align 0
 #endif
 
 /*
@@ -80,103 +80,111 @@
  * We define a couple of macros so that assembly code will not be dependant
  * on one or the other.
  */
-#define _ASM_TYPE_FUNCTION	#function
-#define _ASM_TYPE_OBJECT	#object
-#define GLOBAL(X) .globl x
-#define _ENTRY(x) \
-	.text; _ALIGN_TEXT; .globl x; .type x,_ASM_TYPE_FUNCTION; x:
+#define _ASM_TYPE_FUNCTION #function
+#define _ASM_TYPE_OBJECT   #object
+#define GLOBAL(X)          .globl x
+#define _ENTRY(x)                \
+	.text;                       \
+	_ALIGN_TEXT;                 \
+	.globl x;                    \
+	.type x, _ASM_TYPE_FUNCTION; \
+	x:
 
 #ifdef GPROF
-#  define _PROF_PROLOGUE	\
-	mov ip, lr; bl __mcount
+#define _PROF_PROLOGUE \
+	mov ip, lr;        \
+	bl __mcount
 #else
-# define _PROF_PROLOGUE
+#define _PROF_PROLOGUE
 #endif
 
-#define	ENTRY(y)	_ENTRY(_C_LABEL(y)); _PROF_PROLOGUE
-#define	ENTRY_NP(y)	_ENTRY(_C_LABEL(y))
-#define	ASENTRY(y)	_ENTRY(_ASM_LABEL(y)); _PROF_PROLOGUE
-#define	ASENTRY_NP(y)	_ENTRY(_ASM_LABEL(y))
+#define ENTRY(y)         \
+	_ENTRY(_C_LABEL(y)); \
+	_PROF_PROLOGUE
+#define ENTRY_NP(y) _ENTRY(_C_LABEL(y))
+#define ASENTRY(y)         \
+	_ENTRY(_ASM_LABEL(y)); \
+	_PROF_PROLOGUE
+#define ASENTRY_NP(y) _ENTRY(_ASM_LABEL(y))
 
-#define	ASMSTR		.asciz
+#define ASMSTR .asciz
 
 #if defined(__ELF__) && defined(PIC)
 #ifdef __STDC__
-#define	PIC_SYM(x,y)	x ## ( ## y ## )
+#define PIC_SYM(x, y) x##(##y##)
 #else
-#define	PIC_SYM(x,y)	x/**/(/**/y/**/)
+#define PIC_SYM(x, y) x /**/ (/**/ y /**/)
 #endif
 #else
-#define	PIC_SYM(x,y)	x
+#define PIC_SYM(x, y) x
 #endif
 
 #undef __FBSDID
 #if !defined(lint) && !defined(STRIP_FBSDID)
-#define __FBSDID(s)     .ident s
+#define __FBSDID(s) .ident s
 #else
-#define __FBSDID(s)     /* nothing */
+#define __FBSDID(s) /* nothing */
 #endif
-	
+
 
 #ifdef __ELF__
-#define	WEAK_ALIAS(alias,sym)						\
-	.weak alias;							\
+#define WEAK_ALIAS(alias, sym) \
+	.weak alias;               \
 	alias = sym
 #endif
 
 #ifdef __STDC__
-#define	WARN_REFERENCES(sym,msg)					\
-	.stabs msg ## ,30,0,0,0 ;					\
-	.stabs __STRING(_C_LABEL(sym)) ## ,1,0,0,0
+#define WARN_REFERENCES(sym, msg) \
+	.stabs msg##, 30, 0, 0, 0;    \
+	.stabs __STRING(_C_LABEL(sym))##, 1, 0, 0, 0
 #elif defined(__ELF__)
-#define	WARN_REFERENCES(sym,msg)					\
-	.stabs msg,30,0,0,0 ;						\
-	.stabs __STRING(sym),1,0,0,0
+#define WARN_REFERENCES(sym, msg) \
+	.stabs msg, 30, 0, 0, 0;      \
+	.stabs __STRING(sym), 1, 0, 0, 0
 #else
-#define	WARN_REFERENCES(sym,msg)					\
-	.stabs msg,30,0,0,0 ;						\
-	.stabs __STRING(_/**/sym),1,0,0,0
+#define WARN_REFERENCES(sym, msg) \
+	.stabs msg, 30, 0, 0, 0;      \
+	.stabs __STRING(_ /**/ sym), 1, 0, 0, 0
 #endif /* __STDC__ */
 
 
-#if defined (__ARM_ARCH_6__) || defined (__ARM_ARCH_6J__)
+#if defined(__ARM_ARCH_6__) || defined(__ARM_ARCH_6J__)
 #define _ARM_ARCH_6
 #endif
 
-#if defined (_ARM_ARCH_6) || defined (__ARM_ARCH_5__) || \
-    defined (__ARM_ARCH_5T__) || defined (__ARM_ARCH_5TE__) || \
-    defined (__ARM_ARCH_5TEJ__) || defined (__ARM_ARCH_5E__)
+#if defined(_ARM_ARCH_6) || defined(__ARM_ARCH_5__) || defined(__ARM_ARCH_5T__) || \
+	defined(__ARM_ARCH_5TE__) || defined(__ARM_ARCH_5TEJ__) || defined(__ARM_ARCH_5E__)
 #define _ARM_ARCH_5
 #endif
 
-#if defined (_ARM_ARCH_6) || defined(__ARM_ARCH_5TE__) || \
-    defined(__ARM_ARCH_5TEJ__) || defined(__ARM_ARCH_5E__)
+#if defined(_ARM_ARCH_6) || defined(__ARM_ARCH_5TE__) || defined(__ARM_ARCH_5TEJ__) || \
+	defined(__ARM_ARCH_5E__)
 #define _ARM_ARCH_5E
 #endif
 
-#if defined (_ARM_ARCH_5) || defined (__ARM_ARCH_4T__)
+#if defined(_ARM_ARCH_5) || defined(__ARM_ARCH_4T__)
 #define _ARM_ARCH_4T
 #endif
 
 
-#if defined (_ARM_ARCH_4T)
-# define RET	bx	lr
-# define RETeq	bxeq	lr
-# define RETne	bxne	lr
-# ifdef __STDC__
-#  define RETc(c) bx##c	lr
-# else
-#  define RETc(c) bx/**/c	lr
-# endif
+#if defined(_ARM_ARCH_4T)
+#define RET   bx lr
+#define RETeq bxeq lr
+#define RETne bxne lr
+#ifdef __STDC__
+#define RETc(c) bx##c lr
 #else
-# define RET	mov	pc, lr
-# define RETeq	moveq	pc, lr
-# define RETne	movne	pc, lr
-# ifdef __STDC__
-#  define RETc(c) mov##c	pc, lr
-# else
-#  define RETc(c) mov/**/c	pc, lr
-# endif
+#define RETc(c) bx /**/ c lr
+#endif
+#else
+#define RET   mov pc, lr
+#define RETeq moveq pc, lr
+#define RETne movne pc, lr
+#ifdef __STDC__
+#define RETc(c) mov##c pc, lr
+#else
+#define RETc(c) mov /**/ c pc, lr
+#endif
 #endif
 
 #endif /* !_MACHINE_ASM_H_ */

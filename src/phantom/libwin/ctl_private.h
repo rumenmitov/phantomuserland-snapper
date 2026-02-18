@@ -7,14 +7,16 @@
  *
  * UI controls private header.
  *
-**/
+ **/
 
 #ifndef W_CONTROL_PRIVATE_H
 #define W_CONTROL_PRIVATE_H
 
+#include "video/control.h"
+#include "video/window.h"
 #ifndef VCONFIG_H
 #include <video/vconfig.h>
-#endif // VCONFIG_H
+#endif  // VCONFIG_H
 
 
 // -----------------------------------------------------------------------
@@ -25,15 +27,14 @@
 
 struct foreach_control_param
 {
-    window_handle_t   w;
-    ui_event_t        e;
-    //control_group_t * g;   // used in w_add_to_group()
-    int               gid; // ---""---
-    control_t       * c;
-    int               focus_flag;
-    int               focus_success;
+	window_handle_t w;
+	ui_event_t e;
+	// control_group_t * g;   // used in w_add_to_group()
+	int gid;  // ---""---
+	control_t *c;
+	int focus_flag;
+	int focus_success;
 };
-
 
 
 // -------------------------------------------------------------------
@@ -44,7 +45,7 @@ struct foreach_control_param
 
 
 int ctl_text_field_events(control_t *cc, struct foreach_control_param *env);
-void ctl_text_field_paint(window_handle_t win, control_t *cc );
+void ctl_text_field_paint(window_handle_t win, control_t *cc);
 
 
 // -------------------------------------------------------------------
@@ -64,7 +65,7 @@ int ctl_button_events(control_t *cc, struct foreach_control_param *env);
 // -------------------------------------------------------------------
 
 int ctl_scroll_bar_events(control_t *cc, struct foreach_control_param *env);
-void ctl_scroll_bar_paint(window_handle_t w, control_t *cc );
+void ctl_scroll_bar_paint(window_handle_t w, control_t *cc);
 
 
 // -------------------------------------------------------------------
@@ -73,11 +74,11 @@ void ctl_scroll_bar_paint(window_handle_t w, control_t *cc );
 //
 // -------------------------------------------------------------------
 
-void ctl_paint_bg( window_handle_t win, control_t *cc );
-void ctl_paint_border( window_handle_t win, control_t *cc );
-void ctl_paint_text( window_handle_t win, control_t *cc, int shift );
+void ctl_paint_bg(window_handle_t win, control_t *cc);
+void ctl_paint_border(window_handle_t win, control_t *cc);
+void ctl_paint_text(window_handle_t win, control_t *cc, int shift);
 /// \return X shift for text
-int ctl_paint_icon( window_handle_t win, control_t *cc );
+int ctl_paint_icon(window_handle_t win, control_t *cc);
 
 // -------------------------------------------------------------------
 //
@@ -88,12 +89,14 @@ int ctl_paint_icon( window_handle_t win, control_t *cc );
 /// Do assigned action - inform caller about control state change
 void w_control_action(window_handle_t w, control_t *cc, ui_event_t *ie);
 
-void ctl_img_copy_and_blend( drv_video_bitmap_t **dst, uint32_t *alloc_flag, drv_video_bitmap_t *src, window_handle_t w, control_t *cc );
+void ctl_img_copy_and_blend(drv_video_bitmap_t **dst,
+							uint32_t *alloc_flag,
+							drv_video_bitmap_t *src,
+							window_handle_t w,
+							control_t *cc);
 
 //! Reset selected state for controls in group
-void ctl_reset_group( window_handle_t w, int group_id );
+void ctl_reset_group(window_handle_t w, int group_id);
 
 
-
-
-#endif // W_CONTROL_PRIVATE_H
+#endif  // W_CONTROL_PRIVATE_H

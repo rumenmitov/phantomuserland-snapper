@@ -43,56 +43,57 @@
  */
 
 #ifndef _PHANTOM_TIME_H_
-#define	_PHANTOM_TIME_H_
+#define _PHANTOM_TIME_H_
 
-//#include <sys/cdefs.h>
-//#include <sys/_null.h>
+// #include <sys/cdefs.h>
+// #include <sys/_null.h>
 #include <phantom_types.h>
 
 
-
-struct tm {
-	int	tm_sec;		/* seconds after the minute [0-60] */
-	int	tm_min;		/* minutes after the hour [0-59] */
-	int	tm_hour;	/* hours since midnight [0-23] */
-	int	tm_mday;	/* day of the month [1-31] */
-	int	tm_mon;		/* months since January [0-11] */
-	int	tm_year;	/* years since 1900 */
-	int	tm_wday;	/* days since Sunday [0-6] */
-	int	tm_yday;	/* days since January 1 [0-365] */
-	int	tm_isdst;	/* Daylight Savings Time flag */
-	long	tm_gmtoff;	/* offset from UTC in seconds */
-	char	*tm_zone;	/* timezone abbreviation */
+struct tm
+{
+	int tm_sec;     /* seconds after the minute [0-60] */
+	int tm_min;     /* minutes after the hour [0-59] */
+	int tm_hour;    /* hours since midnight [0-23] */
+	int tm_mday;    /* day of the month [1-31] */
+	int tm_mon;     /* months since January [0-11] */
+	int tm_year;    /* years since 1900 */
+	int tm_wday;    /* days since Sunday [0-6] */
+	int tm_yday;    /* days since January 1 [0-365] */
+	int tm_isdst;   /* Daylight Savings Time flag */
+	long tm_gmtoff; /* offset from UTC in seconds */
+	char *tm_zone;  /* timezone abbreviation */
 };
 
-//extern char *tzname[];
-extern const char *monNames[]; // 0 is Jan
+// extern char *tzname[];
+extern const char *monNames[];  // 0 is Jan
 
 
-
-//char *asctime(const struct tm *);
+// char *asctime(const struct tm *);
 char *asctime_r(const struct tm *timeptr, char *result, int len);
 
 
-//clock_t clock(void);
-//double difftime(time_t, time_t);
+// clock_t clock(void);
+// double difftime(time_t, time_t);
 /* XXX missing: getdate() */
-//struct tm *gmtime(const time_t *);
-//struct tm *localtime(const time_t *);
+// struct tm *gmtime(const time_t *);
+// struct tm *localtime(const time_t *);
 time_t mktime(struct tm *);
-size_t strftime(char * __restrict, size_t, const char * __restrict,
-    const struct tm * __restrict);
+size_t strftime(char *__restrict,
+				size_t,
+				const char *__restrict,
+				const struct tm *__restrict);
 time_t time(time_t *);
 
 
-//int nanosleep(const struct timespec *, struct timespec *);
+// int nanosleep(const struct timespec *, struct timespec *);
 
 
-//char *asctime_r(const struct tm *, char *);
+// char *asctime_r(const struct tm *, char *);
 char *ctime_r(const time_t *, char *);
 struct tm *gmtime_r(const time_t *, struct tm *);
 
-//struct tm *localtime_r(const time_t *, struct tm *);
+// struct tm *localtime_r(const time_t *, struct tm *);
 
 struct tm *localtime_rb(bigtime_t timer, struct tm *tmb);
 

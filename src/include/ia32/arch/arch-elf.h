@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 1995-1994 The University of Utah and
  * the Computer Systems Laboratory at the University of Utah (CSL).
  * All rights reserved.
@@ -25,18 +25,18 @@
 
 // TODO this file is unused - ise or kill
 
-typedef unsigned long	Elf32_Addr;
-typedef unsigned short	Elf32_Half;
-typedef unsigned long	Elf32_Off;
-typedef signed long	Elf32_Sword;
-typedef unsigned long	Elf32_Word;
+typedef unsigned long Elf32_Addr;
+typedef unsigned short Elf32_Half;
+typedef unsigned long Elf32_Off;
+typedef signed long Elf32_Sword;
+typedef unsigned long Elf32_Word;
 
 #ifndef ARCH_ia32
 #warning Intel32 code! Wrong arch?
 #endif
 
 /* Architecture identification parameters for i386.  */
-#define MY_EI_DATA	ELFDATA2LSB
-#define MY_E_MACHINE	EM_386
+#define MY_EI_DATA   ELFDATA2LSB
+#define MY_E_MACHINE EM_386
 
 #endif /* _MACH_I386_EXEC_ELF_H_ */

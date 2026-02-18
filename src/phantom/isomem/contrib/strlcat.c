@@ -27,12 +27,12 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-//#include <sys/cdefs.h>
-//__FBSDID("$FreeBSD: src/lib/libc/string/strlcat.c,v 1.10.18.1 2008/11/25 02:59:29 kensmith Exp $");
+// #include <sys/cdefs.h>
+//__FBSDID("$FreeBSD: src/lib/libc/string/strlcat.c,v 1.10.18.1 2008/11/25 02:59:29
+//kensmith Exp $");
 
-//#include <sys/types.h>
+// #include <sys/types.h>
 #include <ph_string.h>
-
 #include <phantom_libc.h>
 
 
@@ -43,8 +43,7 @@
  * Returns strlen(src) + MIN(siz, strlen(initial dst)).
  * If retval >= siz, truncation occurred.
  */
-size_t
-ph_strlcat(char *dst, const char *src, size_t  siz)
+size_t ph_strlcat(char *dst, const char *src, size_t siz)
 {
 	char *d = dst;
 	const char *s = src;
@@ -58,7 +57,7 @@ ph_strlcat(char *dst, const char *src, size_t  siz)
 	n = siz - dlen;
 
 	if (n == 0)
-		return(dlen + ph_strlen(s));
+		return (dlen + ph_strlen(s));
 	while (*s != '\0') {
 		if (n != 1) {
 			*d++ = *s;
@@ -68,5 +67,5 @@ ph_strlcat(char *dst, const char *src, size_t  siz)
 	}
 	*d = '\0';
 
-	return(dlen + (s - src));	/* count does not include NUL */
+	return (dlen + (s - src)); /* count does not include NUL */
 }

@@ -8,7 +8,7 @@
  * frequently needed ones, such as SSE2 for ia32.
  *
  *
-**/
+ **/
 
 #ifndef _ARCH_FLAGS_
 #define _ARCH_FLAGS_
@@ -18,8 +18,8 @@
 #endif
 
 
-#define ARCH_IA32_APIC          (1<<0)
-#define ARCH_IA32_SSE2          (1<<1)
+#define ARCH_IA32_APIC (1 << 0)
+#define ARCH_IA32_SSE2 (1 << 1)
 
 
-#endif // _ARCH_FLAGS_
+#endif  // _ARCH_FLAGS_

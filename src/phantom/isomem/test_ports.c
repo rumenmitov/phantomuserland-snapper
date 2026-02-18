@@ -1,7 +1,7 @@
-#include <user/sys_port.h>
-#include <phantom_libc.h>
-
 #include "test.h"
+
+#include <phantom_libc.h>
+#include <user/sys_port.h>
 
 #ifndef PHANTOM_GENODE
 
@@ -12,39 +12,37 @@
 
 int do_test_ports(const char *test_parm)
 {
-    (void) test_parm;
+	(void)test_parm;
 
-    int	id = find_port("__regress_test_port");
-    if( id < 0 )
-    {
-        ssyslog( 0, "userland regress test port NOT found" );
-        return ENOENT;
-    }
+	int id = find_port("__regress_test_port");
+	if (id < 0) {
+		ssyslog(0, "userland regress test port NOT found");
+		return ENOENT;
+	}
 
-    ssyslog( 0, "userland regress test port found" );
+	ssyslog(0, "userland regress test port found");
 
-    int rc;
-    int32_t msg_code;
-    char buf[BSIZE];
+	int rc;
+	int32_t msg_code;
+	char buf[BSIZE];
 
-    rc = read_port(id, &msg_code, &buf, BSIZE);
-    if( rc < 0 )
-        return EIO;
+	rc = read_port(id, &msg_code, &buf, BSIZE);
+	if (rc < 0)
+		return EIO;
 
-    rc = write_port(id, 0xAA, &buf, BSIZE);
-    (void) rc;
+	rc = write_port(id, 0xAA, &buf, BSIZE);
+	(void)rc;
 
-    //TEST(usermode);
+	// TEST(usermode);
 
-    rc = write_port(id, 0x55, &buf, BSIZE);
-    (void) rc;
+	rc = write_port(id, 0x55, &buf, BSIZE);
+	(void)rc;
 
-    if( close_port( id ) )
-    {
-        ssyslog( 0, "can't close regress test port" );
-    }
+	if (close_port(id)) {
+		ssyslog(0, "can't close regress test port");
+	}
 
-    return 0;
+	return 0;
 }
 
 #endif

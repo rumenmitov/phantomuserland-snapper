@@ -7,25 +7,24 @@
  * Tests - memory
  *
  *
-**/
+ **/
 
 #define DEBUG_MSG_PREFIX "test"
 #include "debug_ext.h"
-#define debug_level_flow 8
+#define debug_level_flow  8
 #define debug_level_error 10
-#define debug_level_info 10
+#define debug_level_info  10
 
 
 #include <kernel/config.h>
 // #include <phantom_libc.h>
-#include <stdlib.h>
-#include <errno.h>
 #include "test.h"
 
+#include <errno.h>
 #include <hal.h>
-
 #include <ph_malloc.h>
 #include <ph_string.h>
+#include <stdlib.h>
 
 // -----------------------------------------------------------------------
 // Common tools
@@ -33,22 +32,22 @@
 
 static void *memnotchar(void *addr, int c, size_t size)
 {
-    unsigned char *p = (unsigned char *)addr;
+	unsigned char *p = (unsigned char *)addr;
 
-    while(size) {
-        if(*p != c)
-            return (void *)p;
-        p++;
-        size--;
-    }
-    return 0;
+	while (size) {
+		if (*p != c)
+			return (void *)p;
+		p++;
+		size--;
+	}
+	return 0;
 }
 
 
 struct alloced
 {
-    long        pos;
-    int         size;
+	long pos;
+	int size;
 };
 
 typedef struct alloced al_t;
@@ -60,37 +59,34 @@ typedef struct alloced al_t;
 
 int do_test_malloc(const char *test_parm)
 {
-    (void) test_parm;
+	(void)test_parm;
 
-    const int max = 200;
-    char *p[max];
-    int sz[max];
+	const int max = 200;
+	char *p[max];
+	int sz[max];
 
-    int i;
+	int i;
 
-    for( i = 0; i < max; i++ )
-    {
-        sz[i] = 13*i;
-        p[i] = ph_malloc( sz[i] );
-        if( p[i] == 0 )
-            return ENOMEM;
+	for (i = 0; i < max; i++) {
+		sz[i] = 13 * i;
+		p[i] = ph_malloc(sz[i]);
+		if (p[i] == 0)
+			return ENOMEM;
 
-        ph_memset( p[i], i, sz[i] );
-    }
+		ph_memset(p[i], i, sz[i]);
+	}
 
-    for( i = 0; i < max; i += 2 )
-    {
-        ph_free( p[i] );
-        if( memnotchar( p[i+1], i+1, sz[i+1]) )
-            return EINVAL;
-    }
+	for (i = 0; i < max; i += 2) {
+		ph_free(p[i]);
+		if (memnotchar(p[i + 1], i + 1, sz[i + 1]))
+			return EINVAL;
+	}
 
-    for( i = 1; i < max; i += 2 )
-    {
-        ph_free( p[i] );
-    }
+	for (i = 1; i < max; i += 2) {
+		ph_free(p[i]);
+	}
 
-    return 0;
+	return 0;
 }
 
 // -----------------------------------------------------------------------
@@ -98,102 +94,101 @@ int do_test_malloc(const char *test_parm)
 // -----------------------------------------------------------------------
 
 
-#define MSIZE (4096*2)
+#define MSIZE (4096 * 2)
 
 int do_test_physmem(const char *test_parm)
 {
-    (void) test_parm;
+	(void)test_parm;
 #if !defined(ARCH_arm)
-    void *va;
-    physaddr_t pa;
+	void *va;
+	physaddr_t pa;
 
-    char buf[MSIZE];
-
-
-    int t_cnt = 0;
-
-    ph_printf("!!! : T%d\n", t_cnt++);
-
-    hal_pv_alloc( &pa, &va, MSIZE );
-
-    test_check_true( va != 0 );
-    // test_check_true( pa != 0 );
-    
-    ph_printf("!!! : T%d\n", t_cnt++);
-
-    ph_memset( va, 0, MSIZE );
-    memcpy_p2v( buf, pa, MSIZE );
-    if( memnotchar( buf, 0, MSIZE ) )
-        test_fail_msg( EINVAL, "not 0");
-
-    ph_printf("!!! : T%d\n", t_cnt++);
-
-    ph_memset( buf, 0xFF, MSIZE );
-    memcpy_v2p( pa, buf, MSIZE );
-    if( memnotchar( va, 0xFF, MSIZE ) ){
-        void* err_addr = memnotchar( va, 0xFF, MSIZE );
-        ph_printf("!!!: %p (%p) = %d \n", err_addr, buf,  (int)(*(char*)err_addr)); 
-        test_fail_msg( EINVAL, "not 1");
-    }
-
-    ph_memset( va, 0, MSIZE );
-
-    ph_printf("!!! : T%d\n", t_cnt++);
-
-    memcpy_v2p( pa, "AAA", 3 );
-    if( memnotchar( va, 'A', 3 ) )
-        test_fail_msg( EINVAL, "not A");
-
-    ph_printf("!!! : T%d\n", t_cnt++);
-
-    if( memnotchar( va+3, 0, MSIZE-3 ) )
-        test_fail_msg( EINVAL, "not A0");
+	char buf[MSIZE];
 
 
-    ph_memset( va, 0, MSIZE );
+	int t_cnt = 0;
 
-    ph_printf("!!! : T%d\n", t_cnt++);
+	ph_printf("!!! : T%d\n", t_cnt++);
 
-    memcpy_v2p( pa+10, "BBB", 3 );
-    if( memnotchar( va+10, 'B', 3 ) )
-        test_fail_msg( EINVAL, "not B");
+	hal_pv_alloc(&pa, &va, MSIZE);
 
-    ph_printf("!!! : T%d\n", t_cnt++);
+	test_check_true(va != 0);
+	// test_check_true( pa != 0 );
 
-    if( memnotchar( va, 0, 10 ) )
-        test_fail_msg( EINVAL, "not B0-");
+	ph_printf("!!! : T%d\n", t_cnt++);
 
-    ph_printf("!!! : T%d\n", t_cnt++);
+	ph_memset(va, 0, MSIZE);
+	memcpy_p2v(buf, pa, MSIZE);
+	if (memnotchar(buf, 0, MSIZE))
+		test_fail_msg(EINVAL, "not 0");
 
-    if( memnotchar( va+13, 0, MSIZE-13 ) )
-        test_fail_msg( EINVAL, "not B0+");
+	ph_printf("!!! : T%d\n", t_cnt++);
 
+	ph_memset(buf, 0xFF, MSIZE);
+	memcpy_v2p(pa, buf, MSIZE);
+	if (memnotchar(va, 0xFF, MSIZE)) {
+		void *err_addr = memnotchar(va, 0xFF, MSIZE);
+		ph_printf("!!!: %p (%p) = %d \n", err_addr, buf, (int)(*(char *)err_addr));
+		test_fail_msg(EINVAL, "not 1");
+	}
 
-    // Cross page
-    ph_memset( va, 0, MSIZE );
-#define SH (4096-4)
+	ph_memset(va, 0, MSIZE);
 
+	ph_printf("!!! : T%d\n", t_cnt++);
 
-    ph_printf("!!! : T%d\n", t_cnt++);
+	memcpy_v2p(pa, "AAA", 3);
+	if (memnotchar(va, 'A', 3))
+		test_fail_msg(EINVAL, "not A");
 
-    memcpy_v2p( pa+SH, "EEEEEEEE", 8 );
-    if( memnotchar( va+SH, 'E', 8 ) )
-        test_fail_msg( EINVAL, "not E");
+	ph_printf("!!! : T%d\n", t_cnt++);
 
-
-    ph_printf("!!! : T%d\n", t_cnt++);
-
-    if( memnotchar( va, 0, SH ) )
-        test_fail_msg( EINVAL, "not E0-");
-
-    ph_printf("!!! : T%d\n", t_cnt++);
-
-    if( memnotchar( va+SH+8, 0, MSIZE-SH-8 ) )
-        test_fail_msg( EINVAL, "not E0+");
+	if (memnotchar(va + 3, 0, MSIZE - 3))
+		test_fail_msg(EINVAL, "not A0");
 
 
+	ph_memset(va, 0, MSIZE);
 
-#if 0 // not impl
+	ph_printf("!!! : T%d\n", t_cnt++);
+
+	memcpy_v2p(pa + 10, "BBB", 3);
+	if (memnotchar(va + 10, 'B', 3))
+		test_fail_msg(EINVAL, "not B");
+
+	ph_printf("!!! : T%d\n", t_cnt++);
+
+	if (memnotchar(va, 0, 10))
+		test_fail_msg(EINVAL, "not B0-");
+
+	ph_printf("!!! : T%d\n", t_cnt++);
+
+	if (memnotchar(va + 13, 0, MSIZE - 13))
+		test_fail_msg(EINVAL, "not B0+");
+
+
+	// Cross page
+	ph_memset(va, 0, MSIZE);
+#define SH (4096 - 4)
+
+
+	ph_printf("!!! : T%d\n", t_cnt++);
+
+	memcpy_v2p(pa + SH, "EEEEEEEE", 8);
+	if (memnotchar(va + SH, 'E', 8))
+		test_fail_msg(EINVAL, "not E");
+
+
+	ph_printf("!!! : T%d\n", t_cnt++);
+
+	if (memnotchar(va, 0, SH))
+		test_fail_msg(EINVAL, "not E0-");
+
+	ph_printf("!!! : T%d\n", t_cnt++);
+
+	if (memnotchar(va + SH + 8, 0, MSIZE - SH - 8))
+		test_fail_msg(EINVAL, "not E0+");
+
+
+#if 0  // not impl
     ph_memset( va, 0, MSIZE );
 
     ph_memset( va+20, 'C', 3 );
@@ -202,12 +197,11 @@ int do_test_physmem(const char *test_parm)
         test_fail_msg( EINVAL, "not C");
 #endif
 
-    hal_pv_free( pa, va, MSIZE );
-#endif //!defined(ARCH_arm)
+	hal_pv_free(pa, va, MSIZE);
+#endif  //! defined(ARCH_arm)
 
-    return 0;
+	return 0;
 }
-
 
 
 // -----------------------------------------------------------------------
@@ -216,15 +210,15 @@ int do_test_physmem(const char *test_parm)
 
 #include <kernel/physalloc.h>
 
-#define PA_PAGES (1024*1024)
+#define PA_PAGES (1024 * 1024)
 
-static physalloc_t   	pm_map;
+static physalloc_t pm_map;
 
 
 #define IGS 200
 
-static al_t     	igot[IGS];
-static int      	igp = 0;
+static al_t igot[IGS];
+static int igp = 0;
 
 #if 0
 static void clr_alloc_list()
@@ -296,22 +290,23 @@ static void clr_alloc_list()
 
 static int nfree()
 {
-    return pm_map.allocable_size - pm_map.n_used_pages;
+	return pm_map.allocable_size - pm_map.n_used_pages;
 }
 
 static void __cfree(int tobe, int ln)
 {
-    int real = nfree();
+	int real = nfree();
 
-    if( tobe == real )
-        return;
+	if (tobe == real)
+		return;
 
-    SHOW_ERROR( 0, "free is %d, must be %d, diff = %d  @line %d", real, tobe, real-tobe, ln );
+	SHOW_ERROR(
+		0, "free is %d, must be %d, diff = %d  @line %d", real, tobe, real - tobe, ln);
 
-    test_fail_msg( EINVAL, "free count is wrong" );
+	test_fail_msg(EINVAL, "free count is wrong");
 }
 
-#define cfree(___s) __cfree(___s,__LINE__)
+#define cfree(___s) __cfree(___s, __LINE__)
 
 // int do_test_physalloc_gen(const char *test_parm)
 // {
@@ -323,16 +318,18 @@ static void __cfree(int tobe, int ln)
 
 //     SHOW_FLOW( 0, "physalloc test arena %d, initial free %d", PA_PAGES, PA_PAGES/2 );
 
-//     phantom_phys_alloc_init( &pm_map, PA_PAGES ); 
+//     phantom_phys_alloc_init( &pm_map, PA_PAGES );
 
-//     SHOW_FLOW( 0, "physalloc test allocable_size %d, n_used_pages %d", pm_map.allocable_size, pm_map.n_used_pages );
+//     SHOW_FLOW( 0, "physalloc test allocable_size %d, n_used_pages %d",
+//     pm_map.allocable_size, pm_map.n_used_pages );
 //     // Free half at strange position
 
 //     pm_map.allocable_size = PA_PAGES/2;
 //     pm_map.n_used_pages = PA_PAGES/2; // init sets it to PA_PAGES
 //     phantom_phys_free_region(&pm_map, 100, PA_PAGES/2);
 
-//     SHOW_FLOW( 0, "physalloc test allocable_size %d, n_used_pages %d", pm_map.allocable_size, pm_map.n_used_pages );
+//     SHOW_FLOW( 0, "physalloc test allocable_size %d, n_used_pages %d",
+//     pm_map.allocable_size, pm_map.n_used_pages );
 
 //     cfree(PA_PAGES/2);
 
@@ -359,36 +356,3 @@ static void __cfree(int tobe, int ln)
 
 //     return 0;
 // }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

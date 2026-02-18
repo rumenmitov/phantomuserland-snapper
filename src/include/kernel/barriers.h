@@ -7,7 +7,7 @@
  * Memory access barriers.
  *
  *
-**/
+ **/
 
 #ifdef ARCH_ia32
 // None on x86 PC
@@ -17,7 +17,7 @@
 #define mem_read_barrier() mem_barrier()
 
 // make sure caches across CPUs are coherent
-#define	smp_mem_barrier()
+#define smp_mem_barrier()
 
 #endif
 
@@ -32,7 +32,6 @@
 #endif
 
 
-
 #ifndef mem_barrier
 #error no barrier definiton for this arch
 #endif
@@ -41,4 +40,3 @@
 // make sure caches across CPUs are coherent
 #error SMP no barrier definiton for this arch
 #endif
-

@@ -118,134 +118,90 @@
 
 
 ACPI_STATUS
-AcpiAllocateRootTable (
-    UINT32                  InitialTableCount);
+AcpiAllocateRootTable(UINT32 InitialTableCount);
 
 /*
  * tbfadt - FADT parse/convert/validate
  */
-void
-AcpiTbParseFadt (
-    UINT32                  TableIndex);
+void AcpiTbParseFadt(UINT32 TableIndex);
 
-void
-AcpiTbCreateLocalFadt (
-    ACPI_TABLE_HEADER       *Table,
-    UINT32                  Length);
+void AcpiTbCreateLocalFadt(ACPI_TABLE_HEADER *Table, UINT32 Length);
 
 
 /*
  * tbfind - find ACPI table
  */
 ACPI_STATUS
-AcpiTbFindTable (
-    char                    *Signature,
-    char                    *OemId,
-    char                    *OemTableId,
-    UINT32                  *TableIndex);
+AcpiTbFindTable(char *Signature, char *OemId, char *OemTableId, UINT32 *TableIndex);
 
 
 /*
  * tbinstal - Table removal and deletion
  */
 ACPI_STATUS
-AcpiTbResizeRootTableList (
-    void);
+AcpiTbResizeRootTableList(void);
 
 ACPI_STATUS
-AcpiTbVerifyTable (
-    ACPI_TABLE_DESC         *TableDesc);
+AcpiTbVerifyTable(ACPI_TABLE_DESC *TableDesc);
 
 ACPI_STATUS
-AcpiTbAddTable (
-    ACPI_TABLE_DESC         *TableDesc,
-    UINT32                  *TableIndex);
+AcpiTbAddTable(ACPI_TABLE_DESC *TableDesc, UINT32 *TableIndex);
 
 ACPI_STATUS
-AcpiTbStoreTable (
-    ACPI_PHYSICAL_ADDRESS   Address,
-    ACPI_TABLE_HEADER       *Table,
-    UINT32                  Length,
-    UINT8                   Flags,
-    UINT32                  *TableIndex);
+AcpiTbStoreTable(ACPI_PHYSICAL_ADDRESS Address,
+				 ACPI_TABLE_HEADER *Table,
+				 UINT32 Length,
+				 UINT8 Flags,
+				 UINT32 *TableIndex);
 
-void
-AcpiTbDeleteTable (
-    ACPI_TABLE_DESC        *TableDesc);
+void AcpiTbDeleteTable(ACPI_TABLE_DESC *TableDesc);
 
-void
-AcpiTbTerminate (
-    void);
+void AcpiTbTerminate(void);
 
 ACPI_STATUS
-AcpiTbDeleteNamespaceByOwner (
-    UINT32                  TableIndex);
+AcpiTbDeleteNamespaceByOwner(UINT32 TableIndex);
 
 ACPI_STATUS
-AcpiTbAllocateOwnerId (
-    UINT32                  TableIndex);
+AcpiTbAllocateOwnerId(UINT32 TableIndex);
 
 ACPI_STATUS
-AcpiTbReleaseOwnerId (
-    UINT32                  TableIndex);
+AcpiTbReleaseOwnerId(UINT32 TableIndex);
 
 ACPI_STATUS
-AcpiTbGetOwnerId (
-    UINT32                  TableIndex,
-    ACPI_OWNER_ID           *OwnerId);
+AcpiTbGetOwnerId(UINT32 TableIndex, ACPI_OWNER_ID *OwnerId);
 
 BOOLEAN
-AcpiTbIsTableLoaded (
-    UINT32                  TableIndex);
+AcpiTbIsTableLoaded(UINT32 TableIndex);
 
-void
-AcpiTbSetTableLoadedFlag (
-    UINT32                  TableIndex,
-    BOOLEAN                 IsLoaded);
+void AcpiTbSetTableLoadedFlag(UINT32 TableIndex, BOOLEAN IsLoaded);
 
 
 /*
  * tbutils - table manager utilities
  */
 ACPI_STATUS
-AcpiTbInitializeFacs (
-    void);
+AcpiTbInitializeFacs(void);
 
 BOOLEAN
-AcpiTbTablesLoaded (
-    void);
+AcpiTbTablesLoaded(void);
 
-void
-AcpiTbPrintTableHeader(
-    ACPI_PHYSICAL_ADDRESS   Address,
-    ACPI_TABLE_HEADER       *Header);
+void AcpiTbPrintTableHeader(ACPI_PHYSICAL_ADDRESS Address, ACPI_TABLE_HEADER *Header);
 
 UINT8
-AcpiTbChecksum (
-    UINT8                   *Buffer,
-    UINT32                  Length);
+AcpiTbChecksum(UINT8 *Buffer, UINT32 Length);
 
 ACPI_STATUS
-AcpiTbVerifyChecksum (
-    ACPI_TABLE_HEADER       *Table,
-    UINT32                  Length);
+AcpiTbVerifyChecksum(ACPI_TABLE_HEADER *Table, UINT32 Length);
 
-void
-AcpiTbCheckDsdtHeader (
-    void);
+void AcpiTbCheckDsdtHeader(void);
 
-ACPI_TABLE_HEADER *
-AcpiTbCopyDsdt (
-    UINT32                  TableIndex);
+ACPI_TABLE_HEADER *AcpiTbCopyDsdt(UINT32 TableIndex);
 
-void
-AcpiTbInstallTable (
-    ACPI_PHYSICAL_ADDRESS   Address,
-    char                    *Signature,
-    UINT32                  TableIndex);
+void AcpiTbInstallTable(ACPI_PHYSICAL_ADDRESS Address,
+						char *Signature,
+						UINT32 TableIndex);
 
 ACPI_STATUS
-AcpiTbParseRootTable (
-    ACPI_PHYSICAL_ADDRESS   RsdpAddress);
+AcpiTbParseRootTable(ACPI_PHYSICAL_ADDRESS RsdpAddress);
 
 #endif /* __ACTABLES_H__ */

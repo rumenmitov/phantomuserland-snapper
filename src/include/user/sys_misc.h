@@ -6,9 +6,9 @@ extern int personality(int kind);
 
 extern int gethostname(const char *buf, int bs);
 
-extern int waitpid( int pid, int *status, int options);
+extern int waitpid(int pid, int *status, int options);
 
-//errno_t name2ip( in_addr_t *out, const char *name, int flags );
+// errno_t name2ip( in_addr_t *out, const char *name, int flags );
 
 extern int kill(int pid);
 

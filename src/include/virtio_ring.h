@@ -7,7 +7,7 @@
  * Virtio ring structure definition.
  *
  *
-**/
+ **/
 
 
 #ifndef _VIRTIO_RING_H
@@ -29,18 +29,18 @@
 
 
 /* This marks a buffer as continuing via the next field. */
-#define VRING_DESC_F_NEXT	1
+#define VRING_DESC_F_NEXT 1
 /* This marks a buffer as write-only (otherwise read-only). */
-#define VRING_DESC_F_WRITE	2
+#define VRING_DESC_F_WRITE 2
 
 /* The Host uses this in used->flags to advise the Guest: don't kick me when
  * you add a buffer.  It's unreliable, so it's simply an optimization.  Guest
  * will still kick if it's out of buffers. */
-#define VRING_USED_F_NO_NOTIFY	1
+#define VRING_USED_F_NO_NOTIFY 1
 /* The Guest uses this in avail->flags to advise the Host: don't interrupt me
  * when you consume a buffer.  It's unreliable, so it's simply an
  * optimization.  */
-#define VRING_AVAIL_F_NO_INTERRUPT	1
+#define VRING_AVAIL_F_NO_INTERRUPT 1
 
 /* Virtio ring descriptors: 16 bytes.  These can chain together via "next". */
 struct vring_desc
@@ -78,7 +78,8 @@ struct vring_used
 	struct vring_used_elem ring[];
 } __packed;
 
-struct vring {
+struct vring
+{
 	unsigned int num;
 
 	struct vring_desc *desc;
@@ -110,21 +111,24 @@ struct vring {
  *	struct vring_used_elem used[num];
  * };
  */
-static inline void vring_init(struct vring *vr, unsigned int num, void *p,
-			      unsigned long align)
+static inline void vring_init(struct vring *vr,
+							  unsigned int num,
+							  void *p,
+							  unsigned long align)
 {
 	vr->num = num;
 	vr->desc = p;
-	vr->avail = p + num*sizeof(struct vring_desc);
-	vr->used = (void *)(((unsigned long)&vr->avail->ring[num] + align-1)
-			    & ~(align - 1));
+	vr->avail = p + num * sizeof(struct vring_desc);
+	vr->used =
+		(void *)(((unsigned long)&vr->avail->ring[num] + align - 1) & ~(align - 1));
 }
 
 static inline unsigned vring_size(unsigned int num, unsigned long align)
 {
-	return ((sizeof(struct vring_desc) * num + sizeof(u_int16_t) * (2 + num)
-		 + align - 1) & ~(align - 1))
-		+ sizeof(u_int16_t) * 2 + sizeof(struct vring_used_elem) * num;
+	return ((sizeof(struct vring_desc) * num + sizeof(u_int16_t) * (2 + num) + align -
+			 1) &
+			~(align - 1)) +
+		   sizeof(u_int16_t) * 2 + sizeof(struct vring_used_elem) * num;
 }
 
 #ifdef __KERNEL__
@@ -133,11 +137,11 @@ struct virtio_device;
 struct virtqueue;
 
 struct virtqueue *vring_new_virtqueue(unsigned int num,
-				      unsigned int vring_align,
-				      struct virtio_device *vdev,
-				      void *pages,
-				      void (*notify)(struct virtqueue *vq),
-				      void (*callback)(struct virtqueue *vq));
+									  unsigned int vring_align,
+									  struct virtio_device *vdev,
+									  void *pages,
+									  void (*notify)(struct virtqueue *vq),
+									  void (*callback)(struct virtqueue *vq));
 void vring_del_virtqueue(struct virtqueue *vq);
 /* Filter out transport-specific feature bits. */
 void vring_transport_features(struct virtio_device *vdev);

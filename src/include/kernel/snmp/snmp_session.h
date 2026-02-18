@@ -43,31 +43,34 @@
  * \endverbatim
  */
 
-#include <sys/socket.h>
-
 #include <kernel/snmp/snmp.h>
 #include <kernel/snmp/snmp_pdu.h>
+#include <sys/socket.h>
 
 /*!
  * \addtogroup xgSNMP
  */
 /*@{*/
 
-typedef struct {
-    long sess_version;
-    size_t sess_id_len;
-    uint8_t sess_id[MAX_SID_LEN + 1];
-    int sess_read_view;
-    int sess_write_view;
-    //UDPSOCKET *sess_sock;
-    void *sess_sock; // udp_socket
-    uint32_t sess_rem_addr;
-    uint16_t sess_rem_port;
+typedef struct
+{
+	long sess_version;
+	size_t sess_id_len;
+	uint8_t sess_id[MAX_SID_LEN + 1];
+	int sess_read_view;
+	int sess_write_view;
+	// UDPSOCKET *sess_sock;
+	void *sess_sock;  // udp_socket
+	uint32_t sess_rem_addr;
+	uint16_t sess_rem_port;
 } SNMP_SESSION;
 
 /*@}*/
 
-extern SNMP_SESSION *SnmpSessionOpen(uint32_t ip, uint16_t port, uint8_t *id, size_t id_len);
+extern SNMP_SESSION *SnmpSessionOpen(uint32_t ip,
+									 uint16_t port,
+									 uint8_t *id,
+									 size_t id_len);
 extern void SnmpSessionClose(SNMP_SESSION *session);
 
 extern int SnmpSessionSendPdu(SNMP_SESSION *session, SNMP_PDU *pdu);

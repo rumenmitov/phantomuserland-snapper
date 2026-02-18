@@ -11,9 +11,9 @@
 **/
 
 //#include <drv_video_screen.h>
-#include <video/screen.h>
 #include <assert.h>
 #include <sys/types.h>
+#include <video/screen.h>
 
 
 #ifndef ARCH_ia32
@@ -87,11 +87,7 @@ void rgba2rgba_zbmove( struct rgba_t *dest, const struct rgba_t *src, zbuf_t *zb
 }
 
 
-#endif // ARCH_ia32
-
-
-
+#endif  // ARCH_ia32
 
 
 #endif
-

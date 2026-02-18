@@ -5,18 +5,13 @@
 #ifndef _KERNEL_NET_H
 #define _KERNEL_NET_H
 
-#include <kernel/config.h>
-
-
+#include <compat/newos.h>
+#include <device.h>
 #include <errno.h>
 #include <hal.h>
-
-#include <newos/nqueue.h>
-
-#include <compat/newos.h>
+#include <kernel/config.h>
 #include <newos/cbuf.h>
-
-#include <device.h>
+#include <newos/nqueue.h>
 
 // Becomes nonzero after TCPIP stack is initialized and some network
 // card is, possibly, activated.
@@ -25,7 +20,8 @@ extern int phantom_tcpip_active;
 
 /* contains common network stuff */
 
-typedef struct netaddr {
+typedef struct netaddr
+{
 	uint8 len;
 	uint8 type;
 	uint8 pad0;
@@ -33,13 +29,15 @@ typedef struct netaddr {
 	uint8 addr[12];
 } netaddr;
 
-enum {
+enum
+{
 	SOCK_PROTO_NULL = 0,
 	SOCK_PROTO_UDP,
 	SOCK_PROTO_TCP
 };
 
-enum {
+enum
+{
 	ADDR_TYPE_NULL = 0,
 	ADDR_TYPE_ETHERNET,
 	ADDR_TYPE_IP
@@ -47,12 +45,14 @@ enum {
 
 #define SOCK_FLAG_TIMEOUT 1
 
-typedef struct i4sockaddr {
+typedef struct i4sockaddr
+{
 	netaddr addr;
 	int port;
 } i4sockaddr;
 
-enum {
+enum
+{
 	IP_PROT_ICMP = 1,
 	IP_PROT_TCP = 6,
 	IP_PROT_UDP = 17,
@@ -60,11 +60,12 @@ enum {
 
 typedef uint32 ipv4_addr;
 #define NETADDR_TO_IPV4(naddr) (*(ipv4_addr *)(&((&(naddr))->addr[0])))
-#define IPV4_DOTADDR_TO_ADDR(a, b, c, d) \
-	(((ipv4_addr)(a) << 24) | (((ipv4_addr)(b) & 0xff) << 16) | (((ipv4_addr)(c) & 0xff) << 8) | ((ipv4_addr)(d) & 0xff))
+#define IPV4_DOTADDR_TO_ADDR(a, b, c, d)                        \
+	(((ipv4_addr)(a) << 24) | (((ipv4_addr)(b) & 0xff) << 16) | \
+	 (((ipv4_addr)(c) & 0xff) << 8) | ((ipv4_addr)(d) & 0xff))
 
 
-errno_t parse_ipv4_addr( ipv4_addr *out, const char *str );
+errno_t parse_ipv4_addr(ipv4_addr *out, const char *str);
 
 
 #if 0
@@ -103,12 +104,8 @@ struct _ioctl_net_route_struct {
 #endif
 
 
-
-
-
-
-
-typedef struct ifaddr {
+typedef struct ifaddr
+{
 	struct ifaddr *next;
 	struct ifnet *if_owner;
 	netaddr addr;
@@ -116,7 +113,8 @@ typedef struct ifaddr {
 	netaddr broadcast;
 } ifaddr;
 
-enum {
+enum
+{
 	IF_TYPE_NULL = 0,
 	IF_TYPE_LOOPBACK,
 	IF_TYPE_ETHERNET
@@ -124,40 +122,39 @@ enum {
 
 typedef int if_id;
 
-typedef struct ifnet {
+typedef struct ifnet
+{
 	struct ifnet *next;
 	if_id id;
-	//char path[SYS_MAX_PATH_LEN];
+	// char path[SYS_MAX_PATH_LEN];
 	int type;
-        //int fd;
+	// int fd;
 
-        phantom_device_t *dev;
+	phantom_device_t *dev;
 
 	thread_id rx_thread;
 	thread_id tx_thread;
 	ifaddr *addr_list;
-        ifaddr *link_addr;
+	ifaddr *link_addr;
 	size_t mtu;
 	int (*link_input)(cbuf *buf, struct ifnet *i);
 	int (*link_output)(cbuf *buf, struct ifnet *i, netaddr *target, int protocol_type);
 	sem_id tx_queue_sem;
-    hal_mutex_t tx_queue_lock;
+	hal_mutex_t tx_queue_lock;
 
-        fixed_queue tx_queue;
+	fixed_queue tx_queue;
 
-        uint8 tx_buf[2048];
+	uint8 tx_buf[2048];
 	uint8 rx_buf[2048];
 } ifnet;
-
 
 
 int cmp_netaddr(netaddr *addr1, netaddr *addr2);
 
 
-
 ifnet *if_id_to_ifnet(if_id id);
 ifnet *if_path_to_ifnet(const char *path);
-//int if_register_interface(const char *path, ifnet **i);
+// int if_register_interface(const char *path, ifnet **i);
 int if_boot_interface(ifnet *i);
 int if_output(cbuf *b, ifnet *i);
 
@@ -170,17 +167,28 @@ void if_replace_address(ifnet *i, ifaddr *addr);
 int if_register_interface(int type, ifnet **_i, phantom_device_t *dev);
 
 
-void if_simple_setup( ifnet *interface, int addr, int netmask, int bcast, int net, int router, int def_router );
+void if_simple_setup(ifnet *interface,
+					 int addr,
+					 int netmask,
+					 int bcast,
+					 int net,
+					 int router,
+					 int def_router);
 
 
 // for SNMP
 int if_get_count(void);
 
 
-
-
-int ipv4_route_add(ipv4_addr network_addr, ipv4_addr netmask, ipv4_addr if_addr, if_id interface_num);
-int ipv4_route_add_gateway(ipv4_addr network_addr, ipv4_addr netmask, ipv4_addr if_addr, if_id interface_num, ipv4_addr gw_addr);
+int ipv4_route_add(ipv4_addr network_addr,
+				   ipv4_addr netmask,
+				   ipv4_addr if_addr,
+				   if_id interface_num);
+int ipv4_route_add_gateway(ipv4_addr network_addr,
+						   ipv4_addr netmask,
+						   ipv4_addr if_addr,
+						   if_id interface_num,
+						   ipv4_addr gw_addr);
 
 // dz - is it correct?
 int ipv4_route_add_default(ipv4_addr if_addr, if_id interface_num, ipv4_addr gw_addr);
@@ -203,14 +211,8 @@ void dump_ipv4_addr(ipv4_addr addr);
 int icmp_input(cbuf *buf, ifnet *i, ipv4_addr source_ipaddr);
 
 
-
-
-
 int loopback_input(cbuf *buf, ifnet *i);
 int loopback_output(cbuf *buf, ifnet *i, netaddr *target, int protocol_type);
-
-
-
 
 
 int loopback_init(void);
@@ -226,8 +228,6 @@ int ipv4_init(void);
 int if_init(void);
 
 
-
-
 int net_timer_init(void);
 
 
@@ -237,8 +237,7 @@ errno_t bootp(ifnet *iface);
 void udp_syslog_send(const char *prefix, const char *message);
 void start_tcp_echo_server(void);
 
-errno_t net_curl( const char *url, char *obuf, size_t obufsize, const char *headers );
-const char * http_skip_header( const char *buf );
+errno_t net_curl(const char *url, char *obuf, size_t obufsize, const char *headers);
+const char *http_skip_header(const char *buf);
 
-#endif // _KERNEL_NET_H
-
+#endif  // _KERNEL_NET_H

@@ -1,4 +1,4 @@
-/* 
+/*
 ** Copyright 2001-2002, Mark-Jan Bastian. All rights reserved.
 ** Distributed under the terms of the NewOS License.
 */
@@ -13,14 +13,14 @@
  *	with each other
  */
 
-//#include <boot/stage2.h>
+// #include <boot/stage2.h>
 #include <newos/compat.h>
 #include <newos/types.h>
 
 // PORT_FLAG_INTERRUPTABLE must be the same as SEM_FLAG_INTERRUPTABLE
 // PORT_FLAG_TIMEOUT       must be the same as SEM_FLAG_TIMEOUT
-#define PORT_FLAG_TIMEOUT 2
-#define PORT_FLAG_INTERRUPTABLE 4
+#define PORT_FLAG_TIMEOUT         2
+#define PORT_FLAG_INTERRUPTABLE   4
 #define PORT_FLAG_USE_USER_MEMCPY 0x80000000
 
 /*
@@ -37,14 +37,12 @@ struct port_info {
 };
 */
 
-#include <newos/portinfo.h>
-
-#include <threads.h>
 #include <errno.h>
+#include <newos/portinfo.h>
+#include <threads.h>
 
 
-
-errno_t         phantom_port_init(void);
+errno_t phantom_port_init(void);
 
 // -----------------------------------------------------------------------
 //
@@ -53,51 +51,48 @@ errno_t         phantom_port_init(void);
 // -----------------------------------------------------------------------
 
 //! Deletes ports owned by 'owner', 'count' can be 0
-errno_t 		phantom_port_delete_owned_ports(tid_t owner, int *count);
+errno_t phantom_port_delete_owned_ports(tid_t owner, int *count);
 
 
-errno_t         phantom_port_create(port_id *ret, int32 queue_length, const char *name);
-errno_t         phantom_port_close(port_id id);
-errno_t         phantom_port_delete(port_id id);
-errno_t	        phantom_port_find(port_id *ret, const char *port_name);
-errno_t         phantom_port_get_info(port_id id, struct port_info *info);
-errno_t         phantom_port_get_next_port_info(proc_id proc,
-					uint32 *cookie,
-					struct port_info *info);
-errno_t			phantom_port_buffer_size(ssize_t *sizep, port_id port);
-errno_t			phantom_port_buffer_size_etc(ssize_t *sizep, port_id port,
-					uint32 flags,
-					bigtime_t timeout);
-errno_t			phantom_port_count(int32 *countp, port_id port);
-errno_t			phantom_port_read(ssize_t *len, 
-					port_id port,
-					int32 *msg_code,
-					void *msg_buffer,
-					size_t buffer_size);
-errno_t			phantom_port_read_etc(ssize_t *len, 
-					port_id port,
-					int32 *msg_code,
-					void *msg_buffer,
-					size_t buffer_size,
-					uint32 flags,
-					bigtime_t timeout);
-int				phantom_port_set_owner(port_id port, proc_id proc);
-errno_t			phantom_port_write(port_id port,
-					int32 msg_code,
-					void *msg_buffer,
-					size_t buffer_size);
-errno_t	 		phantom_port_write_etc(port_id port,
-					int32 msg_code,
-					void *msg_buffer,
-					size_t buffer_size,
-					uint32 flags,
-					bigtime_t timeout);
-
+errno_t phantom_port_create(port_id *ret, int32 queue_length, const char *name);
+errno_t phantom_port_close(port_id id);
+errno_t phantom_port_delete(port_id id);
+errno_t phantom_port_find(port_id *ret, const char *port_name);
+errno_t phantom_port_get_info(port_id id, struct port_info *info);
+errno_t phantom_port_get_next_port_info(proc_id proc,
+										uint32 *cookie,
+										struct port_info *info);
+errno_t phantom_port_buffer_size(ssize_t *sizep, port_id port);
+errno_t phantom_port_buffer_size_etc(ssize_t *sizep,
+									 port_id port,
+									 uint32 flags,
+									 bigtime_t timeout);
+errno_t phantom_port_count(int32 *countp, port_id port);
+errno_t phantom_port_read(
+	ssize_t *len, port_id port, int32 *msg_code, void *msg_buffer, size_t buffer_size);
+errno_t phantom_port_read_etc(ssize_t *len,
+							  port_id port,
+							  int32 *msg_code,
+							  void *msg_buffer,
+							  size_t buffer_size,
+							  uint32 flags,
+							  bigtime_t timeout);
+int phantom_port_set_owner(port_id port, proc_id proc);
+errno_t phantom_port_write(port_id port,
+						   int32 msg_code,
+						   void *msg_buffer,
+						   size_t buffer_size);
+errno_t phantom_port_write_etc(port_id port,
+							   int32 msg_code,
+							   void *msg_buffer,
+							   size_t buffer_size,
+							   uint32 flags,
+							   bigtime_t timeout);
 
 
 // temp: test
-//void port_test(void);
-//int	 port_test_thread_func(void* arg);
+// void port_test(void);
+// int	 port_test_thread_func(void* arg);
 
 /*
 // user-level API
@@ -134,5 +129,4 @@ int			user_port_write_etc(port_id port,
 
 */
 
-#endif // _NEWOS_PORT_H
-
+#endif  // _NEWOS_PORT_H

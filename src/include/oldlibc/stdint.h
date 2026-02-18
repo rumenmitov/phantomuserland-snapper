@@ -7,6 +7,6 @@
  * Short type names.
  *
  *
-**/
+ **/
 
 #include <shorttypes.h>

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 1994 The University of Utah and
  * the Computer Systems Laboratory at the University of Utah (CSL).
  * All rights reserved.
@@ -40,17 +40,12 @@
 
 #define PIC_INT_BASE 0x20
 // Kolibri syscall entry point
-#define KOLIBRI_INT 0x40
+#define KOLIBRI_INT   0x40
 #define APIC_INT_BASE 0x60
-#define LINUX_INT 0x80
+#define LINUX_INT     0x80
 
 
-
-
-#define set_idt(pseudo_desc) \
-    ({ \
-	asm volatile("lidt %0" : : "m" ((pseudo_desc)->limit)); \
-    })
+#define set_idt(pseudo_desc) ({ asm volatile("lidt %0" : : "m"((pseudo_desc)->limit)); })
 
 
 #include <ia32/seg.h>
@@ -63,6 +58,4 @@ extern struct real_gate idt[IDTSZ];
 	fill_gate(&idt[int_num], entry, selector, access, dword_count)
 
 
-
-
-#endif // _I386AT_IDT_
+#endif  // _I386AT_IDT_

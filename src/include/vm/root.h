@@ -19,11 +19,11 @@
 
 void pvm_root_init(void);
 
-void phantom_setenv( const char *name, const char *value );
-int phantom_getenv( const char *name, char *value, int vsize );
+void phantom_setenv(const char *name, const char *value);
+int phantom_getenv(const char *name, char *value, int vsize);
 
-void pvm_add_object_to_restart_list( pvm_object_t o );
-void pvm_remove_object_from_restart_list( pvm_object_t o );
+void pvm_add_object_to_restart_list(pvm_object_t o);
+void pvm_remove_object_from_restart_list(pvm_object_t o);
 
 int pvm_connect_object(pvm_object_t o, struct data_area_4_thread *tc);
 int pvm_disconnect_object(pvm_object_t o, struct data_area_4_thread *tc);
@@ -38,77 +38,78 @@ errno_t pvm_class_cache_lookup(const char *name, int name_len, pvm_object_t *new
 errno_t pvm_class_cache_insert(const char *name, int name_len, pvm_object_t new_class);
 
 
-
 struct pvm_root_t
 {
-    pvm_object_t           null_class;             // Default superclass for any class
+	pvm_object_t null_class;  // Default superclass for any class
 
-    pvm_object_t           class_class;            // Class of a class (and of itself)
-    pvm_object_t           interface_class;
-    pvm_object_t           code_class;
+	pvm_object_t class_class;  // Class of a class (and of itself)
+	pvm_object_t interface_class;
+	pvm_object_t code_class;
 
-    pvm_object_t           int_class;
-    pvm_object_t           long_class;
-    pvm_object_t           float_class;
-    pvm_object_t           double_class;
-    pvm_object_t           string_class;
+	pvm_object_t int_class;
+	pvm_object_t long_class;
+	pvm_object_t float_class;
+	pvm_object_t double_class;
+	pvm_object_t string_class;
 
-    pvm_object_t           array_class;
-    pvm_object_t           page_class;
+	pvm_object_t array_class;
+	pvm_object_t page_class;
 
-    pvm_object_t           thread_class;
-    pvm_object_t           call_frame_class;
-    pvm_object_t           istack_class;
-    pvm_object_t           ostack_class;
-    pvm_object_t           estack_class;
+	pvm_object_t thread_class;
+	pvm_object_t call_frame_class;
+	pvm_object_t istack_class;
+	pvm_object_t ostack_class;
+	pvm_object_t estack_class;
 
-    pvm_object_t           boot_class;
+	pvm_object_t boot_class;
 
-    pvm_object_t           binary_class;
-    pvm_object_t           bitmap_class;
+	pvm_object_t binary_class;
+	pvm_object_t bitmap_class;
 
-    pvm_object_t           world_class;
-    pvm_object_t           closure_class;
+	pvm_object_t world_class;
+	pvm_object_t closure_class;
 
-    pvm_object_t           weakref_class;
-    pvm_object_t           window_class;
+	pvm_object_t weakref_class;
+	pvm_object_t window_class;
 
-    pvm_object_t           directory_class;
-    pvm_object_t           connection_class;
+	pvm_object_t directory_class;
+	pvm_object_t connection_class;
 
-    pvm_object_t           mutex_class;
-    pvm_object_t           cond_class;
-    pvm_object_t           sema_class;
+	pvm_object_t mutex_class;
+	pvm_object_t cond_class;
+	pvm_object_t sema_class;
 
-    pvm_object_t           tcp_class;
-    pvm_object_t           udp_class;
+	pvm_object_t tcp_class;
+	pvm_object_t udp_class;
 
-    pvm_object_t           net_class;
-    pvm_object_t           http_class;
+	pvm_object_t net_class;
+	pvm_object_t http_class;
 
-    pvm_object_t           time_class;
-    pvm_object_t           stat_class;
+	pvm_object_t time_class;
+	pvm_object_t stat_class;
 
-    pvm_object_t           port_class;
-    pvm_object_t           io_class;
+	pvm_object_t port_class;
+	pvm_object_t io_class;
 
-    pvm_object_t           ui_control_class;
-    pvm_object_t           ui_font_class;
+	pvm_object_t ui_control_class;
+	pvm_object_t ui_font_class;
 
-    pvm_object_t           wasm_class;
+	pvm_object_t wasm_class;
 
-    pvm_object_t           null_object;
-    pvm_object_t           sys_interface_object;   // Each method is a consecutive syscall (sys 0 first, sys 1 second etc) + return
-    pvm_object_t           class_loader;           // Root class loader (user code)
-    pvm_object_t           threads_list;           // Array? of threads
-    pvm_object_t           restart_list;           // Array of weak refs to objects that need attention at restart - XXX func called?
-    pvm_object_t           users_list;           	// Array? of users - NOT IMPLEMENTED
-    pvm_object_t           kernel_environment;     // Array? of users - NOT IMPLEMENTED
-    pvm_object_t           os_entry;               // Main OS services entry point
-    pvm_object_t           root_dir;               // Root object directory
-    pvm_object_t           kernel_stats;           // Persisent kernel statistics
-    pvm_object_t           class_dir;              // .internal.directory of all classes used - class load cache - TODO must use weak refs or cleanup on ref cnt == 1
-
+	pvm_object_t null_object;
+	pvm_object_t sys_interface_object;  // Each method is a consecutive syscall (sys 0
+										// first, sys 1 second etc) + return
+	pvm_object_t class_loader;          // Root class loader (user code)
+	pvm_object_t threads_list;          // Array? of threads
+	pvm_object_t restart_list;  // Array of weak refs to objects that need attention at
+								// restart - XXX func called?
+	pvm_object_t users_list;    // Array? of users - NOT IMPLEMENTED
+	pvm_object_t kernel_environment;  // Array? of users - NOT IMPLEMENTED
+	pvm_object_t os_entry;            // Main OS services entry point
+	pvm_object_t root_dir;            // Root object directory
+	pvm_object_t kernel_stats;        // Persisent kernel statistics
+	pvm_object_t class_dir;  // .internal.directory of all classes used - class load cache
+							 // - TODO must use weak refs or cleanup on ref cnt == 1
 };
 
 extern struct pvm_root_t pvm_root;
@@ -124,7 +125,7 @@ extern struct pvm_root_t pvm_root;
  *
  * Here we have field numbers for those objects to extract them from root object.
  *
-**/
+ **/
 
 // Pointer to the null object
 #define PVM_ROOT_OBJECT_NULL_CLASS 0
@@ -237,11 +238,7 @@ extern struct pvm_root_t pvm_root;
 #define PVM_ROOT_LAST_CLASS_INDEX PVM_ROOT_OBJECT_WASM_CLASS
 
 
-
 // Runtime restoration facilities
-
-
-
 
 
 // NULL object (is_null() checks against this one)
@@ -267,8 +264,7 @@ extern struct pvm_root_t pvm_root;
 
 #define PVM_ROOT_CLASS_DIR 73
 
-#define PVM_ROOT_OBJECTS_COUNT (PVM_ROOT_CLASS_DIR+30)
-
+#define PVM_ROOT_OBJECTS_COUNT (PVM_ROOT_CLASS_DIR + 30)
 
 
 #endif

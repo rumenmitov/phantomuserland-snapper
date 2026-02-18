@@ -11,7 +11,4 @@ E4C_DECLARE_EXCEPTION(UnixException);
 E4C_DECLARE_EXCEPTION(UnixSendSignalException);
 
 
-
-
-#endif // CONF_USE_E4C
-
+#endif  // CONF_USE_E4C

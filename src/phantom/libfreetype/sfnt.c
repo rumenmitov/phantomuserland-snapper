@@ -18,12 +18,13 @@
 
 #define FT_MAKE_OPTION_SINGLE_OBJECT
 
-#include <ft2build.h>
-#include "ttload.c"
+#include "sfdriver.c"
+#include "sfobjs.c"
 #include "ttcmap.c"
 #include "ttkern.c"
-#include "sfobjs.c"
-#include "sfdriver.c"
+#include "ttload.c"
+
+#include <ft2build.h>
 
 #ifdef TT_CONFIG_OPTION_EMBEDDED_BITMAPS
 #include "ttsbit.c"

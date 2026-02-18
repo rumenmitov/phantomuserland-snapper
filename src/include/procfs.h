@@ -7,29 +7,29 @@
  * /proc fs io structs.
  *
  *
-**/
+ **/
 
 typedef struct proc_fs_process
 {
-    int                 pid; 
-    int                 ppid;
-    int                 pgrp_pid;
-    int                 sess_pid;
+	int pid;
+	int ppid;
+	int pgrp_pid;
+	int sess_pid;
 
-    int                 uid, euid;
-    int                 gid, egid;
+	int uid, euid;
+	int gid, egid;
 
-    char                cmd[MAX_UU_CMD];
+	char cmd[MAX_UU_CMD];
 
-    int                 ntids;
+	int ntids;
 
-    char                cwd_path[FS_MAX_PATH_LEN];
+	char cwd_path[FS_MAX_PATH_LEN];
 
-    int                 umask;
+	int umask;
 
-    int                 capas; // Capabilities == rights
+	int capas;  // Capabilities == rights
 
-    size_t		mem_size;
+	size_t mem_size;
 
 } proc_fs_process_t;
 
@@ -37,7 +37,6 @@ typedef struct proc_fs_process
 // Not used yet!
 typedef struct proc_fs_thread
 {
-    int                 tid;
+	int tid;
 
 } proc_fs_thread_t;
-

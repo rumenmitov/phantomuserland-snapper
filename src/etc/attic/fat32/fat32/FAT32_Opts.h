@@ -5,16 +5,16 @@
 // Configuration
 //-------------------------------------------------------------
 
-// Max filename Length 
-#define MAX_LONG_FILENAME					260
+// Max filename Length
+#define MAX_LONG_FILENAME 260
 
 // Max open files (reduce to lower memory requirements)
-#define MAX_OPEN_FILES						200
+#define MAX_OPEN_FILES 200
 
 // Writes to FAT are done immediately
-#define FATBUFFER_IMMEDIATE_WRITEBACK		1
+#define FATBUFFER_IMMEDIATE_WRITEBACK 1
 
 // Include support for writing files
-#define INCLUDE_WRITE_SUPPORT				1
+#define INCLUDE_WRITE_SUPPORT 1
 
 #endif

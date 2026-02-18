@@ -12,15 +12,15 @@
 
 #define DEBUG_MSG_PREFIX "fat"
 #include "debug_ext.h"
-#define debug_level_flow 10
+#define debug_level_flow  10
 #define debug_level_error 10
-#define debug_level_info 10
+#define debug_level_info  10
 
+#include <kernel/page.h>
+#include <phantom_disk.h>
 #include <phantom_libc.h>
 #include <phantom_types.h>
 #include <string.h>
-#include <phantom_disk.h>
-#include <kernel/page.h>
 //#include <x86/phantom_page.h>
 
 
@@ -510,15 +510,6 @@ errno_t fs_start_tiny_fat( phantom_disk_partition_t *p )
 }
 
 
-
-
-
-
-
-
-
-
-
 #include <unix/uufile.h>
 
 
@@ -547,7 +538,4 @@ size_t      fat16_write( struct uufile *f, void *dest, size_t bytes)
 }
 
 
-
 #endif
-
-

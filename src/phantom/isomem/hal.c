@@ -7,85 +7,77 @@
  * Supposed to be hardware abstraction layer. Mix of different things
  * in reality. Needs cleanup.
  *
-**/
+ **/
 
 
+#include <hal.h>
 #include <kernel/config.h>
 #include <kernel/init.h>
 #include <kernel/mmu.h>
 #include <kernel/page.h>
-
-#include <phantom_libc.h>
 #include <ph_malloc.h>
-
+#include <phantom_libc.h>
+#include <stdarg.h>
 #include <threads.h>
-
 #include <vm/alloc.h>
 
-#include <hal.h>
 
-#include <stdarg.h>
-
-
-struct hardware_abstraction_level    	hal;
+struct hardware_abstraction_level hal;
 
 
+int phantom_is_a_real_kernel()
+{
+	return 1;
+}
 
-int phantom_is_a_real_kernel() { return 1; }
 
-
-
-
-void hal_init( vmem_ptr_t va, size_t vs )
+void hal_init(vmem_ptr_t va, size_t vs)
 {
 
-    hal.object_vspace = va;
-    hal.object_vsize = vs;
+	hal.object_vspace = va;
+	hal.object_vsize = vs;
 
-    ph_printf("HAL init: %s %s, VM @ 0x%x\n", arch_name, board_name, hal.object_vspace );
-    pvm_alloc_init( va, vs );
+	ph_printf("HAL init: %s %s, VM @ 0x%x\n", arch_name, board_name, hal.object_vspace);
+	pvm_alloc_init(va, vs);
 
-    // hal_init_vm_map();
+	// hal_init_vm_map();
 
-    hal_time_init();
+	hal_time_init();
 }
 
 
 void hal_halt()
 {
-    //fflush(stderr);
-    ph_printf("\n\nhal halt called, exiting.\n");
-    // (void)getchar();
-    // exit(1);
-    panic("halt");
+	// fflush(stderr);
+	ph_printf("\n\nhal halt called, exiting.\n");
+	// (void)getchar();
+	// exit(1);
+	panic("halt");
 }
 
 
-
-void hal_printf( char *format, ... )
+void hal_printf(char *format, ...)
 {
-    va_list argList;
-    va_start(argList, format);
-    ph_vprintf( format, argList );
-    va_end(argList);
-    //fflush(stdout);
+	va_list argList;
+	va_start(argList, format);
+	ph_vprintf(format, argList);
+	va_end(argList);
+	// fflush(stdout);
 }
 
 #include <sys/syslog.h>
 
 // This function is currently unused
-void hal_log( char *format, ... )
+void hal_log(char *format, ...)
 {
-    va_list argList;
-    va_start(argList, format);
-    //vfprintf( stderr, format, argList );
-    //vsyslog(LOG_KERN, format, argList);
+	va_list argList;
+	va_start(argList, format);
+	// vfprintf( stderr, format, argList );
+	// vsyslog(LOG_KERN, format, argList);
 
-    va_end(argList);
-    //fflush(stderr);
+	va_end(argList);
+	// fflush(stderr);
 }
-
-
 
 
 // -----------------------------------------------------------------------
@@ -95,61 +87,53 @@ void hal_log( char *format, ... )
 // -----------------------------------------------------------------------
 
 
-
-
-int
-hal_addr_is_in_object_vmem( void *test )
+int hal_addr_is_in_object_vmem(void *test)
 {
-    // ph_printf("!!! : %p <= %p < %p\n", ((addr_t)hal.object_vspace), test, ((addr_t)hal.object_vspace)+hal.object_vsize);
-    return ((addr_t)test) >= ((addr_t)hal.object_vspace) && ((addr_t)test) < ((addr_t)hal.object_vspace)+hal.object_vsize;
+	// ph_printf("!!! : %p <= %p < %p\n", ((addr_t)hal.object_vspace), test,
+	// ((addr_t)hal.object_vspace)+hal.object_vsize);
+	return ((addr_t)test) >= ((addr_t)hal.object_vspace) &&
+		   ((addr_t)test) < ((addr_t)hal.object_vspace) + hal.object_vsize;
 }
 
-void
-hal_check_addr_is_in_object_vmem( void *test )
+void hal_check_addr_is_in_object_vmem(void *test)
 {
-    if( !hal_addr_is_in_object_vmem( test ) )
-        panic("address not in object arena range");
-}
-
-
-void
-hal_page_control(
-                 physaddr_t  p, void *page_start_addr,
-                 page_mapped_t mapped, page_access_t access
-                )
-{
-    hal_page_control_etc( p, page_start_addr, mapped, access, 0 );
+	if (!hal_addr_is_in_object_vmem(test))
+		panic("address not in object arena range");
 }
 
 
-void
-hal_pages_control( physaddr_t  pa, void *va, int n_pages, page_mapped_t mapped, page_access_t access )
+void hal_page_control(physaddr_t p,
+					  void *page_start_addr,
+					  page_mapped_t mapped,
+					  page_access_t access)
 {
-    while( n_pages-- )
-    {
-        hal_page_control( pa, va, mapped, access );
-        pa += 4096;
-        va += 4096;
-    }
-}
-
-void
-hal_pages_control_etc( physaddr_t  pa, void *va, int n_pages, page_mapped_t mapped, page_access_t access, u_int32_t flags )
-{
-    while( n_pages-- )
-    {
-        hal_page_control_etc( pa, va, mapped, access, flags );
-        pa += 4096;
-        va += 4096;
-    }
+	hal_page_control_etc(p, page_start_addr, mapped, access, 0);
 }
 
 
+void hal_pages_control(
+	physaddr_t pa, void *va, int n_pages, page_mapped_t mapped, page_access_t access)
+{
+	while (n_pages--) {
+		hal_page_control(pa, va, mapped, access);
+		pa += 4096;
+		va += 4096;
+	}
+}
 
-
-
-
-
+void hal_pages_control_etc(physaddr_t pa,
+						   void *va,
+						   int n_pages,
+						   page_mapped_t mapped,
+						   page_access_t access,
+						   u_int32_t flags)
+{
+	while (n_pages--) {
+		hal_page_control_etc(pa, va, mapped, access, flags);
+		pa += 4096;
+		va += 4096;
+	}
+}
 
 
 // -----------------------------------------------------------------------
@@ -159,15 +143,12 @@ hal_pages_control_etc( physaddr_t  pa, void *va, int n_pages, page_mapped_t mapp
 // -----------------------------------------------------------------------
 
 
-
-
 void hal_assert_failed(char *file, int line)
 {
-    ph_printf("Assert failed at %s:%d", file, line );
-    // _exit(33);
-    panic("Failed assert!");
+	ph_printf("Assert failed at %s:%d", file, line);
+	// _exit(33);
+	panic("Failed assert!");
 }
-
 
 
 // -----------------------------------------------------------------------
@@ -175,7 +156,3 @@ void hal_assert_failed(char *file, int line)
 // end of HAL impl
 //
 // -----------------------------------------------------------------------
-
-
-
-

@@ -6,128 +6,136 @@
  *
  * Disk IO stack - pool of partitions and corresp ops
  *
-**/
+ **/
 
 #define DEBUG_MSG_PREFIX "part.pool"
 #include <debug_ext.h>
-#define debug_level_flow 10
+#define debug_level_flow  10
 #define debug_level_error 10
-#define debug_level_info 10
+#define debug_level_info  10
 
 #include <ph_malloc.h>
 #include <ph_string.h>
 // // #include <stdio.h>
 
 #include <disk.h>
-#include <kernel/pool.h>
 #include <kernel/init.h>
+#include <kernel/pool.h>
 // #include <kernel/libkern.h>
 #include <kernel/page.h>
 
 
-static pool_t   *pp;
+static pool_t *pp;
 
-static void * 	do_part_create(void *arg);
-static void  	do_part_destroy(void *arg);
+static void *do_part_create(void *arg);
+static void do_part_destroy(void *arg);
 
-static errno_t checkRange( struct phantom_disk_partition *p, long blockNo, int nBlocks )
+static errno_t checkRange(struct phantom_disk_partition *p, long blockNo, int nBlocks)
 {
-    if( blockNo < 0 || blockNo > p->size )
-        return EINVAL;
+	if (blockNo < 0 || blockNo > p->size)
+		return EINVAL;
 
-    if( blockNo+nBlocks < 0 || blockNo+nBlocks > p->size )
-        return EINVAL;
+	if (blockNo + nBlocks < 0 || blockNo + nBlocks > p->size)
+		return EINVAL;
 
-    return 0;
+	return 0;
 }
 
 // NB!! pager_io_request's disk block no (disk_page) is IGNORED! blockNo is used!
 // blockNo has to be in partition's block size
 // TODO must be static
-//static
-errno_t partAsyncIo( struct phantom_disk_partition *p, pager_io_request *rq )
+// static
+errno_t partAsyncIo(struct phantom_disk_partition *p, pager_io_request *rq)
 {
-    assert(p->specific == 0);
-    assert(p->base);
-    // Temp! Rewrite!
-    assert(p->base->block_size == p->block_size);
+	assert(p->specific == 0);
+	assert(p->base);
+	// Temp! Rewrite!
+	assert(p->base->block_size == p->block_size);
 
-    if( checkRange( p, rq->blockNo, rq->nSect ) )
-        return EINVAL;
+	if (checkRange(p, rq->blockNo, rq->nSect))
+		return EINVAL;
 
-    SHOW_FLOW( 11, "part io block %d, shift %d, o sect %d", rq->blockNo, p->shift, rq->blockNo + p->shift );
-    rq->blockNo += p->shift;
+	SHOW_FLOW(11,
+			  "part io block %d, shift %d, o sect %d",
+			  rq->blockNo,
+			  p->shift,
+			  rq->blockNo + p->shift);
+	rq->blockNo += p->shift;
 
-    // I believe its a crazy bug, how could it work?
-    //p->base->asyncIo( p, rq );
-    p->base->asyncIo( p->base, rq );
-    return 0;
+	// I believe its a crazy bug, how could it work?
+	// p->base->asyncIo( p, rq );
+	p->base->asyncIo(p->base, rq);
+	return 0;
 }
 
 
 // NB!! pager_io_request's disk block no (disk_page) is IGNORED! blockNo is used!
 // blockNo has to be in partition's block size
 // TODO must be static
-//static
-errno_t partTrim( struct phantom_disk_partition *p, pager_io_request *rq )
+// static
+errno_t partTrim(struct phantom_disk_partition *p, pager_io_request *rq)
 {
-    //assert(p->specific == 0);
-    //assert(p->base);
+	// assert(p->specific == 0);
+	// assert(p->base);
 
-    if( (0 == p->base) || (0 != p->specific) )
-        return ENODEV;
+	if ((0 == p->base) || (0 != p->specific))
+		return ENODEV;
 
-    // Temp! Rewrite!
-    assert(p->base->block_size == p->block_size);
+	// Temp! Rewrite!
+	assert(p->base->block_size == p->block_size);
 
-    if( checkRange( p, rq->blockNo, rq->nSect ) )
-        return EINVAL;
+	if (checkRange(p, rq->blockNo, rq->nSect))
+		return EINVAL;
 
-    SHOW_FLOW( 11, "part trim block %d, shift %d, o sect %d", rq->blockNo, p->shift, rq->blockNo + p->shift );
-    rq->blockNo += p->shift;
+	SHOW_FLOW(11,
+			  "part trim block %d, shift %d, o sect %d",
+			  rq->blockNo,
+			  p->shift,
+			  rq->blockNo + p->shift);
+	rq->blockNo += p->shift;
 
-    p->base->trim( p->base, rq );
-    return 0;
+	p->base->trim(p->base, rq);
+	return 0;
 }
 
 
 void phantom_init_part_pool()
 {
-    pp = create_pool();
-    pp->init = do_part_create;
-    pp->destroy = do_part_destroy;
+	pp = create_pool();
+	pp->init = do_part_create;
+	pp->destroy = do_part_destroy;
 }
 
 
-static void * 	do_part_create(void *arg)
+static void *do_part_create(void *arg)
 {
-    assert(arg == 0);
+	assert(arg == 0);
 
-    phantom_disk_partition_t *ret = ph_calloc( 1, sizeof(phantom_disk_partition_t) );
+	phantom_disk_partition_t *ret = ph_calloc(1, sizeof(phantom_disk_partition_t));
 
-    ret->shift = 0;
-    ret->size = 0;
+	ret->shift = 0;
+	ret->size = 0;
 
-    ret->block_size = 512;
-    ret->flags = 0;
+	ret->block_size = 512;
+	ret->flags = 0;
 
-    ret->specific = 0;
+	ret->specific = 0;
 
-    ret->asyncIo = partAsyncIo;
+	ret->asyncIo = partAsyncIo;
 
-    ret->base = 0;
-    ret->baseh.h = -1;
+	ret->base = 0;
+	ret->baseh.h = -1;
 
-    return ret;
+	return ret;
 }
 
-static void  	do_part_destroy(void *arg)
+static void do_part_destroy(void *arg)
 {
-    phantom_disk_partition_t *p = arg;
-    SHOW_FLOW( 1, "delete part %s", p->name );
+	phantom_disk_partition_t *p = arg;
+	SHOW_FLOW(1, "delete part %s", p->name);
 
-    if(p->baseh.h >= 0)
-        pool_release_el( pp, p->baseh.h );
+	if (p->baseh.h >= 0)
+		pool_release_el(pp, p->baseh.h);
 }
 
 // unused!
@@ -303,6 +311,3 @@ void dpart_release_async( pool_handle_t h )
 
 
 #endif
-
-
-

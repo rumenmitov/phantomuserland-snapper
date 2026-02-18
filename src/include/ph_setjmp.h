@@ -8,8 +8,8 @@
 #include <libc/setjmp.h>
 
 /*
-    These function have to defined using macros since
-    they work with execution context
+	These function have to defined using macros since
+	they work with execution context
 */
 
 // usual setjmp
@@ -26,8 +26,8 @@
 typedef int jmp_buf[_JBLEN];
 
 int ph_setjmp(jmp_buf);
-void ph_longjmp (jmp_buf, int);
-#endif // USE_LIBC_SETJMP
+void ph_longjmp(jmp_buf, int);
+#endif  // USE_LIBC_SETJMP
 
 
-#endif // PHANTOM_SETJMP
+#endif  // PHANTOM_SETJMP

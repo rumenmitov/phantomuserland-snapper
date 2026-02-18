@@ -29,22 +29,19 @@
 FT_BEGIN_HEADER
 
 
-  FT_LOCAL( FT_Error  )
-  tt_face_load_kern( TT_Face    face,
-                     FT_Stream  stream );
+FT_LOCAL(FT_Error)
+tt_face_load_kern(TT_Face face, FT_Stream stream);
 
-  FT_LOCAL( void )
-  tt_face_done_kern( TT_Face  face );
+FT_LOCAL(void)
+tt_face_done_kern(TT_Face face);
 
-  FT_LOCAL( FT_Int )
-  tt_face_get_kerning( TT_Face     face,
-                       FT_UInt     left_glyph,
-                       FT_UInt     right_glyph );
+FT_LOCAL(FT_Int)
+tt_face_get_kerning(TT_Face face, FT_UInt left_glyph, FT_UInt right_glyph);
 
 #ifdef FT_OPTIMIZE_MEMORY
-#  define TT_FACE_HAS_KERNING( face )  ( (face)->kern_avail_bits != 0 )
+#define TT_FACE_HAS_KERNING(face) ((face)->kern_avail_bits != 0)
 #else
-#  define TT_FACE_HAS_KERNING( face )  ( (face)->kern_pairs != NULL )
+#define TT_FACE_HAS_KERNING(face) ((face)->kern_pairs != NULL)
 #endif
 
 

@@ -1,6 +1,4 @@
-void init_new_windows(void)
-{
-}
+void init_new_windows(void) {}
 #if 0
 /**
  *
@@ -16,21 +14,18 @@ void init_new_windows(void)
 
 #define DEBUG_MSG_PREFIX "vm.wpool"
 #include <debug_ext.h>
-#define debug_level_flow 10
+#define debug_level_flow  10
 #define debug_level_error 10
-#define debug_level_info 10
+#define debug_level_info  10
 
-#include <video/screen.h>
-
-#include <video/window.h>
-#include <video/internal.h>
-#include <video/vops.h>
-
-
-#include <phantom_assert.h>
-#include <kernel/pool.h>
 #include <kernel/libkern.h>
+#include <kernel/pool.h>
+#include <phantom_assert.h>
 #include <phantom_libc.h>
+#include <video/internal.h>
+#include <video/screen.h>
+#include <video/vops.h>
+#include <video/window.h>
 
 #if !NEW_WINDOWS
 void init_new_windows(void)
@@ -40,7 +35,11 @@ void init_new_windows(void)
 
 #if NEW_WINDOWS
 
-#define DOW(__h,code) ({ window_t *w = pool_get_el(wp,__h); {code} pool_release_el( wp, __h ); })
+#define DOW(__h, code)                      \
+	({                                      \
+		window_t *w = pool_get_el(wp, __h); \
+		{code} pool_release_el(wp, __h);    \
+	})
 
 
 static pool_t *wp;
@@ -207,8 +206,6 @@ void w_set_visible( pool_handle_t h, int v )
     pool_release_el( wp, h );
 }
 #endif
-
-
 
 
 #if NEW_WINDOWS
@@ -446,16 +443,18 @@ void w_draw_rect( pool_handle_t h, rgba_t c,
 
 // SLOOOW! Checks bounds on each pixel
 
-#define _PLOT(w,x,y,c) do {\
-    if((x) > 0 && (y) > 0 && (x) < (w)->xsize && (y) <= (w)->ysize)\
-    (w)->pixel[(x)+(y)*(w)->xsize] = c;\
-    } while(0)\
+#define _PLOT(w, x, y, c)                                                \
+	do {                                                                 \
+		if ((x) > 0 && (y) > 0 && (x) < (w)->xsize && (y) <= (w)->ysize) \
+			(w)->pixel[(x) + (y) * (w)->xsize] = c;                      \
+	} while (0)\
 
 // fast, but can DAMAGE MEMORY - check bounds before calling
 
-#define _UNCH_PLOT(w,x,y,c) do {\
-    (w)->pixel[(x)+(y)*(w)->xsize] = c;\
-    } while(0)\
+#define _UNCH_PLOT(w, x, y, c)                  \
+	do {                                        \
+		(w)->pixel[(x) + (y) * (w)->xsize] = c; \
+	} while (0)\
 
 
 static inline int SGN(int v) { return v == 0 ? 0 : ( (v > 0) ? 1 : -1); }

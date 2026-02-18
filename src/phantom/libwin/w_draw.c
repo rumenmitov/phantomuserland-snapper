@@ -6,117 +6,104 @@
  *
  * Windowing system - painting.
  *
-**/
+ **/
 
-
-
-#include <video/window.h>
-#include <video/internal.h>
-#include <video/vops.h>
 
 #include <phantom_assert.h>
 #include <phantom_libc.h>
-//#include <event.h>
-//#include <spinlock.h>
-
-#include <kernel/libkern.h>
+#include <video/internal.h>
+#include <video/vops.h>
+#include <video/window.h>
+// #include <event.h>
+// #include <spinlock.h>
 
 #include "trig_func.inc"
 
+#include <kernel/libkern.h>
 
 
-void
-w_clear( window_handle_t win )
+void w_clear(window_handle_t win)
 {
-    w_fill( win, COLOR_BLACK );
+	w_fill(win, COLOR_BLACK);
 }
-
 
 
 // SLOOOW! Checks bounds on each pixel
 
-#define _PLOT(w,x,y,c) do {\
-    if((x) >= 0 && (y) >= 0 && (x) < (w)->xsize && (y) < (w)->ysize)\
-    (w)->w_pixel[(x)+(y)*(w)->xsize] = c;\
-    } while(0)\
+#define _PLOT(w, x, y, c)                                                 \
+	do {                                                                  \
+		if ((x) >= 0 && (y) >= 0 && (x) < (w)->xsize && (y) < (w)->ysize) \
+			(w)->w_pixel[(x) + (y) * (w)->xsize] = c;                     \
+	} while (0)
 
 // fast, but can DAMAGE MEMORY - check bounds before calling
 
-#define _UNCH_PLOT(w,x,y,c) do {\
-    (w)->w_pixel[(x)+(y)*(w)->xsize] = c;\
-    } while(0)\
+#define _UNCH_PLOT(w, x, y, c)                    \
+	do {                                          \
+		(w)->w_pixel[(x) + (y) * (w)->xsize] = c; \
+	} while (0)
 
 
-void
-w_draw_pixel( window_handle_t w, int x, int y, rgba_t color )
+void w_draw_pixel(window_handle_t w, int x, int y, rgba_t color)
 {
-    _PLOT(w, x, y, color);
+	_PLOT(w, x, y, color);
 }
 
-static inline int SGN(int v) { return v == 0 ? 0 : ( (v > 0) ? 1 : -1); }
-
-
-
-void w_draw_line( window_handle_t w, int x1, int y1, int x2, int y2, rgba_t c)
+static inline int SGN(int v)
 {
-    int a,x,y;
-    int i;
-    int d;
-    int dx=x2-x1;
-    int dy=y2-y1;
-
-    //if (!dx) { vline(w,x1,y1,y2,c); return }
-    //if (!dy) { hline(w,x1,y1,x2,c); return }
-
-    if (abs(dx) > abs(dy))
-    {
-        d=SGN(dx);
-
-        a = (dx == 0) ? 0 : (dy<<16) / abs(dx);
-
-        for( i=x1,y=32768+(y1<<16); i != x2; i += d,y += a )
-            _PLOT(w,i,(int)(y>>16),c);
-    }
-    else
-    {
-        d=SGN(dy);
-
-        a = (dy == 0) ? 0 : ((dx<<16) / abs(dy));
-
-        for( i=y1,x=32768+(x1<<16); i != y2; i += d,x += a )
-            _PLOT(w,(int)(x>>16),i,c);
-    }
-
-    _PLOT(w,x2,y2,c);
-
+	return v == 0 ? 0 : ((v > 0) ? 1 : -1);
 }
 
 
-
-void w_fill_ellipse( window_handle_t w,
-                                 int x,int y,int lx,int ly,
-                                 rgba_t c)
+void w_draw_line(window_handle_t w, int x1, int y1, int x2, int y2, rgba_t c)
 {
-    int i,r,a,s;
-    int ry=(ly+1)>>1;
-    int rx=lx>>1;
+	int a, x, y;
+	int i;
+	int d;
+	int dx = x2 - x1;
+	int dy = y2 - y1;
 
-    for(i=0,a=64;i<ry;i++)
-    {
-        s = ((ry-i)<<14) / ry;
+	// if (!dx) { vline(w,x1,y1,y2,c); return }
+	// if (!dy) { hline(w,x1,y1,x2,c); return }
 
+	if (abs(dx) > abs(dy)) {
+		d = SGN(dx);
 
-        while(sn[a]>s)
-            a++;
+		a = (dx == 0) ? 0 : (dy << 16) / abs(dx);
 
-        r = rx + ((cs[a]*rx)>>14);
-        w_draw_line(w, x+r, y+i, x+lx-1-r, y+i, c);
-        w_draw_line(w, x+r, y+ly-i-1, x+lx-1-r, y+ly-i-1, c);
-    }
+		for (i = x1, y = 32768 + (y1 << 16); i != x2; i += d, y += a)
+			_PLOT(w, i, (int)(y >> 16), c);
+	} else {
+		d = SGN(dy);
+
+		a = (dy == 0) ? 0 : ((dx << 16) / abs(dy));
+
+		for (i = y1, x = 32768 + (x1 << 16); i != y2; i += d, x += a)
+			_PLOT(w, (int)(x >> 16), i, c);
+	}
+
+	_PLOT(w, x2, y2, c);
 }
 
 
+void w_fill_ellipse(window_handle_t w, int x, int y, int lx, int ly, rgba_t c)
+{
+	int i, r, a, s;
+	int ry = (ly + 1) >> 1;
+	int rx = lx >> 1;
 
+	for (i = 0, a = 64; i < ry; i++) {
+		s = ((ry - i) << 14) / ry;
+
+
+		while (sn[a] > s)
+			a++;
+
+		r = rx + ((cs[a] * rx) >> 14);
+		w_draw_line(w, x + r, y + i, x + lx - 1 - r, y + i, c);
+		w_draw_line(w, x + r, y + ly - i - 1, x + lx - 1 - r, y + ly - i - 1, c);
+	}
+}
 
 
 #if 0
@@ -151,10 +138,10 @@ static xcur=0;
 static ycur=0;
 
 #ifdef DOUBLELIGNES
-#define NBLIGNES 400
+#define NBLIGNES  400
 #define ECRTAILLE 0x8000L
 #else
-#define NBLIGNES 200
+#define NBLIGNES  200
 #define ECRTAILLE 0x4000L
 #endif
 
@@ -200,8 +187,8 @@ static int filltab[NBLIGNES];
 /* instructions graphiques de base */
 
 
-#define SGN(x) ((x==0)?(0):((x<0)?(-1):(1)))
-#define ABS(x) ((x<0)?(-(x)):(x))
+#define SGN(x) ((x == 0) ? (0) : ((x < 0) ? (-1) : (1)))
+#define ABS(x) ((x < 0) ? (-(x)) : (x))
 
 /*
 void pellipse(int x,int y,int lx,int ly,int c)
@@ -497,18 +484,4 @@ void polyfill(int n,int *tp,int c)
 }
 
 
-
-
-
-
-
-
-
-
-
 #endif
-
-
-
-
-

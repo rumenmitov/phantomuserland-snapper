@@ -6,7 +6,7 @@
  *
  * (C) 2005-2008 dz.
  *
-**/
+ **/
 
 #include <stdint.h>
 
@@ -14,75 +14,72 @@
 #define _TIME_T_DECLARED
 
 // #include <stdio.h>
-#include <string.h>
-
 #include <phantom_disk.h>
-
+#include <string.h>
 
 
 class fsio
 {
-    FILE *fs;
+	FILE *fs;
 
 public:
-    fsio::fsio()
-    {
-        fs = NULL;
-    }
+	fsio::fsio()
+	{
+		fs = NULL;
+	}
 
-    fsio::~fsio()
-    {
-        close();
-    }
+	fsio::~fsio()
+	{
+		close();
+	}
 
-    void open( const char *fname );
+	void open(const char *fname);
 
-    void close(void);
-
-
-    void read( void *buf, long block_no );
+	void close(void);
 
 
-    void write( void *buf, long block_no );
+	void read(void *buf, long block_no);
 
 
-
-
+	void write(void *buf, long block_no);
 };
 
 
 class fslist
 {
-    fsio *      io;
-    long 	headBlock;
-    int		chkMagic;
+	fsio *io;
+	long headBlock;
+	int chkMagic;
 
-    long        currBlock;      // blkno of list chain block
-    int         posInBlock;     // index into the list[N_REF_PER_BLOCK] - next to load, not current
-    int         posInData;      // offset to the next byte to read in actual data page (dataBuf)
+	long currBlock;  // blkno of list chain block
+	int posInBlock;  // index into the list[N_REF_PER_BLOCK] - next to load, not current
+	int posInData;   // offset to the next byte to read in actual data page (dataBuf)
 
-    phantom_disk_blocklist      currPage;
+	phantom_disk_blocklist currPage;
 
-    char        dataBuf[DISK_STRUCT_BS];
+	char dataBuf[DISK_STRUCT_BS];
 
-    void loadPage( long blkNo );
-    void loadData( long blkNo );
+	void loadPage(long blkNo);
+	void loadData(long blkNo);
 
 public:
-    fslist( long _headBlock, fsio *_io, int _magic );
+	fslist(long _headBlock, fsio *_io, int _magic);
 
-    int read( void *buf, int len );
+	int read(void *buf, int len);
 };
 
 class fsioError
 {
-    char *message;
+	char *message;
+
 public:
+	fsioError(char *m)
+	{
+		message = strdup(m);
+	}
 
-    fsioError(char *m) { message = strdup(m); }
-
-    const char* getMessage() { return message; }
-
+	const char *getMessage()
+	{
+		return message;
+	}
 };
-
-

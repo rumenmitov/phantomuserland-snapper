@@ -81,75 +81,71 @@
  */
 
 
+#include "vm/exec.h"
+#include "vm/internal_da.h"
 
 #include <ph_string.h>
 #include <phantom_assert.h>
-#include "vm/internal_da.h"
-#include "vm/exec.h"
-
 
 
 struct gdb_pt_regs
 {
-    void *		r_thread;
+	void *r_thread;
 
-    void *              r_ostack;
-    void *              r_istack;
-    void *              r_estack;
+	void *r_ostack;
+	void *r_istack;
+	void *r_estack;
 
-    int                 r_ip;
-    pvm_object_t        r_this;
-    pvm_object_t        r_frame;
+	int r_ip;
+	pvm_object_t r_this;
+	pvm_object_t r_frame;
 };
 
 
 typedef struct gdb_pt_regs gdb_pt_regs;
 
 
-
 static void get_regs(gdb_pt_regs *r, struct data_area_4_thread *da)
 {
-    r->r_thread = da;
-    r->r_ostack = da->_ostack;
-    r->r_istack = da->_istack;
-    r->r_estack = da->_estack;
+	r->r_thread = da;
+	r->r_ostack = da->_ostack;
+	r->r_istack = da->_istack;
+	r->r_estack = da->_estack;
 
-    r->r_ip	= da->code.IP;
-    r->r_this	= da->_this_object;
-    r->r_frame	= da->call_frame;
+	r->r_ip = da->code.IP;
+	r->r_this = da->_this_object;
+	r->r_frame = da->call_frame;
 }
 
 static void set_regs(gdb_pt_regs *r, struct data_area_4_thread *da)
 {
-     //da                   = r->r_thread;
-     da->_ostack          = r->r_ostack;
-     da->_istack          = r->r_istack;
-     da->_estack          = r->r_estack;
+	// da                   = r->r_thread;
+	da->_ostack = r->r_ostack;
+	da->_istack = r->r_istack;
+	da->_estack = r->r_estack;
 
-     da->code.IP          = r->r_ip;
-     da->_this_object     = r->r_this;
-     da->call_frame       = r->r_frame;
+	da->code.IP = r->r_ip;
+	da->_this_object = r->r_this;
+	da->call_frame = r->r_frame;
 
-    pvm_exec_load_fast_acc(da);
+	pvm_exec_load_fast_acc(da);
 }
-
-
 
 
 /*
  * external low-level support routines
  */
 
-extern int putDebugChar(char c);    /* write a single character      */
-extern char getDebugChar(void);     /* read and return a single char */
-//extern void fltr_set_mem_err(void);
-//extern void trap_low(void);
+extern int putDebugChar(char c); /* write a single character      */
+extern char getDebugChar(void);  /* read and return a single char */
+// extern void fltr_set_mem_err(void);
+// extern void trap_low(void);
 
 /*
  * breakpoint and test functions
  */
-//extern void breakpoint(void);
-//extern void breakinst(void);
+// extern void breakpoint(void);
+// extern void breakinst(void);
 
 /*
  * local prototypes
@@ -171,7 +167,7 @@ static unsigned char *mem2hex(char *mem, char *buf, int count, int may_fault);
 static char input_buffer[BUFMAX];
 static char output_buffer[BUFMAX];
 int gdb_stub_initialised = 0;
-static const char hexchars[]="0123456789abcdef";
+static const char hexchars[] = "0123456789abcdef";
 
 
 /*
@@ -179,13 +175,13 @@ static const char hexchars[]="0123456789abcdef";
  */
 static int hex(unsigned char ch)
 {
-    if (ch >= 'a' && ch <= 'f')
-        return ch-'a'+10;
-    if (ch >= '0' && ch <= '9')
-        return ch-'0';
-    if (ch >= 'A' && ch <= 'F')
-        return ch-'A'+10;
-    return -1;
+	if (ch >= 'a' && ch <= 'f')
+		return ch - 'a' + 10;
+	if (ch >= '0' && ch <= '9')
+		return ch - '0';
+	if (ch >= 'A' && ch <= 'F')
+		return ch - 'A' + 10;
+	return -1;
 }
 
 /*
@@ -193,83 +189,82 @@ static int hex(unsigned char ch)
  */
 static void getpacket(char *buffer)
 {
-    unsigned char checksum;
-    unsigned char xmitcsum;
-    int i;
-    int count;
-    unsigned char ch;
+	unsigned char checksum;
+	unsigned char xmitcsum;
+	int i;
+	int count;
+	unsigned char ch;
 
-    while(1)
-    {
-        ph_printf("GDB read pkt " );
-        /*
-         * wait around for the start character,
-         * ignore all other characters
-         */
-        while ((ch = (getDebugChar() & 0x7f)) != '$') ;
+	while (1) {
+		ph_printf("GDB read pkt ");
+		/*
+		 * wait around for the start character,
+		 * ignore all other characters
+		 */
+		while ((ch = (getDebugChar() & 0x7f)) != '$')
+			;
 
-        //ph_printf("GDB pkt start " );
+		// ph_printf("GDB pkt start " );
 
-        checksum = 0;
-        xmitcsum = -1;
-        count = 0;
+		checksum = 0;
+		xmitcsum = -1;
+		count = 0;
 
-        /*
-         * now, read until a # or end of buffer is found
-         */
-        while (count < BUFMAX) {
-            ch = getDebugChar() & 0x7f;
-            if (ch == '#')
-                break;
-            checksum = checksum + ch;
-            buffer[count] = ch;
-            count = count + 1;
-        }
+		/*
+		 * now, read until a # or end of buffer is found
+		 */
+		while (count < BUFMAX) {
+			ch = getDebugChar() & 0x7f;
+			if (ch == '#')
+				break;
+			checksum = checksum + ch;
+			buffer[count] = ch;
+			count = count + 1;
+		}
 
-        //ph_printf("GDB pkt # " );
+		// ph_printf("GDB pkt # " );
 
-        if (count >= BUFMAX)
-            continue;
+		if (count >= BUFMAX)
+			continue;
 
-        buffer[count] = 0;
+		buffer[count] = 0;
 
-        if (ch == '#') {
+		if (ch == '#') {
 
-            xmitcsum = hex(getDebugChar() & 0x7f) << 4;
-            xmitcsum |= hex(getDebugChar() & 0x7f);
+			xmitcsum = hex(getDebugChar() & 0x7f) << 4;
+			xmitcsum |= hex(getDebugChar() & 0x7f);
 
-            //ph_printf("GDB got csum " );
+			// ph_printf("GDB got csum " );
 
-            if (checksum != xmitcsum)
-                putDebugChar('-');	/* failed checksum */
-            else {
-                putDebugChar('+'); /* successful transfer */
+			if (checksum != xmitcsum)
+				putDebugChar('-'); /* failed checksum */
+			else {
+				putDebugChar('+'); /* successful transfer */
 
-                /*
-                 * if a sequence char is present,
-                 * reply the sequence ID
-                 */
-                if (buffer[2] == ':') {
-                    putDebugChar(buffer[0]);
-                    putDebugChar(buffer[1]);
+				/*
+				 * if a sequence char is present,
+				 * reply the sequence ID
+				 */
+				if (buffer[2] == ':') {
+					putDebugChar(buffer[0]);
+					putDebugChar(buffer[1]);
 
-                    /*
-                     * remove sequence chars from buffer
-                     */
-                    count = ph_strlen(buffer);
-                    for (i=3; i <= count; i++)
-                        buffer[i-3] = buffer[i];
-                }
-            }
-        }
+					/*
+					 * remove sequence chars from buffer
+					 */
+					count = ph_strlen(buffer);
+					for (i = 3; i <= count; i++)
+						buffer[i - 3] = buffer[i];
+				}
+			}
+		}
 
-        if(checksum != xmitcsum)
-        {
-            ph_printf("GDB my check = %x, his = %x", checksum, xmitcsum );
-            continue;
-        }
-        break;
-    }
+		if (checksum != xmitcsum) {
+			ph_printf("GDB my check = %x, his = %x", checksum, xmitcsum);
+			continue;
+		}
+		break;
+	}
 }
 
 /*
@@ -277,34 +272,32 @@ static void getpacket(char *buffer)
  */
 static void putpacket(char *buffer)
 {
-    unsigned char checksum;
-    int count;
-    unsigned char ch;
+	unsigned char checksum;
+	int count;
+	unsigned char ch;
 
-    /*
-     * $<packet info>#<checksum>.
-     */
+	/*
+	 * $<packet info>#<checksum>.
+	 */
 
-    do {
-        putDebugChar('$');
-        checksum = 0;
-        count = 0;
+	do {
+		putDebugChar('$');
+		checksum = 0;
+		count = 0;
 
-        while ((ch = buffer[count]) != 0) {
-            if (!(putDebugChar(ch)))
-                return;
-            checksum += ch;
-            count += 1;
-        }
+		while ((ch = buffer[count]) != 0) {
+			if (!(putDebugChar(ch)))
+				return;
+			checksum += ch;
+			count += 1;
+		}
 
-        putDebugChar('#');
-        putDebugChar(hexchars[checksum >> 4]);
-        putDebugChar(hexchars[checksum & 0xf]);
+		putDebugChar('#');
+		putDebugChar(hexchars[checksum >> 4]);
+		putDebugChar(hexchars[checksum & 0xf]);
 
-    }
-    while ((getDebugChar() & 0x7f) != '+');
+	} while ((getDebugChar() & 0x7f) != '+');
 }
-
 
 
 /*
@@ -316,25 +309,25 @@ static void putpacket(char *buffer)
  */
 static unsigned char *mem2hex(char *mem, char *buf, int count, int may_fault)
 {
-    unsigned char ch;
+	unsigned char ch;
 
-    //assert(!may_fault);
+	// assert(!may_fault);
 
-    /*	set_mem_fault_trap(may_fault); */
+	/*	set_mem_fault_trap(may_fault); */
 
-    while (count-- > 0) {
-        ch = *(mem++);
-//#warning implement mem_err
-        //if (mem_err)            return 0;
-        *buf++ = hexchars[ch >> 4];
-        *buf++ = hexchars[ch & 0xf];
-    }
+	while (count-- > 0) {
+		ch = *(mem++);
+		// #warning implement mem_err
+		// if (mem_err)            return 0;
+		*buf++ = hexchars[ch >> 4];
+		*buf++ = hexchars[ch & 0xf];
+	}
 
-    *buf = 0;
+	*buf = 0;
 
-    /*	set_mem_fault_trap(0); */
+	/*	set_mem_fault_trap(0); */
 
-    return (unsigned char *)buf;
+	return (unsigned char *)buf;
 }
 
 /*
@@ -343,26 +336,24 @@ static unsigned char *mem2hex(char *mem, char *buf, int count, int may_fault)
  */
 static char *hex2mem(char *buf, char *mem, int count, int may_fault)
 {
-    int i;
-    unsigned char ch;
+	int i;
+	unsigned char ch;
 
-    assert(!may_fault);
-    /*	set_mem_fault_trap(may_fault); */
+	assert(!may_fault);
+	/*	set_mem_fault_trap(may_fault); */
 
-    for (i=0; i<count; i++)
-    {
-        ch = hex(*buf++) << 4;
-        ch |= hex(*buf++);
-        *(mem++) = ch;
-//#warning implement mem_err
-        //if (mem_err)            return 0;
-    }
+	for (i = 0; i < count; i++) {
+		ch = hex(*buf++) << 4;
+		ch |= hex(*buf++);
+		*(mem++) = ch;
+		// #warning implement mem_err
+		// if (mem_err)            return 0;
+	}
 
-    /*	set_mem_fault_trap(0); */
+	/*	set_mem_fault_trap(0); */
 
-    return mem;
+	return mem;
 }
-
 
 
 /*
@@ -370,24 +361,26 @@ static char *hex2mem(char *buf, char *mem, int count, int may_fault)
  */
 void set_debug_traps(void)
 {
-    //	unsigned long flags;
-    unsigned char c;
+	//	unsigned long flags;
+	unsigned char c;
 
-    //	save_and_cli(flags);
-    /*
-     * In case GDB is started before us, ack any packets
-     * (presumably "$?#xx") sitting there.
-     */
-    while((c = getDebugChar()) != '$');
-    while((c = getDebugChar()) != '#');
-    c = getDebugChar(); /* eat first csum byte */
-    (void) c;
-    c = getDebugChar(); /* eat second csum byte */
-    (void) c;
-    putDebugChar('+'); /* ack it */
+	//	save_and_cli(flags);
+	/*
+	 * In case GDB is started before us, ack any packets
+	 * (presumably "$?#xx") sitting there.
+	 */
+	while ((c = getDebugChar()) != '$')
+		;
+	while ((c = getDebugChar()) != '#')
+		;
+	c = getDebugChar(); /* eat first csum byte */
+	(void)c;
+	c = getDebugChar(); /* eat second csum byte */
+	(void)c;
+	putDebugChar('+'); /* ack it */
 
-    gdb_stub_initialised = 1;
-    //	restore_flags(flags);
+	gdb_stub_initialised = 1;
+	//	restore_flags(flags);
 }
 
 
@@ -399,7 +392,7 @@ void set_debug_traps(void)
  */
 extern void fltr_set_mem_err(void)
 {
-    /* Needs to be written... */
+	/* Needs to be written... */
 }
 
 
@@ -409,24 +402,23 @@ extern void fltr_set_mem_err(void)
  */
 static int hexToInt(char **ptr, addr_t *intValue)
 {
-    int numChars = 0;
-    int hexValue;
+	int numChars = 0;
+	int hexValue;
 
-    *intValue = 0;
+	*intValue = 0;
 
-    while (**ptr)
-    {
-        hexValue = hex(**ptr);
-        if (hexValue < 0)
-            break;
+	while (**ptr) {
+		hexValue = hex(**ptr);
+		if (hexValue < 0)
+			break;
 
-        *intValue = (*intValue << 4) | hexValue;
-        numChars ++;
+		*intValue = (*intValue << 4) | hexValue;
+		numChars++;
 
-        (*ptr)++;
-    }
+		(*ptr)++;
+	}
 
-    return (numChars);
+	return (numChars);
 }
 
 #if 0
@@ -459,222 +451,204 @@ void gdb_stub_set_non_pt_regs(gdb_pt_regs *regs)
 #endif
 
 
-static void repl( char *name, char from, char to )
+static void repl(char *name, char from, char to)
 {
-    for(;*name;name++)
-        if( *name == from )
-            *name = to;
+	for (; *name; name++)
+		if (*name == from)
+			*name = to;
 }
-
 
 
 static void report_tid_extra_info(char *sbuf, int bufmax, int tid)
 {
-    //int t_run = 0;
+	// int t_run = 0;
 
-    char name[BUFMAX];
+	char name[BUFMAX];
 
-    ph_strlcpy( name, "NameWith,Comma", BUFMAX );
-    repl( name, ',', '?' );
+	ph_strlcpy(name, "NameWith,Comma", BUFMAX);
+	repl(name, ',', '?');
 
-    ph_snprintf(
-             sbuf, bufmax, "status=%s,name=%s,object=%x,",
-             //(t_run ? "run" : "stop"),
-             "run",
-             name,
-             0
-            );
+	ph_snprintf(sbuf,
+				bufmax,
+				"status=%s,name=%s,object=%x,",
+				//(t_run ? "run" : "stop"),
+				"run",
+				name,
+				0);
 }
-
 
 
 void gdb_stub_send_signal(int sigval)
 {
-    char *ptr;
-    ptr = output_buffer;
+	char *ptr;
+	ptr = output_buffer;
 
-    /*
-     * Send trap type (converted to signal)
-     */
-    *ptr++ = 'S';
-    *ptr++ = hexchars[sigval >> 4];
-    *ptr++ = hexchars[sigval & 0xf];
-    *ptr++ = 0;
-    putpacket(output_buffer);	/* send it off... */
+	/*
+	 * Send trap type (converted to signal)
+	 */
+	*ptr++ = 'S';
+	*ptr++ = hexchars[sigval >> 4];
+	*ptr++ = hexchars[sigval & 0xf];
+	*ptr++ = 0;
+	putpacket(output_buffer); /* send it off... */
 }
 
 void gdb_stub_handle_cmds(struct data_area_4_thread *da, int signal)
 {
-    addr_t addr;
-    addr_t length; // need size_t, but hex2int decodes addr_t
-    //size_t length;
-    char *ptr;
+	addr_t addr;
+	addr_t length;  // need size_t, but hex2int decodes addr_t
+	// size_t length;
+	char *ptr;
 
-    /*
-     * Wait for input from remote GDB
-     */
-    while (1) {
-        //ph_printf("GDB wait for cmd\n" );
+	/*
+	 * Wait for input from remote GDB
+	 */
+	while (1) {
+		// ph_printf("GDB wait for cmd\n" );
 
-        output_buffer[0] = 0;
-        getpacket(input_buffer);
+		output_buffer[0] = 0;
+		getpacket(input_buffer);
 
-        ph_printf("GDB cmd '%s'\n", input_buffer );
+		ph_printf("GDB cmd '%s'\n", input_buffer);
 
-        switch (input_buffer[0])
-        {
-        case '?':
-            gdb_stub_send_signal(signal);
-            continue;
+		switch (input_buffer[0]) {
+			case '?':
+				gdb_stub_send_signal(signal);
+				continue;
 
-        case 'd':
-            /* toggle debug flag */
-            break;
+			case 'd':
+				/* toggle debug flag */
+				break;
 
-            /*
-             * Return the value of the CPU registers
-             */
-        case 'g':
-            {
-                gdb_pt_regs r;
-                get_regs(&r, da);
-                //gdb_stub_get_non_pt_regs(regs);
-                ptr = output_buffer;
-                ptr = (char *)mem2hex((char *)&r,ptr,sizeof(r),0);
-                //ptr=  mem2hex((char *)regs,ptr,sizeof(s390_regs_common),FALSE);
-                //ptr=  mem2hex((char *)&regs->crs[0],ptr,NUM_CRS*CR_SIZE,FALSE);
-                //ptr = mem2hex((char *)&regs->fp_regs, ptr,sizeof(s390_fp_regs));
-            }
-            break;
+				/*
+				 * Return the value of the CPU registers
+				 */
+			case 'g': {
+				gdb_pt_regs r;
+				get_regs(&r, da);
+				// gdb_stub_get_non_pt_regs(regs);
+				ptr = output_buffer;
+				ptr = (char *)mem2hex((char *)&r, ptr, sizeof(r), 0);
+				// ptr=  mem2hex((char *)regs,ptr,sizeof(s390_regs_common),FALSE);
+				// ptr=  mem2hex((char *)&regs->crs[0],ptr,NUM_CRS*CR_SIZE,FALSE);
+				// ptr = mem2hex((char *)&regs->fp_regs, ptr,sizeof(s390_fp_regs));
+			} break;
 
-            /*
-             * set the value of the CPU registers - return OK
-             * TODO: Needs to be written
-             */
-        case 'G':
-            {
-                gdb_pt_regs r;
-                ptr=input_buffer;
-                hex2mem (ptr, (char *)&r,sizeof(r), 0);
-                set_regs(&r, da);
-                /*
-                 hex2mem (ptr, (char *)regs,sizeof(s390_regs_common), FALSE);
-                 ptr+=sizeof(s390_regs_common)*2;
-                 hex2mem (ptr, (char *)regs->crs[0],NUM_CRS*CR_SIZE, FALSE);
-                 ptr+=NUM_CRS*CR_SIZE*2;
-                 hex2mem (ptr, (char *)regs->fp_regs,sizeof(s390_fp_regs), FALSE);
-                 gdb_stub_set_non_pt_regs(regs);
-                 */
-                ph_strcpy(output_buffer,"OK");
-            }
-            break;
+				/*
+				 * set the value of the CPU registers - return OK
+				 * TODO: Needs to be written
+				 */
+			case 'G': {
+				gdb_pt_regs r;
+				ptr = input_buffer;
+				hex2mem(ptr, (char *)&r, sizeof(r), 0);
+				set_regs(&r, da);
+				/*
+				 hex2mem (ptr, (char *)regs,sizeof(s390_regs_common), FALSE);
+				 ptr+=sizeof(s390_regs_common)*2;
+				 hex2mem (ptr, (char *)regs->crs[0],NUM_CRS*CR_SIZE, FALSE);
+				 ptr+=NUM_CRS*CR_SIZE*2;
+				 hex2mem (ptr, (char *)regs->fp_regs,sizeof(s390_fp_regs), FALSE);
+				 gdb_stub_set_non_pt_regs(regs);
+				 */
+				ph_strcpy(output_buffer, "OK");
+			} break;
 
-            /*
-             * mAA..AA,LLLL  Read LLLL bytes at address AA..AA
-             */
-        case 'm':
-            ptr = &input_buffer[1];
+				/*
+				 * mAA..AA,LLLL  Read LLLL bytes at address AA..AA
+				 */
+			case 'm':
+				ptr = &input_buffer[1];
 
-            if (hexToInt(&ptr, &addr)
-                && *ptr++ == ','
-                && hexToInt(&ptr, &length))
-            {
-                ph_printf("GDB read mem %d @ 0x%p\n", (int)length, (void *)addr );
-                if (mem2hex((char *)addr, output_buffer, length, 1))
-                    break;
-                ph_strcpy (output_buffer, "E03");
-            }
-            else
-                ph_strcpy(output_buffer,"E01");
-            break;
+				if (hexToInt(&ptr, &addr) && *ptr++ == ',' && hexToInt(&ptr, &length)) {
+					ph_printf("GDB read mem %d @ 0x%p\n", (int)length, (void *)addr);
+					if (mem2hex((char *)addr, output_buffer, length, 1))
+						break;
+					ph_strcpy(output_buffer, "E03");
+				} else
+					ph_strcpy(output_buffer, "E01");
+				break;
 
-            /*
-             * MAA..AA,LLLL: Write LLLL bytes at address AA.AA return OK
-             */
-        case 'M':
-            ptr = &input_buffer[1];
+				/*
+				 * MAA..AA,LLLL: Write LLLL bytes at address AA.AA return OK
+				 */
+			case 'M':
+				ptr = &input_buffer[1];
 
-            if (hexToInt(&ptr, &addr)
-                && *ptr++ == ','
-                && hexToInt(&ptr, &length)
-                && *ptr++ == ':')
-            {
-                if (hex2mem(ptr, (char *)addr, length, 1))
-                    ph_strcpy(output_buffer, "OK");
-                else
-                    ph_strcpy(output_buffer, "E03");
-            }
-            else
-                ph_strcpy(output_buffer, "E02");
-            break;
+				if (hexToInt(&ptr, &addr) && *ptr++ == ',' && hexToInt(&ptr, &length) &&
+					*ptr++ == ':') {
+					if (hex2mem(ptr, (char *)addr, length, 1))
+						ph_strcpy(output_buffer, "OK");
+					else
+						ph_strcpy(output_buffer, "E03");
+				} else
+					ph_strcpy(output_buffer, "E02");
+				break;
 
-            /*
-             * cAA..AA    Continue at address AA..AA(optional)
-             */
-        case 'c':
-            /* try to read optional parameter, pc unchanged if no parm */
-            {
-                addr_t addr;
+				/*
+				 * cAA..AA    Continue at address AA..AA(optional)
+				 */
+			case 'c':
+				/* try to read optional parameter, pc unchanged if no parm */
+				{
+					addr_t addr;
 
-                ptr = &input_buffer[1];
+					ptr = &input_buffer[1];
 
-                if (hexToInt(&ptr, &addr))
-                    da->code.IP = addr;
+					if (hexToInt(&ptr, &addr))
+						da->code.IP = addr;
 
-                pvm_exec_save_fast_acc(da);
-            }
-            return;
-            /* NOTREACHED */
-            break;
+					pvm_exec_save_fast_acc(da);
+				}
+				return;
+				/* NOTREACHED */
+				break;
 
 
-            /*
-             * kill the program
-             */
-        case 'k' :
-            break;		/* do nothing */
+				/*
+				 * kill the program
+				 */
+			case 'k':
+				break; /* do nothing */
 
 
-            /*
-             * Reset the whole machine (system dependent)
-             */
-        case 'r':
-            break;
+				/*
+				 * Reset the whole machine (system dependent)
+				 */
+			case 'r':
+				break;
 
 
-            /*
-             * Step to next instruction
-             */
-        case 's':
-            //#warning implement
-            //single_step(regs);
-            //flush_cache_all();
-            return;
-            /* NOTREACHED */
+				/*
+				 * Step to next instruction
+				 */
+			case 's':
+				// #warning implement
+				// single_step(regs);
+				// flush_cache_all();
+				return;
+				/* NOTREACHED */
 
-            //}
-            break;
+				//}
+				break;
 
 
-            /*
-             * Query
-             *
-             * http://sourceware.org/gdb/onlinedocs/gdb/General-Query-Packets.html
-             */
-        case 'q':
-            ptr = &input_buffer[1];
-            {
-                static int startTid = 0;
-                if( 0 == ph_strcmp( ptr, "fThreadInfo" ))
-                {
-                    startTid = 0;
-                    goto sendThreadList;
-                }
-                if( 0 == ph_strcmp( ptr, "sThreadInfo" ))
-                {
-                sendThreadList:
-                    ;
-                    ptr = output_buffer;
+				/*
+				 * Query
+				 *
+				 * http://sourceware.org/gdb/onlinedocs/gdb/General-Query-Packets.html
+				 */
+			case 'q':
+				ptr = &input_buffer[1];
+				{
+					static int startTid = 0;
+					if (0 == ph_strcmp(ptr, "fThreadInfo")) {
+						startTid = 0;
+						goto sendThreadList;
+					}
+					if (0 == ph_strcmp(ptr, "sThreadInfo")) {
+					sendThreadList:;
+						ptr = output_buffer;
 #if 0
                     int maxcnt = BUFMAX/(sizeof(int)*3);
                     while(maxcnt-- > 0)
@@ -682,139 +656,130 @@ void gdb_stub_handle_cmds(struct data_area_4_thread *da, int signal)
                         // put hex list of tids sep by comma
                     }
 #else
-                    if(startTid == 0)
-                    {
-                        // just one thread in pvm_test yet
-                        ph_snprintf( output_buffer, sizeof(output_buffer), "m %lx", (unsigned long) 1 );
-                        startTid++;
-                    }
-                    else
-                    {
-                        //ph_printf("startTid != 0\n" );
-                        ph_snprintf( output_buffer, sizeof(output_buffer), "l" );
-                    }
+						if (startTid == 0) {
+							// just one thread in pvm_test yet
+							ph_snprintf(output_buffer,
+										sizeof(output_buffer),
+										"m %lx",
+										(unsigned long)1);
+							startTid++;
+						} else {
+							// ph_printf("startTid != 0\n" );
+							ph_snprintf(output_buffer, sizeof(output_buffer), "l");
+						}
 #endif
-                    break;
-                }
+						break;
+					}
 
-                int tid;
-                if( 1 == ph_sscanf( ptr, "ThreadExtraInfo,%d", &tid ) )
-                {
-                    char sbuf[BUFMAX];
-                    report_tid_extra_info(sbuf, BUFMAX, tid);
-                    mem2hex(sbuf, output_buffer, ph_strlen(sbuf), 0);
-                    break;
-                }
+					int tid;
+					if (1 == ph_sscanf(ptr, "ThreadExtraInfo,%d", &tid)) {
+						char sbuf[BUFMAX];
+						report_tid_extra_info(sbuf, BUFMAX, tid);
+						mem2hex(sbuf, output_buffer, ph_strlen(sbuf), 0);
+						break;
+					}
 
-                //ph_strcpy(output_buffer,"E00");
-                break;
-
-            }
-            break;
+					// ph_strcpy(output_buffer,"E00");
+					break;
+				}
+				break;
 
 
-            /*
-             * Phantom specific
-             */
-        case ':':
-            ptr = &input_buffer[2];
+				/*
+				 * Phantom specific
+				 */
+			case ':':
+				ptr = &input_buffer[2];
 
-            switch(input_buffer[1])
-            {
+				switch (input_buffer[1]) {
 
-                // return persistent address space start addr
-            case 'p':
-                {
-                    //void *a = hal_object_space_address();
-                    //mem2hex( (char *)&a, output_buffer, sizeof(a), 1);
-                    //ph_printf(":p answer '%s'\n", output_buffer );
-                    ph_snprintf( output_buffer, sizeof(output_buffer), "%lx", (unsigned long) hal_object_space_address() );
-                    break;
-                }
+						// return persistent address space start addr
+					case 'p': {
+						// void *a = hal_object_space_address();
+						// mem2hex( (char *)&a, output_buffer, sizeof(a), 1);
+						// ph_printf(":p answer '%s'\n", output_buffer );
+						ph_snprintf(output_buffer,
+									sizeof(output_buffer),
+									"%lx",
+									(unsigned long)hal_object_space_address());
+						break;
+					}
 
-                // Run class method (create object and run in new thread)
-            case 'r':
-                {
-                    if( (!hexToInt(&ptr, &addr)) || *ptr++ != ',' || *ptr++ == 0 )
-                    {
-                        ph_strcpy(output_buffer, "E03"); // TODO check 03
-                        break;
-                    }
+						// Run class method (create object and run in new thread)
+					case 'r': {
+						if ((!hexToInt(&ptr, &addr)) || *ptr++ != ',' || *ptr++ == 0) {
+							ph_strcpy(output_buffer, "E03");  // TODO check 03
+							break;
+						}
 
-                    const char *class_name = ptr;
-                    int method = (int)addr;
+						const char *class_name = ptr;
+						int method = (int)addr;
 
-                    create_and_run_object(class_name, method );
-                    ph_strcpy(output_buffer, "OK");
-                    break;
-                }
+						create_and_run_object(class_name, method);
+						ph_strcpy(output_buffer, "OK");
+						break;
+					}
 
-                // Create object
-            case 'c':
-                {
-                    pvm_object_t cns = pvm_create_string_object(ptr);
-                    if( pvm_is_null(cns) )
-                    {
-                        ph_strcpy(output_buffer, "E03"); // TODO check 03
-                        break;
-                    }
+						// Create object
+					case 'c': {
+						pvm_object_t cns = pvm_create_string_object(ptr);
+						if (pvm_is_null(cns)) {
+							ph_strcpy(output_buffer, "E03");  // TODO check 03
+							break;
+						}
 
-                    pvm_object_t c = pvm_exec_lookup_class_by_name(cns);
-                    if( pvm_is_null(c) )
-                    {
-                        ph_strcpy(output_buffer, "E02"); // TODO check 02
-                        break;
-                    }
+						pvm_object_t c = pvm_exec_lookup_class_by_name(cns);
+						if (pvm_is_null(c)) {
+							ph_strcpy(output_buffer, "E02");  // TODO check 02
+							break;
+						}
 
-                    pvm_object_t o = pvm_create_object(c);
-                    if( pvm_is_null(o) )
-                    {
-                        ph_strcpy(output_buffer, "E01"); // TODO check 01
-                        break;
-                    }
+						pvm_object_t o = pvm_create_object(c);
+						if (pvm_is_null(o)) {
+							ph_strcpy(output_buffer, "E01");  // TODO check 01
+							break;
+						}
 
-                    // TODO add to kernel objects list (object must be available from root)
+						// TODO add to kernel objects list (object must be available from
+						// root)
 
-                    //ph_snprintf( output_buffer, sizeof(output_buffer), "%lx, %lx", (long)o, (long)o.interface  );
-                    ph_snprintf( output_buffer, sizeof(output_buffer), "%lx", (long)o );
-                    break;
-                }
+						// ph_snprintf( output_buffer, sizeof(output_buffer), "%lx, %lx",
+						// (long)o, (long)o.interface  );
+						ph_snprintf(output_buffer, sizeof(output_buffer), "%lx", (long)o);
+						break;
+					}
 
-            case 's':
-                {
-                    addr_t mode;
-                    if(hexToInt(&ptr, &mode))
-                    {
-                        ph_printf("GDB snapshots %s\n", mode ? "on" : "off" );
-                        // TODO implement
-                        ph_strcpy(output_buffer,"E01");
-                        //ph_snprintf( output_buffer, sizeof(output_buffer), "OK" );
-                    }
-                    else
-                        ph_strcpy(output_buffer,"E01");
+					case 's': {
+						addr_t mode;
+						if (hexToInt(&ptr, &mode)) {
+							ph_printf("GDB snapshots %s\n", mode ? "on" : "off");
+							// TODO implement
+							ph_strcpy(output_buffer, "E01");
+							// ph_snprintf( output_buffer, sizeof(output_buffer), "OK" );
+						} else
+							ph_strcpy(output_buffer, "E01");
 
-                    break;
-                }
+						break;
+					}
 
-            default:
-                ph_strcpy(output_buffer,"E00"); // TODO check
+					default:
+						ph_strcpy(output_buffer, "E00");  // TODO check
+				}
 
-            }
-
-            break;
+				break;
 
 
-        }			/* switch */
+		} /* switch */
 
-        /*
-         * reply to the request
-         */
+		/*
+		 * reply to the request
+		 */
 
-        ph_printf("GDB answer '%s'\n", output_buffer );
+		ph_printf("GDB answer '%s'\n", output_buffer);
 
-        putpacket(output_buffer);
+		putpacket(output_buffer);
 
-    } /* while */
+	} /* while */
 }
 
 
@@ -824,20 +789,18 @@ void gdb_stub_handle_cmds(struct data_area_4_thread *da, int signal)
  * otherwise.
  */
 void gdb_stub_handle_exception(struct data_area_4_thread *da, int signal)
-                               //gdb_pt_regs *regs,int sigval)
+// gdb_pt_regs *regs,int sigval)
 {
-    //int trap;			/* Trap type */
-    //unsigned long *stack;
+	// int trap;			/* Trap type */
+	// unsigned long *stack;
 
 
-    /*
-     * reply to host that an exception has occurred
-     */
-    gdb_stub_send_signal(signal);
-    gdb_stub_handle_cmds(da, signal);
-
+	/*
+	 * reply to host that an exception has occurred
+	 */
+	gdb_stub_send_signal(signal);
+	gdb_stub_handle_cmds(da, signal);
 }
-
 
 
 #if 0
@@ -855,4 +818,3 @@ extern char getDebugChar(void)     /* read and return a single char */
 }
 
 #endif
-

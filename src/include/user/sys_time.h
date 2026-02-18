@@ -2,4 +2,4 @@
 
 extern int stime(time_t *t);
 
-extern void sleepmsec( int msec );
+extern void sleepmsec(int msec);

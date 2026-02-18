@@ -2,10 +2,10 @@
  *
  * Compose object - opcode disabled for security reasons
  *
-**/
+ **/
 
-//pvm_object
-//pvm_exec_compose_object( pvm_object in_class, pow_ostack in_stack, int to_pop )
+// pvm_object
+// pvm_exec_compose_object( pvm_object in_class, pow_ostack in_stack, int to_pop )
 #if 0
 static struct pvm_object pvm_exec_compose_object(
                                                  struct pvm_object in_class,

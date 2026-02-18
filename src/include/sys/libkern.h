@@ -21,7 +21,7 @@
  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
@@ -31,38 +31,74 @@
  */
 
 #ifndef _SYS_LIBKERN_H_
-#define	_SYS_LIBKERN_H_
+#define _SYS_LIBKERN_H_
 
 #include <phantom_types.h>
 
-static __inline int imax(int a, int b) { return (a > b ? a : b); }
-static __inline int imin(int a, int b) { return (a < b ? a : b); }
-static __inline long lmax(long a, long b) { return (a > b ? a : b); }
-static __inline long lmin(long a, long b) { return (a < b ? a : b); }
-static __inline u_int umax(u_int a, u_int b) { return (a > b ? a : b); }
-static __inline u_int umin(u_int a, u_int b) { return (a < b ? a : b); }
-static __inline quad_t qmax(quad_t a, quad_t b) { return (a > b ? a : b); }
-static __inline quad_t qmin(quad_t a, quad_t b) { return (a < b ? a : b); }
-static __inline u_long ulmax(u_long a, u_long b) { return (a > b ? a : b); }
-static __inline u_long ulmin(u_long a, u_long b) { return (a < b ? a : b); }
-static __inline off_t omax(off_t a, off_t b) { return (a > b ? a : b); }
-static __inline off_t omin(off_t a, off_t b) { return (a < b ? a : b); }
+static __inline int imax(int a, int b)
+{
+	return (a > b ? a : b);
+}
+static __inline int imin(int a, int b)
+{
+	return (a < b ? a : b);
+}
+static __inline long lmax(long a, long b)
+{
+	return (a > b ? a : b);
+}
+static __inline long lmin(long a, long b)
+{
+	return (a < b ? a : b);
+}
+static __inline u_int umax(u_int a, u_int b)
+{
+	return (a > b ? a : b);
+}
+static __inline u_int umin(u_int a, u_int b)
+{
+	return (a < b ? a : b);
+}
+static __inline quad_t qmax(quad_t a, quad_t b)
+{
+	return (a > b ? a : b);
+}
+static __inline quad_t qmin(quad_t a, quad_t b)
+{
+	return (a < b ? a : b);
+}
+static __inline u_long ulmax(u_long a, u_long b)
+{
+	return (a > b ? a : b);
+}
+static __inline u_long ulmin(u_long a, u_long b)
+{
+	return (a < b ? a : b);
+}
+static __inline off_t omax(off_t a, off_t b)
+{
+	return (a > b ? a : b);
+}
+static __inline off_t omin(off_t a, off_t b)
+{
+	return (a < b ? a : b);
+}
 
 // static __inline int abs(int a) { return (a < 0 ? -a : a); }
 // static __inline long labs(long a) { return (a < 0 ? -a : a); }
 // static __inline quad_t qabs(quad_t a) { return (a < 0 ? -a : a); }
 
-#ifndef	HAVE_INLINE_FFS
-int	 ffs(int);
+#ifndef HAVE_INLINE_FFS
+int ffs(int);
 #endif
-#ifndef	HAVE_INLINE_FFSL
-int	 ffsl(long);
+#ifndef HAVE_INLINE_FFSL
+int ffsl(long);
 #endif
-#ifndef	HAVE_INLINE_FLS
-int	 fls(int);
+#ifndef HAVE_INLINE_FLS
+int fls(int);
 #endif
-#ifndef	HAVE_INLINE_FLSL
-int	 flsl(long);
+#ifndef HAVE_INLINE_FLSL
+int flsl(long);
 #endif
 
 /*
@@ -115,16 +151,16 @@ crc32(const void *buf, size_t size)
 
 
 /* fnmatch() return values. */
-#define	FNM_NOMATCH	1	/* Match failed. */
+#define FNM_NOMATCH     1    /* Match failed. */
 
 /* fnmatch() flags. */
-#define	FNM_NOESCAPE	0x01	/* Disable backslash escaping. */
-#define	FNM_PATHNAME	0x02	/* Slash must be matched by slash. */
-#define	FNM_PERIOD	0x04	/* Period must be matched by period. */
-#define	FNM_LEADING_DIR	0x08	/* Ignore /<tail> after Imatch. */
-#define	FNM_CASEFOLD	0x10	/* Case insensitive search. */
-#define	FNM_IGNORECASE	FNM_CASEFOLD
-#define	FNM_FILE_NAME	FNM_PATHNAME
+#define FNM_NOESCAPE    0x01 /* Disable backslash escaping. */
+#define FNM_PATHNAME    0x02 /* Slash must be matched by slash. */
+#define FNM_PERIOD      0x04 /* Period must be matched by period. */
+#define FNM_LEADING_DIR 0x08 /* Ignore /<tail> after Imatch. */
+#define FNM_CASEFOLD    0x10 /* Case insensitive search. */
+#define FNM_IGNORECASE  FNM_CASEFOLD
+#define FNM_FILE_NAME   FNM_PATHNAME
 
 #endif /* !_SYS_LIBKERN_H_ */
 

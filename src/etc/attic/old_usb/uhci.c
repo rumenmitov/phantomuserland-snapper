@@ -5,28 +5,25 @@
 
 #define DEBUG_MSG_PREFIX "uhci"
 #include "debug_ext.h"
-#define debug_level_flow 6
+#define debug_level_flow  6
 #define debug_level_error 10
-#define debug_level_info 10
-
-#include <kernel/vm.h>
-#include <x86/phantom_pmap.h>
-#include <hal.h>
-#include <phantom_libc.h>
-#include <malloc.h>
-#include <time.h>
-#include <errno.h>
-#include <i386/pio.h>
+#define debug_level_info  10
 
 #include "driver_map.h"
-
-#include <queue.h>
-
 #include "uhci.h"
 #include "uhcireg.h"
-
-#include "usb_spec.h"
 #include "usb_hc.h"
+#include "usb_spec.h"
+
+#include <errno.h>
+#include <hal.h>
+#include <i386/pio.h>
+#include <kernel/vm.h>
+#include <malloc.h>
+#include <phantom_libc.h>
+#include <queue.h>
+#include <time.h>
+#include <x86/phantom_pmap.h>
 
 
 #define DEV_NAME "UHCI "
@@ -339,12 +336,12 @@ static int uhci_write(struct phantom_device *dev, const void *buf, int len)
  *		Salvatore Benedetto <salvatore.benedetto@gmail.com>
  */
 
+#include "uhci.h"
+
+#include <KernelExport.h>
 #include <module.h>
 #include <PCI.h>
 #include <USB3.h>
-#include <KernelExport.h>
-
-#include "uhci.h"
 
 #define USB_MODULE_NAME "uhci"
 
@@ -440,7 +437,7 @@ print_descriptor_chain(uhci_td *descriptor)
 	}
 }
 
-#endif // TRACE_USB
+#endif  // TRACE_USB
 
 
 //
@@ -2161,7 +2158,7 @@ status_t
 UHCI::AddTo(Stack *stack)
 {
 #ifdef TRACE_USB
-	set_dprintf_enabled(true); 
+	set_dprintf_enabled(true);
 #ifndef HAIKU_TARGET_PLATFORM_HAIKU
 	load_driver_symbols("uhci");
 #endif
@@ -2672,7 +2669,7 @@ UHCI::ReadReg32(uint32 reg)
 #endif
 
 
-#endif // COMPILE_UHCI
+#endif  // COMPILE_UHCI
 
 
 #endif

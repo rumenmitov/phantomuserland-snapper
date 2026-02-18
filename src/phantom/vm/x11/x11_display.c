@@ -14,22 +14,22 @@
  *
  **/
 
-#include <X11/Xlib.h> // preceede most other headers!
-#include <X11/Xutil.h>		/* BitmapOpenFailed, etc. */
-
 #include "screen_x11.h"
+
+#include <X11/Xlib.h>  // preceede most other headers!
+#include <X11/Xutil.h> /* BitmapOpenFailed, etc. */
 
 
 void drawbmp(Display *display, Window win, GC gc)
 {
 
-        /* this variable will contain the ID of the newly created pixmap.    */
-        Pixmap bitmap;
-        /* these variables will contain the dimensions of the loaded bitmap. */
-        unsigned int bitmap_width, bitmap_height;
-        /* these variables will contain the location of the hotspot of the   */
-        /* loaded bitmap.                                                    */
-        int hotspot_x, hotspot_y;
+	/* this variable will contain the ID of the newly created pixmap.    */
+	Pixmap bitmap;
+	/* these variables will contain the dimensions of the loaded bitmap. */
+	unsigned int bitmap_width, bitmap_height;
+	/* these variables will contain the location of the hotspot of the   */
+	/* loaded bitmap.                                                    */
+	int hotspot_x, hotspot_y;
 
 #if 0
         {
@@ -78,56 +78,47 @@ void drawbmp(Display *display, Window win, GC gc)
     }
 #else
 
-        bitmap = XCreatePixmap(display, XDefaultRootWindow(display), 30, 40, XDefaultDepth(display, XDefaultScreen(display)));
+	bitmap = XCreatePixmap(display,
+						   XDefaultRootWindow(display),
+						   30,
+						   40,
+						   XDefaultDepth(display, XDefaultScreen(display)));
 
-        int screenNumber = DefaultScreen(display);
-        unsigned long white = WhitePixel(display,screenNumber);
-        unsigned long black = BlackPixel(display,screenNumber);
+	int screenNumber = DefaultScreen(display);
+	unsigned long white = WhitePixel(display, screenNumber);
+	unsigned long black = BlackPixel(display, screenNumber);
 
-        XSetForeground( display, gc, black );
-        XFillRectangle(display, bitmap, gc, 0, 0, 15, 20);
-        XSetForeground( display, gc, white );
-        XDrawPoint(display, bitmap, gc, 10, 10);
+	XSetForeground(display, gc, black);
+	XFillRectangle(display, bitmap, gc, 0, 0, 15, 20);
+	XSetForeground(display, gc, white);
+	XDrawPoint(display, bitmap, gc, 10, 10);
 
-        XCopyPlane(display, bitmap, win, gc,
-             0, 0,
-             15, 20,
-             15, 20,
-             1);
-
-
+	XCopyPlane(display, bitmap, win, gc, 0, 0, 15, 20, 15, 20, 1);
 
 
 #endif
-
-
 }
 
 static XImage *image;
-static void * prepare(Display *display, Window win, GC gc, int xsize, int ysize)
+static void *prepare(Display *display, Window win, GC gc, int xsize, int ysize)
 {
-    char *newBuf = ph_calloc( 4, xsize * ysize );
-    if( newBuf == 0 ) return 0;
+	char *newBuf = ph_calloc(4, xsize * ysize);
+	if (newBuf == 0)
+		return 0;
 
-    image = XCreateImage (display,
-                                  CopyFromParent, 24,
-                                  ZPixmap, 0,
-                                  (char *) newBuf,
-                                  xsize, ysize,
-                                  32, 0 );
+	image = XCreateImage(
+		display, CopyFromParent, 24, ZPixmap, 0, (char *)newBuf, xsize, ysize, 32, 0);
 
-    //ph_memset( newBuf, 4 * xsize * ysize, 0xFF );
-    int size = xsize * ysize;
-    int *p = (int *)newBuf;
-    while(size--)
-    {
-        *p++ = 0x00FF0000;
-    }
+	// ph_memset( newBuf, 4 * xsize * ysize, 0xFF );
+	int size = xsize * ysize;
+	int *p = (int *)newBuf;
+	while (size--) {
+		*p++ = 0x00FF0000;
+	}
 
-    XPutImage(display, win, gc, image, 0, 0, 0, 0, xsize, ysize);
-    return newBuf;
+	XPutImage(display, win, gc, image, 0, 0, 0, 0, xsize, ysize);
+	return newBuf;
 }
-
 
 
 static Display *display = 0;
@@ -139,110 +130,111 @@ static int screenNumber = 0;
 static unsigned long white;
 static unsigned long black;
 
-void * win_x11_update(const char *src)
+void *win_x11_update(const char *src)
 {
-/** dst == ??
-    int pixels = xsize * ysize;
- 
-    int *dst;
-    while(pixels--)
-        *dst = *src;
+	/** dst == ??
+		int pixels = xsize * ysize;
 
-        XPutImage(display, win, gc, image, 0, 0, 0, 0, xsize, ysize);
-*/
+		int *dst;
+		while(pixels--)
+			*dst = *src;
+
+			XPutImage(display, win, gc, image, 0, 0, 0, 0, xsize, ysize);
+	*/
 }
 
 
 int win_x11_init(int _xsize, int _ysize)
 {
-    xsize = _xsize;
-    ysize = _ysize;
+	xsize = _xsize;
+	ysize = _ysize;
 
-    display = XOpenDisplay( NULL );
-    if( !display ){ return 1; }
+	display = XOpenDisplay(NULL);
+	if (!display) {
+		return 1;
+	}
 
-    screenNumber = DefaultScreen(display);
-    white = WhitePixel(display,screenNumber);
-    black = BlackPixel(display,screenNumber);
+	screenNumber = DefaultScreen(display);
+	white = WhitePixel(display, screenNumber);
+	black = BlackPixel(display, screenNumber);
 
-    win = XCreateSimpleWindow(display,
-                                     DefaultRootWindow(display),
-                                     50, 50,   // origin
-                                     xsize, ysize, // size
-                                     0, black, // border
-                                     white );  // backgd
+	win = XCreateSimpleWindow(display,
+							  DefaultRootWindow(display),
+							  50,
+							  50,  // origin
+							  xsize,
+							  ysize,  // size
+							  0,
+							  black,   // border
+							  white);  // backgd
 
-    XMapWindow( display, win );
+	XMapWindow(display, win);
 
-    long eventMask = StructureNotifyMask;
-    XSelectInput( display, win, eventMask );
+	long eventMask = StructureNotifyMask;
+	XSelectInput(display, win, eventMask);
 
-    XEvent evt;
-    do{
-        XNextEvent( display, &evt );   // calls XFlush
-    }while( evt.type != MapNotify );
+	XEvent evt;
+	do {
+		XNextEvent(display, &evt);  // calls XFlush
+	} while (evt.type != MapNotify);
 
 
-    gc = XCreateGC( display, win,
-                       0,        // mask of values
-                       NULL );   // array of values
+	gc = XCreateGC(display,
+				   win,
+				   0,      // mask of values
+				   NULL);  // array of values
 
-    return 0;
+	return 0;
 }
 
 
 void win_x11_stop()
 {
-    if( display == 0 ) return;
+	if (display == 0)
+		return;
 
-    XDestroyWindow( display, win );
-    XCloseDisplay( display );
+	XDestroyWindow(display, win);
+	XCloseDisplay(display);
 }
 
 int main()
 {
 
-    win_x11_init(200,200);
+	win_x11_init(200, 200);
 
 
+	XSetForeground(display, gc, black);
 
 
-    XSetForeground( display, gc, black );
+	XDrawLine(display, win, gc, 10, 10, 190, 190);  // from-to
+	XDrawLine(display, win, gc, 10, 190, 190, 10);  // from-to
+
+	// drawbmp( display, win, gc );
+	prepare(display, win, gc, 150, 10);
+
+	XEvent evt;
+	long eventMask = ButtonPressMask | ButtonReleaseMask;
+	XSelectInput(display, win, eventMask);  // override prev
+
+	do {
+		XNextEvent(display, &evt);  // calls XFlush()
+	} while (evt.type != ButtonRelease);
 
 
-    XDrawLine(display, win, gc, 10, 10,190,190); //from-to
-    XDrawLine(display, win, gc, 10,190,190, 10); //from-to
-
-    //drawbmp( display, win, gc );
-    prepare( display, win, gc, 150, 10);
-
-    XEvent evt;
-    long eventMask = ButtonPressMask|ButtonReleaseMask;
-    XSelectInput(display,win,eventMask); // override prev
-
-    do{
-        XNextEvent( display, &evt );   // calls XFlush()
-    } while( evt.type != ButtonRelease );
+	win_x11_stop();
 
 
-    win_x11_stop();
-
-
-    return 0;
+	return 0;
 }
-
 
 
 void win_x11_message_loop(void)
 {
-    XEvent evt;
-    long eventMask = ButtonPressMask|ButtonReleaseMask;
-    XSelectInput(display,win,eventMask); // override prev
+	XEvent evt;
+	long eventMask = ButtonPressMask | ButtonReleaseMask;
+	XSelectInput(display, win, eventMask);  // override prev
 
-    do{
-        XNextEvent( display, &evt );   // calls XFlush()
-    } while( evt.type != ButtonRelease );
-
+	do {
+		XNextEvent(display, &evt);  // calls XFlush()
+	} while (evt.type != ButtonRelease);
 }
-
-

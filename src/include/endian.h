@@ -37,7 +37,7 @@
  * machine/endian.h after setting BYTE_ORDER to either 1234 for little endian
  * or 4321 for big..
  */
- 
+
 // TK: this file will certainly be moved to some better place or
 // even get rewritten. I added 64 bit support
 
@@ -45,69 +45,66 @@
 #define _SYS_ENDIAN_H_
 
 
-#define UPPER32OF64(__a64) ( (sizeof(__a64) > 32) ? ((__a64) >> 32) : 0 )
+#define UPPER32OF64(__a64) ((sizeof(__a64) > 32) ? ((__a64) >> 32) : 0)
 
 #ifndef _POSIX_SOURCE
 
-//#define BYTE_ORDER LITTLE_ENDIAN
+// #define BYTE_ORDER LITTLE_ENDIAN
 #include <arch/arch_endian.h>
-
 #include <phantom_types.h>
 
-#define LITTLE_ENDIAN	1234
+#define LITTLE_ENDIAN 1234
 
 
-#define BIG_ENDIAN	4321
-#define PDP_ENDIAN	3412
+#define BIG_ENDIAN 4321
+#define PDP_ENDIAN 3412
 
 #ifdef __GNUC__
 
-#define __swap16gen(x) ({						\
-	u_int16_t __swap16gen_x = (x);					\
-									\
-	(u_int16_t)((__swap16gen_x & 0xff) << 8 |			\
-	    (__swap16gen_x & 0xff00) >> 8);				\
-})
+#define __swap16gen(x)                                                            \
+	({                                                                            \
+		u_int16_t __swap16gen_x = (x);                                            \
+                                                                                  \
+		(u_int16_t)((__swap16gen_x & 0xff) << 8 | (__swap16gen_x & 0xff00) >> 8); \
+	})
 
-#define __swap32gen(x) ({						\
-	u_int32_t __swap32gen_x = (x);					\
-									\
-	(u_int32_t)((__swap32gen_x & 0xff) << 24 |			\
-	    (__swap32gen_x & 0xff00) << 8 |				\
-	    (__swap32gen_x & 0xff0000) >> 8 |				\
-	    (__swap32gen_x & 0xff000000) >> 24);			\
-})
+#define __swap32gen(x)                                                             \
+	({                                                                             \
+		u_int32_t __swap32gen_x = (x);                                             \
+                                                                                   \
+		(u_int32_t)((__swap32gen_x & 0xff) << 24 | (__swap32gen_x & 0xff00) << 8 | \
+					(__swap32gen_x & 0xff0000) >> 8 |                              \
+					(__swap32gen_x & 0xff000000) >> 24);                           \
+	})
 
-#define __swap64gen(x) ({						\
-	u_int64_t __swap64gen_x = (x);					\
-	u_int32_t __swap64gen_low = __swap64gen_x & 0xffffffff; \
-	u_int32_t __swap64gen_high = __swap64gen_x >> 32;	\
-									\
-	(u_int64_t)(((u_int64_t)(__swap32gen(__swap64gen_low)) << 32 | \
-		__swap32gen(__swap64gen_high)));	\
-})
+#define __swap64gen(x)                                                 \
+	({                                                                 \
+		u_int64_t __swap64gen_x = (x);                                 \
+		u_int32_t __swap64gen_low = __swap64gen_x & 0xffffffff;        \
+		u_int32_t __swap64gen_high = __swap64gen_x >> 32;              \
+                                                                       \
+		(u_int64_t)(((u_int64_t)(__swap32gen(__swap64gen_low)) << 32 | \
+					 __swap32gen(__swap64gen_high)));                  \
+	})
 
 
 #else /* __GNUC__ */
 
 /* Note that these macros evaluate their arguments several times.  */
-#define __swap16gen(x)							\
-    (u_int16_t)(((u_int16_t)(x) & 0xff) << 8 | ((u_int16_t)(x) & 0xff00) >> 8)
+#define __swap16gen(x) \
+	(u_int16_t)(((u_int16_t)(x) & 0xff) << 8 | ((u_int16_t)(x) & 0xff00) >> 8)
 
-#define __swap32gen(x)							\
-    (u_int32_t)(((u_int32_t)(x) & 0xff) << 24 |				\
-    ((u_int32_t)(x) & 0xff00) << 8 | ((u_int32_t)(x) & 0xff0000) >> 8 |	\
-    ((u_int32_t)(x) & 0xff000000) >> 24)
+#define __swap32gen(x)                                                           \
+	(u_int32_t)(((u_int32_t)(x) & 0xff) << 24 | ((u_int32_t)(x) & 0xff00) << 8 | \
+				((u_int32_t)(x) & 0xff0000) >> 8 | ((u_int32_t)(x) & 0xff000000) >> 24)
 
-#define __swap64gen(x)							\
-    (u_int64_t)(((u_int64_t)(x) & 0xff) << 56 |				\
-    ((u_int64_t)(x) & 0xff00) << 40 | \
-    ((u_int32_t)(x) & 0xff0000) << 24 |	\
-    ((u_int64_t)(x) & 0xff000000) << 8 | \
-    ((u_int32_t)(x) & 0xff00000000) >> 8 |	\
-    ((u_int64_t)(x) & 0xff0000000000) >> 24 | \
-    ((u_int32_t)(x) & 0xff000000000000) >> 40 |	\
-    ((u_int64_t)(x) & 0xff00000000000000) >> 56)
+#define __swap64gen(x)                                                                   \
+	(u_int64_t)(((u_int64_t)(x) & 0xff) << 56 | ((u_int64_t)(x) & 0xff00) << 40 |        \
+				((u_int32_t)(x) & 0xff0000) << 24 | ((u_int64_t)(x) & 0xff000000) << 8 | \
+				((u_int32_t)(x) & 0xff00000000) >> 8 |                                   \
+				((u_int64_t)(x) & 0xff0000000000) >> 24 |                                \
+				((u_int32_t)(x) & 0xff000000000000) >> 40 |                              \
+				((u_int64_t)(x) & 0xff00000000000000) >> 56)
 
 #endif /* __GNUC__ */
 
@@ -120,26 +117,26 @@
 #ifdef MD_SWAP
 #if __GNUC__
 
-#define swap16(x) ({							\
-	u_int16_t __swap16_x = (x);					\
-									\
-	__builtin_constant_p(x) ? __swap16gen(__swap16_x) :		\
-	    __swap16md(__swap16_x);					\
-})
+#define swap16(x)                                                                   \
+	({                                                                              \
+		u_int16_t __swap16_x = (x);                                                 \
+                                                                                    \
+		__builtin_constant_p(x) ? __swap16gen(__swap16_x) : __swap16md(__swap16_x); \
+	})
 
-#define swap32(x) ({							\
-	u_int32_t __swap32_x = (x);					\
-									\
-	__builtin_constant_p(x) ? __swap32gen(__swap32_x) :		\
-	    __swap32md(__swap32_x);					\
-})
+#define swap32(x)                                                                   \
+	({                                                                              \
+		u_int32_t __swap32_x = (x);                                                 \
+                                                                                    \
+		__builtin_constant_p(x) ? __swap32gen(__swap32_x) : __swap32md(__swap32_x); \
+	})
 
-#define swap64(x) ({							\
-	u_int64_t __swap64_x = (x);					\
-									\
-	__builtin_constant_p(x) ? __swap64gen(__swap64_x) :		\
-	    __swap64md(__swap64_x);					\
-})
+#define swap64(x)                                                                   \
+	({                                                                              \
+		u_int64_t __swap64_x = (x);                                                 \
+                                                                                    \
+		__builtin_constant_p(x) ? __swap64gen(__swap64_x) : __swap64md(__swap64_x); \
+	})
 
 #endif /* __GNUC__  */
 
@@ -149,16 +146,17 @@
 #define swap64 __swap64gen
 #endif /* MD_SWAP */
 
-#define swap16_multi(v, n) do {					        \
-	size_t __swap16_multi_n = (n);					\
-	u_int16_t *__swap16_multi_v = (v);				\
-									\
-	while (__swap16_multi_n) {					\
-		*__swap16_multi_v = swap16(*__swap16_multi_v);		\
-		__swap16_multi_v++;					\
-		__swap16_multi_n--;					\
-	}								\
-} while (0)
+#define swap16_multi(v, n)                                 \
+	do {                                                   \
+		size_t __swap16_multi_n = (n);                     \
+		u_int16_t *__swap16_multi_v = (v);                 \
+                                                           \
+		while (__swap16_multi_n) {                         \
+			*__swap16_multi_v = swap16(*__swap16_multi_v); \
+			__swap16_multi_v++;                            \
+			__swap16_multi_n--;                            \
+		}                                                  \
+	} while (0)
 
 //__BEGIN_DECLS
 /*u_int32_t	htobe32 __P((u_int32_t));
@@ -225,25 +223,24 @@ u_int16_t	letoh16 __P((u_int16_t));*/
 #endif /* BYTE_ORDER */
 
 
-#define	_BYTEORDER_PROTOTYPED
-#define	_BYTEORDER_FUNC_DEFINED
+#define _BYTEORDER_PROTOTYPED
+#define _BYTEORDER_FUNC_DEFINED
 
-#define htons htobe16
-#define htonl htobe32
+#define htons  htobe16
+#define htonl  htobe32
 #define htonll htobe64
-#define ntohs betoh16
-#define ntohl betoh32
+#define ntohs  betoh16
+#define ntohl  betoh32
 #define ntohll betoh64
 
-#define	NTOHLL(x) (x) = ntohll((u_int64_t)(x))
-#define	NTOHL(x) (x) = ntohl((u_int32_t)(x))
-#define	NTOHS(x) (x) = ntohs((u_int16_t)(x))
-#define	HTONLL(x) (x) = htonll((u_int64_t)(x))
-#define	HTONL(x) (x) = htonl((u_int32_t)(x))
-#define	HTONS(x) (x) = htons((u_int16_t)(x))
+#define NTOHLL(x) (x) = ntohll((u_int64_t)(x))
+#define NTOHL(x)  (x) = ntohl((u_int32_t)(x))
+#define NTOHS(x)  (x) = ntohs((u_int16_t)(x))
+#define HTONLL(x) (x) = htonll((u_int64_t)(x))
+#define HTONL(x)  (x) = htonl((u_int32_t)(x))
+#define HTONS(x)  (x) = htons((u_int16_t)(x))
 
 #define B_BENDIAN_TO_HOST_INT16(x) betoh16(x)
 
 #endif /* _POSIX_SOURCE */
 #endif /* _SYS_ENDIAN_H_ */
-

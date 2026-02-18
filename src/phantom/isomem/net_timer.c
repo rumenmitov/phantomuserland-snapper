@@ -1,11 +1,12 @@
-#include <kernel/net_timer.h>
 #include "genode_misc.h"
+
+#include <kernel/net_timer.h>
 
 
 int cancel_net_timer(net_timer_event *e)
 {
-    _stub_print();
-    return 0;
+	_stub_print();
+	return 0;
 }
 
 // #include <kernel/config.h>
@@ -88,7 +89,8 @@ int cancel_net_timer(net_timer_event *e)
 //     return NO_ERROR;
 // }
 
-// int set_net_timer(net_timer_event *e, unsigned int delay_ms, net_timer_callback callback, void *args, int flags)
+// int set_net_timer(net_timer_event *e, unsigned int delay_ms, net_timer_callback
+// callback, void *args, int flags)
 // {
 //     int err = NO_ERROR;
 
@@ -137,8 +139,8 @@ int cancel_net_timer(net_timer_event *e)
 //     t_current_set_name("Net Timer");
 
 //     for(;;) {
-//         //sem_acquire_etc(net_q.wait_sem, 1, SEM_FLAG_TIMEOUT, NET_TIMER_INTERVAL, NULL);
-//         hal_sleep_msec(NET_TIMER_INTERVAL);
+//         //sem_acquire_etc(net_q.wait_sem, 1, SEM_FLAG_TIMEOUT, NET_TIMER_INTERVAL,
+//         NULL); hal_sleep_msec(NET_TIMER_INTERVAL);
 
 //         now = system_time();
 // //ph_printf("(^)");
@@ -185,8 +187,9 @@ int cancel_net_timer(net_timer_event *e)
 //     }
 
 
-//     //net_q.runner_thread = thread_create_kernel_thread("net timer runner", &net_timer_runner, NULL);
-//     net_q.runner_thread = hal_start_kernel_thread_arg( &net_timer_runner, NULL );
+//     //net_q.runner_thread = thread_create_kernel_thread("net timer runner",
+//     &net_timer_runner, NULL); net_q.runner_thread = hal_start_kernel_thread_arg(
+//     &net_timer_runner, NULL );
 
 //     if(net_q.runner_thread < 0) {
 //         sem_delete(net_q.wait_sem);
@@ -200,4 +203,3 @@ int cancel_net_timer(net_timer_event *e)
 // }
 
 // //#endif // HAVE_NET
-

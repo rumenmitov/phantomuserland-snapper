@@ -3,7 +3,7 @@
  * -
  * Copyright (c) 1983, 1993
  *    The Regents of the University of California.  All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -19,7 +19,7 @@
  * 4. Neither the name of the University nor the names of its contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -33,14 +33,14 @@
  * SUCH DAMAGE.
  * -
  * Portions Copyright (c) 1993 by Digital Equipment Corporation.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies, and that
  * the name of Digital Equipment Corporation not be used in advertising or
  * publicity pertaining to distribution of the document or software without
  * specific, written prior permission.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND DIGITAL EQUIPMENT CORP. DISCLAIMS ALL
  * WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS.   IN NO EVENT SHALL DIGITAL EQUIPMENT
@@ -60,26 +60,25 @@
  */
 
 #ifndef _ARPA_INET_H_
-#define	_ARPA_INET_H_
+#define _ARPA_INET_H_
 
 /* External definitions for functions in inet(3), addr2ascii(3) */
 
 #include <sys/cdefs.h>
-//#include <sys/_types.h>
+// #include <sys/_types.h>
 #include <sys/types.h>
 
 /* Required for byteorder(3) functions. */
 #include <machine/endian.h>
 
-//#include <shorttypes.h>
+// #include <shorttypes.h>
 
 #include <endian.h>
-
 #include <netinet/in.h>
 
 
-#define	INET_ADDRSTRLEN		16
-#define	INET6_ADDRSTRLEN	46
+#define INET_ADDRSTRLEN  16
+#define INET6_ADDRSTRLEN 46
 
 /*
 #ifndef _UINT16_T_DECLARED
@@ -99,15 +98,15 @@ typedef	uint32_t	in_addr_t;
 */
 
 #ifndef _IN_PORT_T_DECLARED
-typedef	u_int16_t	in_port_t;
-#define	_IN_PORT_T_DECLARED
+typedef u_int16_t in_port_t;
+#define _IN_PORT_T_DECLARED
 #endif
 
 #if __BSD_VISIBLE
 #ifndef _SIZE_T_DECLARED
-typedef	__size_t	size_t;
+typedef __size_t size_t;
 #define _SIZE_T
-#define	_SIZE_T_DECLARED
+#define _SIZE_T_DECLARED
 #endif
 #endif
 
@@ -116,84 +115,84 @@ typedef	__size_t	size_t;
  * POSIX.1-2001.
  */
 #ifndef _SOCKLEN_T_DECLARED
-//typedef	__socklen_t	socklen_t;
-typedef	int	socklen_t;
-#define	_SOCKLEN_T_DECLARED
+// typedef	__socklen_t	socklen_t;
+typedef int socklen_t;
+#define _SOCKLEN_T_DECLARED
 #endif
 
 #ifndef _STRUCT_IN_ADDR_DECLARED
-struct in_addr {
+struct in_addr
+{
 	in_addr_t s_addr;
 };
-#define	_STRUCT_IN_ADDR_DECLARED
+#define _STRUCT_IN_ADDR_DECLARED
 #endif
 
 /* XXX all new diversions!! argh!! */
 #if __BSD_VISIBLE
-#define	inet_addr		__inet_addr
-#define	inet_aton		__inet_aton
-#define	inet_lnaof		__inet_lnaof
-#define	inet_makeaddr		__inet_makeaddr
-#define	inet_neta		__inet_neta
-#define	inet_netof		__inet_netof
-#define	inet_network		__inet_network
-#define	inet_net_ntop		__inet_net_ntop
-#define	inet_net_pton		__inet_net_pton
-#define	inet_cidr_ntop		__inet_cidr_ntop
-#define	inet_cidr_pton		__inet_cidr_pton
+#define inet_addr      __inet_addr
+#define inet_aton      __inet_aton
+#define inet_lnaof     __inet_lnaof
+#define inet_makeaddr  __inet_makeaddr
+#define inet_neta      __inet_neta
+#define inet_netof     __inet_netof
+#define inet_network   __inet_network
+#define inet_net_ntop  __inet_net_ntop
+#define inet_net_pton  __inet_net_pton
+#define inet_cidr_ntop __inet_cidr_ntop
+#define inet_cidr_pton __inet_cidr_pton
 
-#define	inet_ntoa		__inet_ntoa
-#define	inet_ntoa_r		__inet_ntoa_r
-#define inet_itoa		__inet_itoa
+#define inet_ntoa   __inet_ntoa
+#define inet_ntoa_r __inet_ntoa_r
+#define inet_itoa   __inet_itoa
 
-#define	inet_pton		__inet_pton
-#define	inet_ntop		__inet_ntop
-#define	inet_nsap_addr		__inet_nsap_addr
-#define	inet_nsap_ntoa		__inet_nsap_ntoa
+#define inet_pton      __inet_pton
+#define inet_ntop      __inet_ntop
+#define inet_nsap_addr __inet_nsap_addr
+#define inet_nsap_ntoa __inet_nsap_ntoa
 #endif /* __BSD_VISIBLE */
 
 __BEGIN_DECLS
 #ifndef _BYTEORDER_PROTOTYPED
-#define	_BYTEORDER_PROTOTYPED
-u_int32_t	 htonl(u_int32_t);
-u_int16_t	 htons(u_int16_t);
-u_int32_t	 ntohl(u_int32_t);
-u_int16_t	 ntohs(u_int16_t);
+#define _BYTEORDER_PROTOTYPED
+u_int32_t htonl(u_int32_t);
+u_int16_t htons(u_int16_t);
+u_int32_t ntohl(u_int32_t);
+u_int16_t ntohs(u_int16_t);
 #endif
 
-in_addr_t	 inet_addr(const char *);
+in_addr_t inet_addr(const char *);
 
-/*const*/ char	*inet_ntoa(struct in_addr);
-char		*inet_ntoa_r(struct in_addr, char *buf, socklen_t size);
-const char	*inet_ntop(int, const void * __restrict, char * __restrict,
-		    socklen_t);
+/*const*/ char *inet_ntoa(struct in_addr);
+char *inet_ntoa_r(struct in_addr, char *buf, socklen_t size);
+const char *inet_ntop(int, const void *__restrict, char *__restrict, socklen_t);
 
 char *__inet_itoa(u_int32_t ia);
 
-int		 inet_pton(int, const char * __restrict, void * __restrict);
+int inet_pton(int, const char *__restrict, void *__restrict);
 
 #if __BSD_VISIBLE
-int		 inet_aton(const char *, struct in_addr *);
-in_addr_t	 inet_lnaof(struct in_addr);
-struct in_addr	 inet_makeaddr(in_addr_t, in_addr_t);
-char *		 inet_neta(in_addr_t, char *, size_t);
-in_addr_t	 inet_netof(struct in_addr);
-in_addr_t	 inet_network(const char *);
-char		*inet_net_ntop(int, const void *, int, char *, size_t);
-int		 inet_net_pton(int, const char *, void *, size_t);
-char		*inet_cidr_ntop(int, const void *, int, char *, size_t);
-int		 inet_cidr_pton(int, const char *, void *, int *);
-unsigned	 inet_nsap_addr(const char *, unsigned char *, int);
-char		*inet_nsap_ntoa(int, const unsigned char *, char *);
+int inet_aton(const char *, struct in_addr *);
+in_addr_t inet_lnaof(struct in_addr);
+struct in_addr inet_makeaddr(in_addr_t, in_addr_t);
+char *inet_neta(in_addr_t, char *, size_t);
+in_addr_t inet_netof(struct in_addr);
+in_addr_t inet_network(const char *);
+char *inet_net_ntop(int, const void *, int, char *, size_t);
+int inet_net_pton(int, const char *, void *, size_t);
+char *inet_cidr_ntop(int, const void *, int, char *, size_t);
+int inet_cidr_pton(int, const char *, void *, int *);
+unsigned inet_nsap_addr(const char *, unsigned char *, int);
+char *inet_nsap_ntoa(int, const unsigned char *, char *);
 #endif /* __BSD_VISIBLE */
 __END_DECLS
 
 #ifndef _BYTEORDER_FUNC_DEFINED
-#define	_BYTEORDER_FUNC_DEFINED
-#define	htonl(x)	__htonl(x)
-#define	htons(x)	__htons(x)
-#define	ntohl(x)	__ntohl(x)
-#define	ntohs(x)	__ntohs(x)
+#define _BYTEORDER_FUNC_DEFINED
+#define htonl(x) __htonl(x)
+#define htons(x) __htons(x)
+#define ntohl(x) __ntohl(x)
+#define ntohs(x) __ntohs(x)
 #endif
 
 #endif /* !_ARPA_INET_H_ */

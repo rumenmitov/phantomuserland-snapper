@@ -11,15 +11,14 @@
 **/
 
 
-#include <video/screen.h>
-#include <video/internal.h>
-
 #include <phantom_assert.h>
+#include <video/internal.h>
+#include <video/screen.h>
 //#include <kernel/pool.h>
 #include <kernel/libkern.h>
 #include <kernel/sem.h>
-#include <threads.h>
 #include <phantom_libc.h>
+#include <threads.h>
 
 static void paint_thread(void *arg);
 static void start_paint_thread(void);
@@ -38,7 +37,11 @@ static volatile int prev_paint_request = 0;
 static volatile int no_paint_msec = 0;
 static rect_t total;
 
-#define CHECK_START() ({ if(paint_tid < 0) start_paint_thread(); })
+#define CHECK_START()             \
+	({                            \
+		if (paint_tid < 0)        \
+			start_paint_thread(); \
+	})
 
 // TODO need mutex to access rect
 
@@ -136,8 +139,6 @@ static void start_paint_thread(void)
     hal_sem_init( &paint_sem, "paint" );
     paint_tid = hal_start_thread( paint_thread, 0, 0 );
 }
-
-
 
 
 #endif

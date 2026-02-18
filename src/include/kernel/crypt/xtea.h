@@ -1,9 +1,9 @@
 #ifndef _XTEA_H_
 #define _XTEA_H_
-/* 
- * Copyright of XTEA encryption algorithm by David Wheeler and Roger Needham 
+/*
+ * Copyright of XTEA encryption algorithm by David Wheeler and Roger Needham
  * at the Computer Laboratory of Cambridge University.
- * 
+ *
  * Kindly released to Public Domain.
  */
 
@@ -54,10 +54,10 @@
 
 typedef u_int32_t XTeaKeyBlock_t[4];
 
-extern void XTeaCrypt(u_int32_t *w,  const u_int32_t *v, const XTeaKeyBlock_t k);
+extern void XTeaCrypt(u_int32_t *w, const u_int32_t *v, const XTeaKeyBlock_t k);
 extern void XTeaDecrypt(u_int32_t *w, const u_int32_t *v, const XTeaKeyBlock_t k);
 
-extern void XTeaCryptStr( char *dst, const char *src, size_t len, const char *pass);
-extern void XTeaDecryptStr( char * dst, const char *src, size_t len, const char *pass);
+extern void XTeaCryptStr(char *dst, const char *src, size_t len, const char *pass);
+extern void XTeaDecryptStr(char *dst, const char *src, size_t len, const char *pass);
 
 #endif /* _XTEA_H_ */

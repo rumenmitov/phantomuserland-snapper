@@ -43,35 +43,36 @@
 //-----------------------------------------------------------------------------
 int FileString_PathTotalLevels(char *path)
 {
-    int levels=0;
+	int levels = 0;
 
-    int length = (int)strlen(path);
+	int length = (int)strlen(path);
 
-    // If too short
-    if (length<3)
-        return -1;
+	// If too short
+	if (length < 3)
+		return -1;
 
-    // Check for C:\...
-    if (path[1]!=':' || path[2]!='\\')
-        return -1;
+	// Check for C:\...
+	if (path[1] != ':' || path[2] != '\\')
+		return -1;
 
-    // Count levels in path string
-    while (*path)
-    {
-        // Fast forward through actual subdir text to next slash
-        for(;*path;)
-        {
-            // If slash detected escape from for loop
-            if (*path == '\\') { path++; break; }
-            path++;
-        }
+	// Count levels in path string
+	while (*path) {
+		// Fast forward through actual subdir text to next slash
+		for (; *path;) {
+			// If slash detected escape from for loop
+			if (*path == '\\') {
+				path++;
+				break;
+			}
+			path++;
+		}
 
-        // Increase number of subdirs founds
-        levels++;
-    }
+		// Increase number of subdirs founds
+		levels++;
+	}
 
-    // Subtract the drive letter level and file itself
-    return levels-2;
+	// Subtract the drive letter level and file itself
+	return levels - 2;
 }
 //-----------------------------------------------------------------------------
 // FileString_GetSubString: Get a substring from 'Path' which contains the folder
@@ -81,44 +82,44 @@ int FileString_PathTotalLevels(char *path)
 //-----------------------------------------------------------------------------
 int FileString_GetSubString(char *Path, int levelreq, char *output)
 {
-    int i;
-    int pathlen=0;
-    int levels=0;
-    int copypnt=0;
+	int i;
+	int pathlen = 0;
+	int levels = 0;
+	int copypnt = 0;
 
-    // Get string length of Path
-    pathlen = (int)strlen (Path);
+	// Get string length of Path
+	pathlen = (int)strlen(Path);
 
-    // If too short
-    if (pathlen<3)
-        return -1;
+	// If too short
+	if (pathlen < 3)
+		return -1;
 
-    // Check for C:\...
-    if (Path[1]!=':' || Path[2]!='\\')
-        return -1;
+	// Check for C:\...
+	if (Path[1] != ':' || Path[2] != '\\')
+		return -1;
 
-    // Loop through the number of times as characters in 'Path'
-    for (i = 0; i<pathlen; i++)
-    {
-        // If a '\' is found then increase level
-        if (*Path=='\\') levels++;
+	// Loop through the number of times as characters in 'Path'
+	for (i = 0; i < pathlen; i++) {
+		// If a '\' is found then increase level
+		if (*Path == '\\')
+			levels++;
 
-        // If correct level and the character is not a '\' then copy text to 'output'
-        if ( (levels==(levelreq+1)) && (*Path!='\\') )
-            output[copypnt++] = *Path;
+		// If correct level and the character is not a '\' then copy text to 'output'
+		if ((levels == (levelreq + 1)) && (*Path != '\\'))
+			output[copypnt++] = *Path;
 
-        // Increment through path string
-        Path++;
-    }
+		// Increment through path string
+		Path++;
+	}
 
-    // Null Terminate
-    output[copypnt] = '\0';
+	// Null Terminate
+	output[copypnt] = '\0';
 
-    // If a string was copied return 0 else return 1
-    if (output[0]!='\0')
-        return 0;	// OK
-    else
-        return -1;	// Error
+	// If a string was copied return 0 else return 1
+	if (output[0] != '\0')
+		return 0;  // OK
+	else
+		return -1;  // Error
 }
 //-----------------------------------------------------------------------------
 // FileString_SplitPath: Full path contains the passed in string.
@@ -128,63 +129,59 @@ int FileString_GetSubString(char *Path, int levelreq, char *output)
 //-----------------------------------------------------------------------------
 int FileString_SplitPath(char *FullPath, char *Path, char *FileName)
 {
-    int strindex;
+	int strindex;
 
-    // Count the levels to the filepath
-    int levels = FileString_PathTotalLevels(FullPath);
-    if (levels==-1)
-        return -1;
+	// Count the levels to the filepath
+	int levels = FileString_PathTotalLevels(FullPath);
+	if (levels == -1)
+		return -1;
 
-    // Get filename part of string
-    FileString_GetSubString(FullPath, levels, FileName);
+	// Get filename part of string
+	FileString_GetSubString(FullPath, levels, FileName);
 
-    // If root file
-    if (levels==0)
-    {
-        Path[0]='\0';
-        return 0;
-    }
-    else
-    {
-        strindex = (int)strlen(FullPath) - (int)strlen(FileName);
-        memcpy(Path, FullPath, strindex);
-        Path[strindex-1] = '\0';
-        return 0;
-    }
+	// If root file
+	if (levels == 0) {
+		Path[0] = '\0';
+		return 0;
+	} else {
+		strindex = (int)strlen(FullPath) - (int)strlen(FileName);
+		memcpy(Path, FullPath, strindex);
+		Path[strindex - 1] = '\0';
+		return 0;
+	}
 }
 //-----------------------------------------------------------------------------
 // FileString_StrCmpNoCase: Compare two strings case with case sensitivity
 //-----------------------------------------------------------------------------
 int FileString_StrCmpNoCase(char *s1, char *s2, int n)
 {
-    int diff;
-    char a,b;
+	int diff;
+	char a, b;
 
-    while (n--)
-    {
-        a = *s1;
-        b = *s2;
+	while (n--) {
+		a = *s1;
+		b = *s2;
 
-        // Make lower case if uppercase
-        if ((a>='A') && (a<='Z'))
-            a+= 32;
-        if ((b>='A') && (b<='Z'))
-            b+= 32;
+		// Make lower case if uppercase
+		if ((a >= 'A') && (a <= 'Z'))
+			a += 32;
+		if ((b >= 'A') && (b <= 'Z'))
+			b += 32;
 
-        diff = a - b;
+		diff = a - b;
 
-        // If different
-        if (diff)
-            return diff;
+		// If different
+		if (diff)
+			return diff;
 
-        // If run out of strings
-        if ( (*s1 == 0) || (*s2 == 0) )
-            break;
+		// If run out of strings
+		if ((*s1 == 0) || (*s2 == 0))
+			break;
 
-        s1++;
-        s2++;
-    }
-    return 0;
+		s1++;
+		s2++;
+	}
+	return 0;
 }
 //-----------------------------------------------------------------------------
 // FileString_GetExtension: Get index to extension within filename
@@ -192,19 +189,18 @@ int FileString_StrCmpNoCase(char *s1, char *s2, int n)
 //-----------------------------------------------------------------------------
 int FileString_GetExtension(char *str)
 {
-    int dotPos = -1;
-    char *strSrc = str;
+	int dotPos = -1;
+	char *strSrc = str;
 
-    // Find last '.' in string (if at all)
-    while (*strSrc)
-    {
-        if (*strSrc=='.')
-            dotPos = (int)(strSrc-str);
+	// Find last '.' in string (if at all)
+	while (*strSrc) {
+		if (*strSrc == '.')
+			dotPos = (int)(strSrc - str);
 
-        strSrc++;
-    }
+		strSrc++;
+	}
 
-    return dotPos;
+	return dotPos;
 }
 //-----------------------------------------------------------------------------
 // FileString_TrimLength: Get length of string excluding trailing spaces
@@ -212,82 +208,79 @@ int FileString_GetExtension(char *str)
 //-----------------------------------------------------------------------------
 int FileString_TrimLength(char *str, int strLen)
 {
-    int length = strLen;
-    char *strSrc = str+strLen-1;
+	int length = strLen;
+	char *strSrc = str + strLen - 1;
 
-    // Find last non white space
-    while (strLen!=0)
-    {
-        if (*strSrc==' ')
-            length = (int)(strSrc - str);
-        else
-            break;
+	// Find last non white space
+	while (strLen != 0) {
+		if (*strSrc == ' ')
+			length = (int)(strSrc - str);
+		else
+			break;
 
-        strSrc--;
-        strLen--;
-    }
+		strSrc--;
+		strLen--;
+	}
 
-    return length;
+	return length;
 }
 //-----------------------------------------------------------------------------
 // FileString_Compare: Compare two filenames (without copying or changing origonals)
 // Returns 1 if match, 0 if not
 //-----------------------------------------------------------------------------
-int FileString_Compare(char* strA, char* strB)
+int FileString_Compare(char *strA, char *strB)
 {
-    char *ext1 = NULL;
-    char *ext2 = NULL;
-    int ext1Pos, ext2Pos;
-    int file1Len, file2Len;
+	char *ext1 = NULL;
+	char *ext2 = NULL;
+	int ext1Pos, ext2Pos;
+	int file1Len, file2Len;
 
-    // Get both files extension
-    ext1Pos = FileString_GetExtension(strA);
-    ext2Pos = FileString_GetExtension(strB);
+	// Get both files extension
+	ext1Pos = FileString_GetExtension(strA);
+	ext2Pos = FileString_GetExtension(strB);
 
-    // NOTE: Extension position can be different for matching
-    // filename if trailing space are present before it!
-    // Check that if one has an extension, so does the other
-    if ((ext1Pos==-1) && (ext2Pos!=-1))
-        return 0;
-    if ((ext2Pos==-1) && (ext1Pos!=-1))
-        return 0;
+	// NOTE: Extension position can be different for matching
+	// filename if trailing space are present before it!
+	// Check that if one has an extension, so does the other
+	if ((ext1Pos == -1) && (ext2Pos != -1))
+		return 0;
+	if ((ext2Pos == -1) && (ext1Pos != -1))
+		return 0;
 
-    // If they both have extensions, compare them
-    if (ext1Pos!=-1)
-    {
-        // Set pointer to start of extension
-        ext1 = strA+ext1Pos+1;
-        ext2 = strB+ext2Pos+1;
+	// If they both have extensions, compare them
+	if (ext1Pos != -1) {
+		// Set pointer to start of extension
+		ext1 = strA + ext1Pos + 1;
+		ext2 = strB + ext2Pos + 1;
 
-        // If they dont match
-        if (FileString_StrCmpNoCase(ext1, ext2, (int)strlen(ext1))!=0)
-            return 0;
+		// If they dont match
+		if (FileString_StrCmpNoCase(ext1, ext2, (int)strlen(ext1)) != 0)
+			return 0;
 
-        // Filelength is upto extensions
-        file1Len = ext1Pos;
-        file2Len = ext2Pos;
-    }
-    // No extensions
-    else
-    {
-        // Filelength is actual filelength
-        file1Len = (int)strlen(strA);
-        file2Len = (int)strlen(strB);
-    }
+		// Filelength is upto extensions
+		file1Len = ext1Pos;
+		file2Len = ext2Pos;
+	}
+	// No extensions
+	else {
+		// Filelength is actual filelength
+		file1Len = (int)strlen(strA);
+		file2Len = (int)strlen(strB);
+	}
 
-    // Find length without trailing spaces (before ext)
-    file1Len = FileString_TrimLength(strA, file1Len);
-    file2Len = FileString_TrimLength(strB, file2Len);
+	// Find length without trailing spaces (before ext)
+	file1Len = FileString_TrimLength(strA, file1Len);
+	file2Len = FileString_TrimLength(strB, file2Len);
 
-    // Check the file lengths match
-    if (file1Len!=file2Len)
-        return 0;
+	// Check the file lengths match
+	if (file1Len != file2Len)
+		return 0;
 
-    // Compare main part of filenames
-    if (FileString_StrCmpNoCase(strA, strB, file1Len)!=0)
-        return 0;
-    else
-        return 1;
+	// Compare main part of filenames
+	if (FileString_StrCmpNoCase(strA, strB, file1Len) != 0)
+		return 0;
+	else
+		return 1;
 }
 
-#endif // #if HAVE_UNIX
+#endif  // #if HAVE_UNIX

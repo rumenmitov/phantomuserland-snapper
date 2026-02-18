@@ -8,13 +8,12 @@
  * Window - direct blit to screen.
  *
  *
-**/
+ **/
 
 
+#include <event.h>
 #include <phantom_assert.h>
 #include <phantom_libc.h>
-#include <event.h>
-
 #include <video/internal.h>
 #include <video/screen.h>
 
@@ -22,63 +21,59 @@
 #include <kernel/libkern.h>
 
 
-
-
-
-
 #if !USE_ONLY_INDIRECT_PAINT
 
 
 #if 1
-void iw_winblt_locked( drv_video_window_t *from )
+void iw_winblt_locked(drv_video_window_t *from)
 {
-    w_assert_lock();
-/*
-    if( (from->state & WSTATE_WIN_ROLLEDUP) || !(from->state & WSTATE_WIN_VISIBLE) )
-        return;
-*/
-    scr_repaint_win( from );
+	w_assert_lock();
+	/*
+		if( (from->state & WSTATE_WIN_ROLLEDUP) || !(from->state & WSTATE_WIN_VISIBLE) )
+			return;
+	*/
+	scr_repaint_win(from);
 }
 
 #else
 
-void iw_winblt_locked( drv_video_window_t *from )
+void iw_winblt_locked(drv_video_window_t *from)
 {
-    w_assert_lock();
+	w_assert_lock();
 
-    if( (from->state & WSTATE_WIN_ROLLEDUP) || !(from->state & WSTATE_WIN_VISIBLE) )
-        return;
+	if ((from->state & WSTATE_WIN_ROLLEDUP) || !(from->state & WSTATE_WIN_VISIBLE))
+		return;
 
-    scr_mouse_disable_p(video_drv, from->x, from->y, from->xsize, from->ysize );
-    video_drv->winblt(from, from->x, from->y, from->z);
-    scr_mouse_enable_p(video_drv, from->x, from->y, from->xsize, from->ysize );
+	scr_mouse_disable_p(video_drv, from->x, from->y, from->xsize, from->ysize);
+	video_drv->winblt(from, from->x, from->y, from->z);
+	scr_mouse_enable_p(video_drv, from->x, from->y, from->xsize, from->ysize);
 }
 
 #endif
 
-void iw_winblt( drv_video_window_t *from )
+void iw_winblt(drv_video_window_t *from)
 {
-    w_lock();
-    iw_winblt_locked(from);
-    w_unlock();
+	w_lock();
+	iw_winblt_locked(from);
+	w_unlock();
 }
 
 
 #if 1
-void drv_video_winblt_locked( drv_video_window_t *from )
+void drv_video_winblt_locked(drv_video_window_t *from)
 {
-    iw_winblt_locked( from );
+	iw_winblt_locked(from);
 }
 
-void drv_video_winblt( drv_video_window_t *from )
+void drv_video_winblt(drv_video_window_t *from)
 {
-    w_lock();
-    iw_winblt_locked(from);
-    w_unlock();
+	w_lock();
+	iw_winblt_locked(from);
+	w_unlock();
 }
 #endif
 
-#endif // USE_ONLY_INDIRECT_PAINT
+#endif  // USE_ONLY_INDIRECT_PAINT
 
 
 #endif

@@ -8,9 +8,7 @@
 #ifndef MMX_H
 #define MMX_H
 
-void fast_clear_page( void *page );
+void fast_clear_page(void *page);
 
 
 #endif
-
-

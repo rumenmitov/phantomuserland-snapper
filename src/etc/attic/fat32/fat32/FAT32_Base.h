@@ -1,5 +1,5 @@
-#include "unix/fat32/define.h"
 #include "FAT32_Opts.h"
+#include "unix/fat32/define.h"
 
 #ifndef __FAT32_BASE_H__
 #define __FAT32_BASE_H__
@@ -15,6 +15,6 @@
 //-----------------------------------------------------------------------------
 BOOL FAT32_FindLBABegin(f32_t *impl, BYTE *buffer, UINT32 *lbaBegin);
 UINT32 FAT32_LBAofCluster(f32_t *impl, UINT32 Cluster_Number);
-BOOL FAT32_Init(f32_t *impl, int rawDisk  );
+BOOL FAT32_Init(f32_t *impl, int rawDisk);
 
 #endif

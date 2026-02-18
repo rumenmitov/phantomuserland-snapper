@@ -7,7 +7,7 @@
  * Translate trap to signal. If no one handling - kill the thread.
  *
  *
-**/
+ **/
 
 #include "genode_misc.h"
 
@@ -25,27 +25,25 @@
 
 
 //! This is what called from low-level asm trap code
-void
-phantom_kernel_trap( struct trap_state *ts )
+void phantom_kernel_trap(struct trap_state *ts)
 {
-    _stub_print();
+	_stub_print();
 }
 
 
 // returns nonzero if handled
-int
-phantom_check_user_trap( struct trap_state *ts )
+int phantom_check_user_trap(struct trap_state *ts)
 {
-    // _stub_print();
-    return 1;   // Return 1 to say that everything is ok
+	// _stub_print();
+	return 1;  // Return 1 to say that everything is ok
 }
 
 int trap_panic(struct trap_state *ts)
 {
-    _stub_print();
+	_stub_print();
 }
 
 void dump_ss(struct trap_state *st)
 {
-    _stub_print();
+	_stub_print();
 }

@@ -7,7 +7,7 @@
  * Kernel debugger interface.
  *
  *
-**/
+ **/
 
 #ifndef KERNEL_DEBUG_H
 #define KERNEL_DEBUG_H
@@ -31,4 +31,4 @@ void phantom_dump_windows_buf(char *bp, int len);
 void lprintf(char const *format, ...);
 
 
-#endif // KERNEL_DEBUG_H
+#endif  // KERNEL_DEBUG_H

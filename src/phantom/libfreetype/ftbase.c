@@ -20,16 +20,16 @@
 
 #define  FT_MAKE_OPTION_SINGLE_OBJECT
 
-#include "ftutil.c"
-#include "ftdbgmem.c"
-#include "ftstream.c"
 #include "ftcalc.c"
-#include "fttrigon.c"
-#include "ftoutln.c"
+#include "ftdbgmem.c"
 #include "ftgloadr.c"
-#include "ftobjs.c"
 #include "ftnames.c"
+#include "ftobjs.c"
+#include "ftoutln.c"
 #include "ftrfork.c"
+#include "ftstream.c"
+#include "fttrigon.c"
+#include "ftutil.c"
 
 #if defined( __APPLE__ ) && !defined ( DARWIN_NO_CARBON )
 #include "ftmac.c"

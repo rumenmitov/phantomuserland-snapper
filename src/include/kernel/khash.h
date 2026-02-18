@@ -5,17 +5,19 @@
 #ifndef _KERNEL_KHASH_H
 #define _KERNEL_KHASH_H
 
-//#include "newos.h"
+// #include "newos.h"
 #include <compat/newos.h>
 
-struct hash_iterator {
+struct hash_iterator
+{
 	void *ptr;
 	int bucket;
 };
 
-void *hash_init(unsigned int table_size, int next_ptr_offset,
-	int compare_func(void *a, const void *key),
-	unsigned int hash_func(void *a, const void *key, unsigned int range));
+void *hash_init(unsigned int table_size,
+				int next_ptr_offset,
+				int compare_func(void *a, const void *key),
+				unsigned int hash_func(void *a, const void *key, unsigned int range));
 int hash_uninit(void *_hash_table);
 int hash_insert(void *_hash_table, void *_elem);
 int hash_remove(void *_hash_table, void *_elem);
@@ -38,7 +40,6 @@ unsigned int hash_func(void *e, const void *key, unsigned int range);
 int compare_func(void *e, const void *key);
 */
 
-unsigned int hash_hash_str( const char *str );
+unsigned int hash_hash_str(const char *str);
 
 #endif
-

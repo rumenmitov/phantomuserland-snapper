@@ -11,9 +11,9 @@
  *
 **/
 
-#include <video/vops.h>
 #include <assert.h>
 #include <sys/types.h>
+#include <video/vops.h>
 
 
 
@@ -172,7 +172,7 @@ void bitmap2bitmap_yflip(
 
 
 //#if VIDEO_ZBUF
-#if 1 // old code was in vm/video/bitblt.c
+#if 1  // old code was in vm/video/bitblt.c
 void rgba2rgb_zbmove( struct rgb_t *dest, const struct rgba_t *src, zbuf_t *zb, int nelem, zbuf_t zpos  )
 {
     int *isrc = (int *)src;
@@ -228,8 +228,7 @@ void rgb2rgba_zbmove( struct rgba_t *dest, const struct rgb_t *src, zbuf_t *zb, 
 }
 
 
-
-#if 0 // use asm version
+#if 0  // use asm version
 
 #if 0
 void rgba2rgba_zbmove( struct rgba_t *dest, const struct rgba_t *src, zbuf_t *zb, int nelem, zbuf_t zpos )
@@ -251,18 +250,17 @@ void rgba2rgba_zbmove( struct rgba_t *dest, const struct rgba_t *src, zbuf_t *zb
 }
 #else
 
-#define ZBM_STEP \
-    {                                 \
-        if( src->a && (*zb <= zpos) ) \
-        {                             \
-            *zb = zpos;               \
-            *dest = *src;             \
-        }                             \
-                                      \
-        dest++;                       \
-        src++;                        \
-        zb++;                         \
-    }
+#define ZBM_STEP                       \
+	{                                  \
+		if (src->a && (*zb <= zpos)) { \
+			*zb = zpos;                \
+			*dest = *src;              \
+		}                              \
+                                       \
+		dest++;                        \
+		src++;                         \
+		zb++;                          \
+	}
 
 void rgba2rgba_zbmove( struct rgba_t *dest, const struct rgba_t *src, zbuf_t *zb, int nelem, zbuf_t zpos )
 {
@@ -456,13 +454,6 @@ w_draw_bitmap( drv_video_window_t *w, int x, int y, drv_video_bitmap_t *bmp )
                  );
 
 }
-
-
-
-
-
-
-
 
 
 #endif

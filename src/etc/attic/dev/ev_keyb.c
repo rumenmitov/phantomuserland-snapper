@@ -1,4 +1,4 @@
-#if 0 // !CONF_NEW_PS2
+#if 0  // !CONF_NEW_PS2
 /**
  *
  * Phantom OS
@@ -11,20 +11,18 @@
 **/
 
 
-
 #define DEBUG_MSG_PREFIX "events.keyb"
 #include <debug_ext.h>
-#define debug_level_flow 10
+#define debug_level_flow  10
 #define debug_level_error 10
-#define debug_level_info 10
+#define debug_level_info  10
 
-#include <threads.h>
-#include <dev/key_event.h>
-
-#include <event.h>
 #include "ev_private.h"
 
+#include <dev/key_event.h>
+#include <event.h>
 #include <kernel/snap_sync.h>
+#include <threads.h>
 
 static void ev_send_key_event_to_q(_key_event *event)
 {

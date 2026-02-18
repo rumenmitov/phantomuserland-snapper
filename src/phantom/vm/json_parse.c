@@ -7,38 +7,35 @@
  * JSON related.
  *
  *
-**/
+ **/
 
 
 #define DEBUG_MSG_PREFIX "vm.json"
 #include <debug_ext.h>
-#define debug_level_flow 10
+#define debug_level_flow  10
 #define debug_level_error 11
-#define debug_level_info 11
+#define debug_level_info  11
 
 #include <ph_string.h>
 
-//#include <hashfunc.h>
-#include <vm/syscall.h>
-#include <vm/object.h>
+// #include <hashfunc.h>
+#include <kernel/json.h>
 #include <vm/alloc.h>
 #include <vm/internal_da.h>
-#include <vm/spin.h>
-
 #include <vm/json.h>
-
-#include <kernel/json.h>
+#include <vm/object.h>
+#include <vm/spin.h>
+#include <vm/syscall.h>
 // #include <stdio.h>
-
 
 
 /**
  *
- * \brief Print JSON-style object tree. 
+ * \brief Print JSON-style object tree.
  *
  * Can process array and directory as containers, others will be just printed as
  * leafs.
- * 
+ *
  * \param[in]  key        Name to print as header
  * \param[in]  o          Root of tree to print
  * \param[in]  tab        Initial shift
@@ -46,92 +43,89 @@
  * \return 0 if success.
  *
  * See also:
- * 
+ *
  * errno_t pvm_print_json( pvm_object_t root )
- * 
-**/
+ *
+ **/
 
-errno_t pvm_print_json_ext( pvm_object_t key, pvm_object_t o, int tab )
+errno_t pvm_print_json_ext(pvm_object_t key, pvm_object_t o, int tab)
 {
-    errno_t rc = 0;
+	errno_t rc = 0;
 
-    if (o == NULL) return 0;
+	if (o == NULL)
+		return 0;
 
-    int i;
-    for( i = 0; i < tab; i++ ) ph_printf("\t");
+	int i;
+	for (i = 0; i < tab; i++)
+		ph_printf("\t");
 
-    if( key != 0 ) { pvm_object_print( key ); ph_printf(": "); }
+	if (key != 0) {
+		pvm_object_print(key);
+		ph_printf(": ");
+	}
 
-    if(o->_class == pvm_get_array_class())
-    {
-        ph_printf("[\n");
-        int asize = get_array_size(o);
+	if (o->_class == pvm_get_array_class()) {
+		ph_printf("[\n");
+		int asize = get_array_size(o);
 
-            for( i = 0; i < asize; i++ )
-            {
-                pvm_object_t el = pvm_get_array_ofield( o, i );
-                pvm_print_json_ext( key, el, tab+1 );
-            }
-            
-        ph_printf("]\n");
-    }
-    else if(o->_class == pvm_get_directory_class())
-    {
-            struct data_area_4_directory *d = pvm_object_da( o, directory );
-            pvm_object_t keys;
-            rc = hdir_keys( d, &keys );
-            if(rc) return rc;
+		for (i = 0; i < asize; i++) {
+			pvm_object_t el = pvm_get_array_ofield(o, i);
+			pvm_print_json_ext(key, el, tab + 1);
+		}
 
-            int asize = get_array_size(keys);
-            
-            ph_printf("\n");
+		ph_printf("]\n");
+	} else if (o->_class == pvm_get_directory_class()) {
+		struct data_area_4_directory *d = pvm_object_da(o, directory);
+		pvm_object_t keys;
+		rc = hdir_keys(d, &keys);
+		if (rc)
+			return rc;
 
-            int i;
-            for( i = 0; i < asize; i++ )
-            {
-                pvm_object_t key = pvm_get_array_ofield( keys, i );
-                pvm_object_t el;
-                // TODO assert string                
-                rc = hdir_find( d, pvm_get_str_data(key), pvm_get_str_len(key), &el, 0 );
-                if(rc) return rc; // TODO free!
-                pvm_print_json_ext( key, el, tab+1 );
-            }
-    }
-    else 
-    {
-        pvm_object_print(o);
-        ph_printf("\n");
-    }
+		int asize = get_array_size(keys);
 
-    return rc;
+		ph_printf("\n");
+
+		int i;
+		for (i = 0; i < asize; i++) {
+			pvm_object_t key = pvm_get_array_ofield(keys, i);
+			pvm_object_t el;
+			// TODO assert string
+			rc = hdir_find(d, pvm_get_str_data(key), pvm_get_str_len(key), &el, 0);
+			if (rc)
+				return rc;  // TODO free!
+			pvm_print_json_ext(key, el, tab + 1);
+		}
+	} else {
+		pvm_object_print(o);
+		ph_printf("\n");
+	}
+
+	return rc;
 }
 
 
 /**
  *
- * \brief Print JSON-style object tree. 
+ * \brief Print JSON-style object tree.
  *
  * Can process array and directory as containers, others will be just printed as
  * leafs.
- * 
+ *
  * \param[in]  root        Root of tree to print
  *
  * \return 0 if success.
  *
- * 
-**/
+ *
+ **/
 
-errno_t pvm_print_json( pvm_object_t root )
+errno_t pvm_print_json(pvm_object_t root)
 {
-	return pvm_print_json_ext( 0, root, 0 );
+	return pvm_print_json_ext(0, root, 0);
 }
 
 
-
-
-
 #define PRINT_PARSED 0
-#define PRINT_ADDED 0
+#define PRINT_ADDED  0
 
 
 /**
@@ -143,79 +137,102 @@ errno_t pvm_print_json( pvm_object_t root )
  * \param[in]  tab        Initial shift
  *
  * \return Corresponding JSON as tree of objects.
- * 
-**/
-pvm_object_t pvm_convert_json_to_objects_ext( const char *name, json_value *jv, int tab )
+ *
+ **/
+pvm_object_t pvm_convert_json_to_objects_ext(const char *name, json_value *jv, int tab)
 {
-    if (jv == NULL) return 0;
+	if (jv == NULL)
+		return 0;
 
-    int i;
-    for( i = 0; i < tab; i++ ) if(PRINT_PARSED||PRINT_ADDED) ph_printf("\t");
+	int i;
+	for (i = 0; i < tab; i++)
+		if (PRINT_PARSED || PRINT_ADDED)
+			ph_printf("\t");
 
-    if(PRINT_PARSED && name) ph_printf("'%s': ", name );
+	if (PRINT_PARSED && name)
+		ph_printf("'%s': ", name);
 
-    switch(jv->type)
-    {
-    case json_integer:  if(PRINT_PARSED) ph_printf("%lld\n", jv->u.integer );     return pvm_create_long_object(jv->u.integer); 
-    case json_double:   if(PRINT_PARSED) ph_printf("%g\n", jv->u.dbl );           return pvm_create_double_object(jv->u.dbl); 
-    case json_string:   if(PRINT_PARSED) ph_printf("'%s'\n", jv->u.string.ptr );  return pvm_create_string_object_binary( jv->u.string.ptr, jv->u.string.length );
-    case json_boolean:  if(PRINT_PARSED) ph_printf("%d\n", jv->u.boolean );       return pvm_create_int_object( jv->u.boolean );
+	switch (jv->type) {
+		case json_integer:
+			if (PRINT_PARSED)
+				ph_printf("%lld\n", jv->u.integer);
+			return pvm_create_long_object(jv->u.integer);
+		case json_double:
+			if (PRINT_PARSED)
+				ph_printf("%g\n", jv->u.dbl);
+			return pvm_create_double_object(jv->u.dbl);
+		case json_string:
+			if (PRINT_PARSED)
+				ph_printf("'%s'\n", jv->u.string.ptr);
+			return pvm_create_string_object_binary(jv->u.string.ptr, jv->u.string.length);
+		case json_boolean:
+			if (PRINT_PARSED)
+				ph_printf("%d\n", jv->u.boolean);
+			return pvm_create_int_object(jv->u.boolean);
 
-    case json_object:        
-        //print_jv( jv->u.object.values->name, jv->u.object.values->value, tab+1 );
-        {
-            pvm_object_t dir = pvm_create_directory_object();
-            struct data_area_4_directory *d = pvm_object_da( dir, directory );
-            if(PRINT_PARSED||PRINT_ADDED) ph_printf("\n" );
-            int length, x;        
-            length = jv->u.object.length;
-            for (x = 0; x < length; x++) 
-            {
-                pvm_object_t ent = pvm_convert_json_to_objects_ext( jv->u.object.values[x].name, jv->u.object.values[x].value, tab+1 );
-                if( ent )
-                {    
-                    if(PRINT_ADDED)
-                    {
-                    ph_printf("hdir_add '%*s' = ", jv->u.object.values[x].name_length, jv->u.object.values[x].name );
-                    pvm_object_print(ent);
-                    ph_printf("\n" );
-                    }
+		case json_object:
+			// print_jv( jv->u.object.values->name, jv->u.object.values->value, tab+1 );
+			{
+				pvm_object_t dir = pvm_create_directory_object();
+				struct data_area_4_directory *d = pvm_object_da(dir, directory);
+				if (PRINT_PARSED || PRINT_ADDED)
+					ph_printf("\n");
+				int length, x;
+				length = jv->u.object.length;
+				for (x = 0; x < length; x++) {
+					pvm_object_t ent =
+						pvm_convert_json_to_objects_ext(jv->u.object.values[x].name,
+														jv->u.object.values[x].value,
+														tab + 1);
+					if (ent) {
+						if (PRINT_ADDED) {
+							ph_printf("hdir_add '%*s' = ",
+									  jv->u.object.values[x].name_length,
+									  jv->u.object.values[x].name);
+							pvm_object_print(ent);
+							ph_printf("\n");
+						}
 
-                    errno_t rc = hdir_add( d, jv->u.object.values[x].name, jv->u.object.values[x].name_length, ent );
-                    if( rc ) ph_printf("failed hdir_add %d\n", rc );
-                }
-            }
+						errno_t rc = hdir_add(d,
+											  jv->u.object.values[x].name,
+											  jv->u.object.values[x].name_length,
+											  ent);
+						if (rc)
+							ph_printf("failed hdir_add %d\n", rc);
+					}
+				}
 
-            if(PRINT_PARSED||PRINT_ADDED) ph_printf("\n");
-            return dir;
-        }
+				if (PRINT_PARSED || PRINT_ADDED)
+					ph_printf("\n");
+				return dir;
+			}
 
-    case json_array:
-        {
-            pvm_object_t arr = pvm_create_array_object();
-            if(PRINT_PARSED||PRINT_ADDED) ph_printf("[ \n" );
-        for( i = 0; i < jv->u.array.length; i++ ) 
-        {
-            pvm_object_t ret = pvm_convert_json_to_objects_ext( 0, jv->u.array.values[i], tab+1 );
-            if(ret != 0)
-                pvm_append_array( arr, ret );
-        }
-        if(PRINT_PARSED||PRINT_ADDED) 
-        {
-            for( i = 0; i < tab; i++ ) ph_printf("\t");
-            ph_printf("]\n" );
-        }
-        return arr;
-        }
+		case json_array: {
+			pvm_object_t arr = pvm_create_array_object();
+			if (PRINT_PARSED || PRINT_ADDED)
+				ph_printf("[ \n");
+			for (i = 0; i < jv->u.array.length; i++) {
+				pvm_object_t ret =
+					pvm_convert_json_to_objects_ext(0, jv->u.array.values[i], tab + 1);
+				if (ret != 0)
+					pvm_append_array(arr, ret);
+			}
+			if (PRINT_PARSED || PRINT_ADDED) {
+				for (i = 0; i < tab; i++)
+					ph_printf("\t");
+				ph_printf("]\n");
+			}
+			return arr;
+		}
 
-    case json_null: return pvm_create_null_object();
+		case json_null:
+			return pvm_create_null_object();
 
-    default: break;
-
-    }
-    return 0;
+		default:
+			break;
+	}
+	return 0;
 }
-
 
 
 /**
@@ -226,13 +243,13 @@ pvm_object_t pvm_convert_json_to_objects_ext( const char *name, json_value *jv, 
  * \param[in]  json_len   String length
  *
  * \return Corresponding JSON as tree of objects.
- * 
-**/
-pvm_object_t pvm_json_parse_ext( const char *json, size_t json_len )
+ *
+ **/
+pvm_object_t pvm_json_parse_ext(const char *json, size_t json_len)
 {
-    json_value *jv = json_parse( json, json_len );
-    pvm_object_t top = pvm_convert_json_to_objects( jv );
-    json_value_free( jv );
+	json_value *jv = json_parse(json, json_len);
+	pvm_object_t top = pvm_convert_json_to_objects(jv);
+	json_value_free(jv);
 	return top;
 }
 
@@ -243,11 +260,11 @@ pvm_object_t pvm_json_parse_ext( const char *json, size_t json_len )
  * \param[in]  json       JSON string
  *
  * \return Corresponding JSON as tree of objects.
- * 
-**/
-pvm_object_t pvm_json_parse( const char *json )
+ *
+ **/
+pvm_object_t pvm_json_parse(const char *json)
 {
-	return pvm_json_parse_ext( json, ph_strlen(json) );
+	return pvm_json_parse_ext(json, ph_strlen(json));
 }
 
 
@@ -257,21 +274,16 @@ pvm_object_t pvm_json_parse( const char *json )
  *
  * Can process array and directory as containers, others will be just printed as
  * leafs.
- * 
+ *
  * \param[in]  jv         Root of input JSON tree
  *
  * \return Corresponding JSON as tree of objects.
- * 
-**/
-pvm_object_t pvm_convert_json_to_objects( json_value *jv )
+ *
+ **/
+pvm_object_t pvm_convert_json_to_objects(json_value *jv)
 {
-	return pvm_convert_json_to_objects_ext( 0, jv, 0 );
+	return pvm_convert_json_to_objects_ext(0, jv, 0);
 }
-
-
-
-
-
 
 
 #if 0
@@ -317,19 +329,19 @@ int json_strneq( const char *s1, size_t l1, const char *s2 )
 
 json_handler_t jh;
 
-#define CHECK_TYPE( __t ) \
-	if( t->type != (__t) ) { \
-		jhp->error = EINVAL; \
-		ph_printf("level %d type is %d , not %d", level, t->type, (__t) ); \
+#define CHECK_TYPE(__t)                                                   \
+	if (t->type != (__t)) {                                               \
+		jhp->error = EINVAL;                                              \
+		ph_printf("level %d type is %d , not %d", level, t->type, (__t)); \
 	}
 
-#define CHECK_VALUE( __v ) \
-	if( json_strneq( s, l, (__v)) ) { \
-		jhp->error = EINVAL; \
-		ph_printf("level %d value is '%.*s' , not '%s'", level, l, s, (__v) ); \
+#define CHECK_VALUE(__v)                                                      \
+	if (json_strneq(s, l, (__v))) {                                           \
+		jhp->error = EINVAL;                                                  \
+		ph_printf("level %d value is '%.*s' , not '%s'", level, l, s, (__v)); \
 	}
 
-#define LEVEL_IS( __l, __s ) ( !json_strneq( jhp->string[__l], jhp->len[__l], (__s) ) )
+#define LEVEL_IS(__l, __s) (!json_strneq(jhp->string[__l], jhp->len[__l], (__s)))
 
 void json_process_token(jsmntok_t * t, const char *full_string, int level )
 {
@@ -689,8 +701,6 @@ static const char *parse_string(char **item, const char *str)
 
 	return ptr;
 }
-
-
 
 
 #endif

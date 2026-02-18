@@ -17,20 +17,18 @@
 
 #define DEBUG_MSG_PREFIX "vm.sysc.io"
 #include <debug_ext.h>
-#define debug_level_flow 6
+#define debug_level_flow  6
 #define debug_level_error 10
-#define debug_level_info 10
+#define debug_level_info  10
 
 
+#include <kernel/snap_sync.h>
+#include <kernel/vm.h>
 #include <phantom_libc.h>
-
-#include <vm/syscall.h>
+#include <vm/alloc.h>
 #include <vm/object.h>
 #include <vm/p2c.h>
-#include <vm/alloc.h>
-
-#include <kernel/vm.h>
-#include <kernel/snap_sync.h>
+#include <vm/syscall.h>
 
 static int debug_print = 0;
 
@@ -115,28 +113,29 @@ static int io_15_hashcode(pvm_object_t me, struct data_area_4_thread *tc )
 }
 
 #if !WEAKREF_SPIN || !defined(WEAKREF_SPIN)
-#  error so what?
+#error so what?
 #endif
 
 // TODO we can replace spin with mutex if wire_page_for_addr will suport addr ranges
 // TODO in fact spinlcoks need wire_page_for_addr with addr ranges too
 // TODO hal_spin_wired(1), and wire automatically in hal_spin_lock
 
-#define LOCKME(___s) \
-    wire_page_for_addr( &((___s)->lock) ); \
-    int ie = hal_save_cli(); \
-    hal_spin_lock( &((___s)->lock) );
+#define LOCKME(___s)                     \
+	wire_page_for_addr(&((___s)->lock)); \
+	int ie = hal_save_cli();             \
+	hal_spin_lock(&((___s)->lock));
 
-#define LOCKMEAGAIN(___s) \
-    wire_page_for_addr( &((___s)->lock) ); \
-    ie = hal_save_cli(); \
-    hal_spin_lock( &((___s)->lock) );
+#define LOCKMEAGAIN(___s)                \
+	wire_page_for_addr(&((___s)->lock)); \
+	ie = hal_save_cli();                 \
+	hal_spin_lock(&((___s)->lock));
 
 
-#define UNLOCKME(___s) \
-    hal_spin_unlock( &((___s)->lock) ); \
-    if( ie ) hal_sti(); \
-    unwire_page_for_addr( &((___s)->lock) );
+#define UNLOCKME(___s)                \
+	hal_spin_unlock(&((___s)->lock)); \
+	if (ie)                           \
+		hal_sti();                    \
+	unwire_page_for_addr(&((___s)->lock));
 
 
 #define NAIVE_SLEEP 50
@@ -472,15 +471,6 @@ syscall_func_t  syscall_table_4_io[16] =
 
 };
 DECLARE_SIZE(io);
-
-
-
-
-
-
-
-
-
 
 
 #endif

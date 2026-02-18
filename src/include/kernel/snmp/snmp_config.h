@@ -53,23 +53,25 @@
 /*
  * View types.
  */
-#define SNMP_VIEW_INCLUDED  1
-#define SNMP_VIEW_EXCLUDED  2
+#define SNMP_VIEW_INCLUDED 1
+#define SNMP_VIEW_EXCLUDED 2
 
-typedef struct _viewEntry {
+typedef struct _viewEntry
+{
 	struct _viewEntry *next;
-        int  view_index;
-        int  view_type;
-        size_t view_subtree_len;
-        OID  view_subtree[MAX_OID_LEN];
-        char view_name[16];
+	int view_index;
+	int view_type;
+	size_t view_subtree_len;
+	OID view_subtree[MAX_OID_LEN];
+	char view_name[16];
 } VIEW_LIST;
 
-typedef struct _communityEntry {
+typedef struct _communityEntry
+{
 	struct _communityEntry *next;
-        int  comm_read_view;
-        int  comm_write_view;
-        char comm_name[16];
+	int comm_read_view;
+	int comm_write_view;
+	char comm_name[16];
 } COMMUNITY_LIST;
 
 /*@}*/

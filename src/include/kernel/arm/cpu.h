@@ -8,5 +8,4 @@
 
 
 // hack/shortcut
-//int boot_cpu_has_apic(void);
-
+// int boot_cpu_has_apic(void);

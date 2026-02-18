@@ -142,21 +142,21 @@
  * code that will not execute the _OSI method unless _OS matches the string
  * below.  Therefore, change this string at your own risk.
  */
-#define ACPI_OS_NAME                    "Phantom OS"
+#define ACPI_OS_NAME "Phantom OS"
 
 /* Maximum objects in the various object caches */
 
-#define ACPI_MAX_STATE_CACHE_DEPTH      96          /* State objects */
-#define ACPI_MAX_PARSE_CACHE_DEPTH      96          /* Parse tree objects */
-#define ACPI_MAX_EXTPARSE_CACHE_DEPTH   96          /* Parse tree objects */
-#define ACPI_MAX_OBJECT_CACHE_DEPTH     96          /* Interpreter operand objects */
-#define ACPI_MAX_NAMESPACE_CACHE_DEPTH  96          /* Namespace objects */
+#define ACPI_MAX_STATE_CACHE_DEPTH     96 /* State objects */
+#define ACPI_MAX_PARSE_CACHE_DEPTH     96 /* Parse tree objects */
+#define ACPI_MAX_EXTPARSE_CACHE_DEPTH  96 /* Parse tree objects */
+#define ACPI_MAX_OBJECT_CACHE_DEPTH    96 /* Interpreter operand objects */
+#define ACPI_MAX_NAMESPACE_CACHE_DEPTH 96 /* Namespace objects */
 
 /*
  * Should the subsystem abort the loading of an ACPI table if the
  * table checksum is incorrect?
  */
-#define ACPI_CHECKSUM_ABORT             FALSE
+#define ACPI_CHECKSUM_ABORT FALSE
 
 
 /******************************************************************************
@@ -167,35 +167,35 @@
 
 /* Version of ACPI supported */
 
-#define ACPI_CA_SUPPORT_LEVEL           3
+#define ACPI_CA_SUPPORT_LEVEL 3
 
 /* Maximum count for a semaphore object */
 
-#define ACPI_MAX_SEMAPHORE_COUNT        256
+#define ACPI_MAX_SEMAPHORE_COUNT 256
 
 /* Maximum object reference count (detects object deletion issues) */
 
-#define ACPI_MAX_REFERENCE_COUNT        0x800
+#define ACPI_MAX_REFERENCE_COUNT 0x800
 
 /* Default page size for use in mapping memory for operation regions */
 
-#define ACPI_DEFAULT_PAGE_SIZE          4096    /* Must be power of 2 */
+#define ACPI_DEFAULT_PAGE_SIZE 4096 /* Must be power of 2 */
 
 /* OwnerId tracking. 8 entries allows for 255 OwnerIds */
 
-#define ACPI_NUM_OWNERID_MASKS          8
+#define ACPI_NUM_OWNERID_MASKS 8
 
 /* Size of the root table array is increased by this increment */
 
-#define ACPI_ROOT_TABLE_SIZE_INCREMENT  4
+#define ACPI_ROOT_TABLE_SIZE_INCREMENT 4
 
 /* Maximum number of While() loop iterations before forced abort */
 
-#define ACPI_MAX_LOOP_ITERATIONS        0xFFFF
+#define ACPI_MAX_LOOP_ITERATIONS 0xFFFF
 
 /* Maximum sleep allowed via Sleep() operator */
 
-#define ACPI_MAX_SLEEP                  2000    /* 2000 millisec == two seconds */
+#define ACPI_MAX_SLEEP 2000 /* 2000 millisec == two seconds */
 
 
 /******************************************************************************
@@ -206,65 +206,65 @@
 
 /* Method info (in WALK_STATE), containing local variables and argumetns */
 
-#define ACPI_METHOD_NUM_LOCALS          8
-#define ACPI_METHOD_MAX_LOCAL           7
+#define ACPI_METHOD_NUM_LOCALS 8
+#define ACPI_METHOD_MAX_LOCAL  7
 
-#define ACPI_METHOD_NUM_ARGS            7
-#define ACPI_METHOD_MAX_ARG             6
+#define ACPI_METHOD_NUM_ARGS 7
+#define ACPI_METHOD_MAX_ARG  6
 
 /*
  * Operand Stack (in WALK_STATE), Must be large enough to contain METHOD_MAX_ARG
  */
-#define ACPI_OBJ_NUM_OPERANDS           8
-#define ACPI_OBJ_MAX_OPERAND            7
+#define ACPI_OBJ_NUM_OPERANDS 8
+#define ACPI_OBJ_MAX_OPERAND  7
 
 /* Number of elements in the Result Stack frame, can be an arbitrary value */
 
-#define ACPI_RESULTS_FRAME_OBJ_NUM      8
+#define ACPI_RESULTS_FRAME_OBJ_NUM 8
 
 /*
  * Maximal number of elements the Result Stack can contain,
  * it may be an arbitray value not exceeding the types of
  * ResultSize and ResultCount (now UINT8).
  */
-#define ACPI_RESULTS_OBJ_NUM_MAX        255
+#define ACPI_RESULTS_OBJ_NUM_MAX 255
 
 /* Constants used in searching for the RSDP in low memory */
 
-#define ACPI_EBDA_PTR_LOCATION          0x00000000     /* Physical Address */
-#define ACPI_EBDA_PTR_OFFSET            0x0000040E     /* Address offset */
-#define ACPI_EBDA_PTR_LENGTH            (2+ACPI_EBDA_PTR_OFFSET)
-#define ACPI_EBDA_WINDOW_SIZE           1024
-#define ACPI_HI_RSDP_WINDOW_BASE        0x000E0000     /* Physical Address */
-#define ACPI_HI_RSDP_WINDOW_SIZE        0x00020000
-#define ACPI_RSDP_SCAN_STEP             16
+#define ACPI_EBDA_PTR_LOCATION   0x00000000 /* Physical Address */
+#define ACPI_EBDA_PTR_OFFSET     0x0000040E /* Address offset */
+#define ACPI_EBDA_PTR_LENGTH     (2 + ACPI_EBDA_PTR_OFFSET)
+#define ACPI_EBDA_WINDOW_SIZE    1024
+#define ACPI_HI_RSDP_WINDOW_BASE 0x000E0000 /* Physical Address */
+#define ACPI_HI_RSDP_WINDOW_SIZE 0x00020000
+#define ACPI_RSDP_SCAN_STEP      16
 
 /* Operation regions */
 
-#define ACPI_USER_REGION_BEGIN          0x80
+#define ACPI_USER_REGION_BEGIN 0x80
 
 /* Maximum SpaceIds for Operation Regions */
 
-#define ACPI_MAX_ADDRESS_SPACE          255
+#define ACPI_MAX_ADDRESS_SPACE 255
 
 /* Array sizes.  Used for range checking also */
 
-#define ACPI_MAX_MATCH_OPCODE           5
+#define ACPI_MAX_MATCH_OPCODE 5
 
 /* RSDP checksums */
 
-#define ACPI_RSDP_CHECKSUM_LENGTH       20
-#define ACPI_RSDP_XCHECKSUM_LENGTH      36
+#define ACPI_RSDP_CHECKSUM_LENGTH  20
+#define ACPI_RSDP_XCHECKSUM_LENGTH 36
 
 /* SMBus and IPMI bidirectional buffer size */
 
-#define ACPI_SMBUS_BUFFER_SIZE          34
-#define ACPI_IPMI_BUFFER_SIZE           66
+#define ACPI_SMBUS_BUFFER_SIZE 34
+#define ACPI_IPMI_BUFFER_SIZE  66
 
 /* _SxD and _SxW control methods */
 
-#define ACPI_NUM_SxD_METHODS            4
-#define ACPI_NUM_SxW_METHODS            5
+#define ACPI_NUM_SxD_METHODS 4
+#define ACPI_NUM_SxW_METHODS 5
 
 
 /******************************************************************************
@@ -273,12 +273,11 @@
  *
  *****************************************************************************/
 
-#define ACPI_DEBUGGER_MAX_ARGS          ACPI_METHOD_NUM_ARGS + 2 /* Max command line arguments */
-#define ACPI_DB_LINE_BUFFER_SIZE        512
+#define ACPI_DEBUGGER_MAX_ARGS   ACPI_METHOD_NUM_ARGS + 2 /* Max command line arguments */
+#define ACPI_DB_LINE_BUFFER_SIZE 512
 
-#define ACPI_DEBUGGER_COMMAND_PROMPT    '-'
-#define ACPI_DEBUGGER_EXECUTE_PROMPT    '%'
+#define ACPI_DEBUGGER_COMMAND_PROMPT '-'
+#define ACPI_DEBUGGER_EXECUTE_PROMPT '%'
 
 
 #endif /* _ACCONFIG_H */
-

@@ -1,25 +1,23 @@
 #include <kernel/config.h>
 
-//#if HAVE_NET
+// #if HAVE_NET
 
 /*
 ** Copyright 2001, Travis Geiselbrecht. All rights reserved.
 ** Distributed under the terms of the NewOS License.
 */
 
-#include <phantom_types.h>
-#include <phantom_libc.h>
-
-
 #include <hal.h>
 #include <kernel/khash.h>
-
-#include <ph_malloc.h>
 #include <ph_io.h>
+#include <ph_malloc.h>
+#include <phantom_libc.h>
+#include <phantom_types.h>
 
 #define VERIFY_TABLE 0
 
-struct hash_table {
+struct hash_table
+{
 	struct hash_elem **table;
 	int next_ptr_offset;
 	unsigned int table_size;
@@ -30,22 +28,24 @@ struct hash_table {
 };
 
 // XXX gross hack
-#define NEXT_ADDR(t, e) ((void *)(((unsigned long)(e)) + (t)->next_ptr_offset))
-#define NEXT(t, e) ((void *)(*(unsigned long *)NEXT_ADDR(t, e)))
+#define NEXT_ADDR(t, e)        ((void *)(((unsigned long)(e)) + (t)->next_ptr_offset))
+#define NEXT(t, e)             ((void *)(*(unsigned long *)NEXT_ADDR(t, e)))
 #define PUT_IN_NEXT(t, e, val) (*(unsigned long *)NEXT_ADDR(t, e) = (long)(val))
 
 #if VERIFY_TABLE
-static bool find_in_table(struct hash_table *t, struct hash_elem *findit,
-	unsigned int starting_index, struct hash_elem *starting_element)
+static bool find_in_table(struct hash_table *t,
+						  struct hash_elem *findit,
+						  unsigned int starting_index,
+						  struct hash_elem *starting_element)
 {
 	unsigned int i;
 	struct hash_elem *e;
 
-	for(i = starting_index; i < t->table_size; i++) {
-		for(e = starting_element; e != NULL; e = NEXT(t, e))
-			if(findit == e)
+	for (i = starting_index; i < t->table_size; i++) {
+		for (e = starting_element; e != NULL; e = NEXT(t, e))
+			if (findit == e)
 				return true;
-		starting_element = t->table[i+1];
+		starting_element = t->table[i + 1];
 	}
 
 	return false;
@@ -63,10 +63,11 @@ static int verify_hash_table(struct hash_table *t)
 	if((count % 128) == 0)
 		dprintf("verify_hash_table: count %d\n", count);
 #endif
-	// do a quick spin through the table, making sure the same element isn't double entered
-	for(i = 0; i < t->table_size; i++) {
-		for(e = t->table[i]; e != NULL; e = NEXT(t, e)) {
-			if(find_in_table(t, e, i, NEXT(t, e)) == true) {
+	// do a quick spin through the table, making sure the same element isn't double
+	// entered
+	for (i = 0; i < t->table_size; i++) {
+		for (e = t->table[i]; e != NULL; e = NEXT(t, e)) {
+			if (find_in_table(t, e, i, NEXT(t, e)) == true) {
 				hash_dump(t);
 				panic("element %p double inserted into hash table %p\n", e, t);
 			}
@@ -81,20 +82,21 @@ static int verify_hash_table(struct hash_table *t)
 #define verify_hash_table(table)
 #endif
 
-void *hash_init(unsigned int table_size, int next_ptr_offset,
-	int compare_func(void *e, const void *key),
-	unsigned int hash_func(void *e, const void *key, unsigned int range))
+void *hash_init(unsigned int table_size,
+				int next_ptr_offset,
+				int compare_func(void *e, const void *key),
+				unsigned int hash_func(void *e, const void *key, unsigned int range))
 {
 	struct hash_table *t;
 	unsigned int i;
 
 	t = (struct hash_table *)ph_malloc(sizeof(struct hash_table));
-	if(t == NULL) {
+	if (t == NULL) {
 		return NULL;
 	}
 
 	t->table = (struct hash_elem **)ph_malloc(sizeof(void *) * table_size);
-	for(i = 0; i<table_size; i++)
+	for (i = 0; i < table_size; i++)
 		t->table[i] = NULL;
 	t->table_size = table_size;
 	t->next_ptr_offset = next_ptr_offset;
@@ -103,8 +105,8 @@ void *hash_init(unsigned int table_size, int next_ptr_offset,
 	t->compare_func = compare_func;
 	t->hash_func = hash_func;
 
-//	dprintf("hash_init: created table 0x%x, next_ptr_offset %d, compare_func 0x%x, hash_func 0x%x\n",
-//		t, next_ptr_offset, compare_func, hash_func);
+	//	dprintf("hash_init: created table 0x%x, next_ptr_offset %d, compare_func 0x%x,
+	//hash_func 0x%x\n", 		t, next_ptr_offset, compare_func, hash_func);
 
 	return t;
 }
@@ -130,7 +132,7 @@ int hash_insert(void *_hash_table, void *e)
 	struct hash_table *t = _hash_table;
 	unsigned int hash;
 
-//	dprintf("hash_insert: table 0x%x, element 0x%x\n", t, e);
+	//	dprintf("hash_insert: table 0x%x, element 0x%x\n", t, e);
 
 	verify_hash_table(t);
 
@@ -154,9 +156,9 @@ int hash_remove(void *_hash_table, void *e)
 
 	hash = t->hash_func(e, NULL, t->table_size);
 	last_i = NULL;
-	for(i = t->table[hash]; i != NULL; last_i = i, i = NEXT(t, i)) {
-		if(i == e) {
-			if(last_i != NULL)
+	for (i = t->table[hash]; i != NULL; last_i = i, i = NEXT(t, i)) {
+		if (i == e) {
+			if (last_i != NULL)
 				PUT_IN_NEXT(t, last_i, NEXT(t, i));
 			else
 				t->table[hash] = NEXT(t, i);
@@ -180,8 +182,8 @@ void *hash_find(void *_hash_table, void *e)
 	verify_hash_table(t);
 
 	hash = t->hash_func(e, NULL, t->table_size);
-	for(i = t->table[hash]; i != NULL; i = NEXT(t, i)) {
-		if(i == e) {
+	for (i = t->table[hash]; i != NULL; i = NEXT(t, i)) {
+		if (i == e) {
 			return i;
 		}
 	}
@@ -195,14 +197,14 @@ void *hash_lookup(void *_hash_table, const void *key)
 	void *i;
 	unsigned int hash;
 
-	if(t->compare_func == NULL)
+	if (t->compare_func == NULL)
 		return NULL;
 
 	verify_hash_table(t);
 
 	hash = t->hash_func(NULL, key, t->table_size);
-	for(i = t->table[hash]; i != NULL; i = NEXT(t, i)) {
-		if(t->compare_func(i, key) == 0) {
+	for (i = t->table[hash]; i != NULL; i = NEXT(t, i)) {
+		if (t->compare_func(i, key) == 0) {
 			return i;
 		}
 	}
@@ -214,9 +216,9 @@ struct hash_iterator *hash_open(void *_hash_table, struct hash_iterator *i)
 {
 	struct hash_table *t = _hash_table;
 
-	if(i == NULL) {
+	if (i == NULL) {
 		i = (struct hash_iterator *)ph_malloc(sizeof(struct hash_iterator));
-		if(i == NULL)
+		if (i == NULL)
 			return NULL;
 	}
 
@@ -227,16 +229,16 @@ struct hash_iterator *hash_open(void *_hash_table, struct hash_iterator *i)
 
 void hash_close(void *_hash_table, struct hash_iterator *i, bool free_iterator)
 {
-    (void) _hash_table;
-    if(free_iterator)
-        ph_free(i);
+	(void)_hash_table;
+	if (free_iterator)
+		ph_free(i);
 }
 
 void hash_rewind(void *_hash_table, struct hash_iterator *i)
 {
-    (void) _hash_table;
-    i->ptr = NULL;
-    i->bucket = -1;
+	(void)_hash_table;
+	i->ptr = NULL;
+	i->bucket = -1;
 }
 
 void *hash_next(void *_hash_table, struct hash_iterator *i)
@@ -247,9 +249,9 @@ void *hash_next(void *_hash_table, struct hash_iterator *i)
 	verify_hash_table(t);
 
 restart:
-	if(!i->ptr) {
-		for(index = (unsigned int)(i->bucket + 1); index < t->table_size; index++) {
-			if(t->table[index]) {
+	if (!i->ptr) {
+		for (index = (unsigned int)(i->bucket + 1); index < t->table_size; index++) {
+			if (t->table[index]) {
 				i->bucket = index;
 				i->ptr = t->table[index];
 				break;
@@ -257,20 +259,20 @@ restart:
 		}
 	} else {
 		i->ptr = NEXT(t, i->ptr);
-		if(!i->ptr)
+		if (!i->ptr)
 			goto restart;
 	}
 
 	return i->ptr;
 }
 
-unsigned int hash_hash_str( const char *str )
+unsigned int hash_hash_str(const char *str)
 {
 	char ch;
 	unsigned int hash = 0;
 
 	// we assume hash to be at least 32 bits
-	while( (ch = *str++) != 0 ) {
+	while ((ch = *str++) != 0) {
 		hash ^= hash >> 28;
 		hash <<= 4;
 		hash ^= ch;
@@ -291,10 +293,9 @@ void hash_dump(void *_hash_table)
 	ph_printf("\tflags 0x%x\n", t->flags);
 	ph_printf("\tcompare %p hash %p\n", t->compare_func, t->hash_func);
 	ph_printf("\ttable %p:\n", t->table);
-	for(i = 0; i < t->table_size; i++) {
+	for (i = 0; i < t->table_size; i++) {
 		ph_printf("\t\t%p\n", t->table[i]);
 	}
 }
 
-//#endif // HAVE_NET
-
+// #endif // HAVE_NET

@@ -1,7 +1,8 @@
-#include <kernel/board.h>
 #include "genode_misc.h"
+
+#include <kernel/board.h>
 
 void board_init_kernel_timer(void)
 {
-    _stub_print();
+	_stub_print();
 }

@@ -115,7 +115,7 @@
 </start>
 
 <start name="isomem" caps="4000">
- 	<resource name="RAM" quantum="8G"/>
+ 	<resource name="RAM" quantum="2G"/>
   
  	<config verbose="yes" ld_verbose="yes">
  	</config>

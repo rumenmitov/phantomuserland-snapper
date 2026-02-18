@@ -7,7 +7,7 @@
  * Memory management unit defs.
  *
  *
-**/
+ **/
 
 #include <phantom_types.h>
 

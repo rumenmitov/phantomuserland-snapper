@@ -119,163 +119,119 @@
 
 /* Values for the _SST predefined method */
 
-#define ACPI_SST_INDICATOR_OFF  0
-#define ACPI_SST_WORKING        1
-#define ACPI_SST_WAKING         2
-#define ACPI_SST_SLEEPING       3
-#define ACPI_SST_SLEEP_CONTEXT  4
+#define ACPI_SST_INDICATOR_OFF 0
+#define ACPI_SST_WORKING       1
+#define ACPI_SST_WAKING        2
+#define ACPI_SST_SLEEPING      3
+#define ACPI_SST_SLEEP_CONTEXT 4
 
 
 /*
  * hwacpi - high level functions
  */
 ACPI_STATUS
-AcpiHwSetMode (
-    UINT32                  Mode);
+AcpiHwSetMode(UINT32 Mode);
 
 UINT32
-AcpiHwGetMode (
-    void);
+AcpiHwGetMode(void);
 
 
 /*
  * hwregs - ACPI Register I/O
  */
 ACPI_STATUS
-AcpiHwValidateRegister (
-    ACPI_GENERIC_ADDRESS    *Reg,
-    UINT8                   MaxBitWidth,
-    UINT64                  *Address);
+AcpiHwValidateRegister(ACPI_GENERIC_ADDRESS *Reg, UINT8 MaxBitWidth, UINT64 *Address);
 
 ACPI_STATUS
-AcpiHwRead (
-    UINT32                  *Value,
-    ACPI_GENERIC_ADDRESS    *Reg);
+AcpiHwRead(UINT32 *Value, ACPI_GENERIC_ADDRESS *Reg);
 
 ACPI_STATUS
-AcpiHwWrite (
-    UINT32                  Value,
-    ACPI_GENERIC_ADDRESS    *Reg);
+AcpiHwWrite(UINT32 Value, ACPI_GENERIC_ADDRESS *Reg);
 
-ACPI_BIT_REGISTER_INFO *
-AcpiHwGetBitRegisterInfo (
-    UINT32                  RegisterId);
+ACPI_BIT_REGISTER_INFO *AcpiHwGetBitRegisterInfo(UINT32 RegisterId);
 
 ACPI_STATUS
-AcpiHwWritePm1Control (
-    UINT32                  Pm1aControl,
-    UINT32                  Pm1bControl);
+AcpiHwWritePm1Control(UINT32 Pm1aControl, UINT32 Pm1bControl);
 
 ACPI_STATUS
-AcpiHwRegisterRead (
-    UINT32                  RegisterId,
-    UINT32                  *ReturnValue);
+AcpiHwRegisterRead(UINT32 RegisterId, UINT32 *ReturnValue);
 
 ACPI_STATUS
-AcpiHwRegisterWrite (
-    UINT32                  RegisterId,
-    UINT32                  Value);
+AcpiHwRegisterWrite(UINT32 RegisterId, UINT32 Value);
 
 ACPI_STATUS
-AcpiHwClearAcpiStatus (
-    void);
+AcpiHwClearAcpiStatus(void);
 
 
 /*
  * hwvalid - Port I/O with validation
  */
 ACPI_STATUS
-AcpiHwReadPort (
-    ACPI_IO_ADDRESS         Address,
-    UINT32                  *Value,
-    UINT32                  Width);
+AcpiHwReadPort(ACPI_IO_ADDRESS Address, UINT32 *Value, UINT32 Width);
 
 ACPI_STATUS
-AcpiHwWritePort (
-    ACPI_IO_ADDRESS         Address,
-    UINT32                  Value,
-    UINT32                  Width);
+AcpiHwWritePort(ACPI_IO_ADDRESS Address, UINT32 Value, UINT32 Width);
 
 
 /*
  * hwgpe - GPE support
  */
 UINT32
-AcpiHwGetGpeRegisterBit (
-    ACPI_GPE_EVENT_INFO     *GpeEventInfo,
-    ACPI_GPE_REGISTER_INFO  *GpeRegisterInfo);
+AcpiHwGetGpeRegisterBit(ACPI_GPE_EVENT_INFO *GpeEventInfo,
+						ACPI_GPE_REGISTER_INFO *GpeRegisterInfo);
 
 ACPI_STATUS
-AcpiHwLowSetGpe (
-    ACPI_GPE_EVENT_INFO     *GpeEventInfo,
-    UINT32                  Action);
+AcpiHwLowSetGpe(ACPI_GPE_EVENT_INFO *GpeEventInfo, UINT32 Action);
 
 ACPI_STATUS
-AcpiHwDisableGpeBlock (
-    ACPI_GPE_XRUPT_INFO     *GpeXruptInfo,
-    ACPI_GPE_BLOCK_INFO     *GpeBlock,
-    void                    *Context);
+AcpiHwDisableGpeBlock(ACPI_GPE_XRUPT_INFO *GpeXruptInfo,
+					  ACPI_GPE_BLOCK_INFO *GpeBlock,
+					  void *Context);
 
 ACPI_STATUS
-AcpiHwClearGpe (
-    ACPI_GPE_EVENT_INFO     *GpeEventInfo);
+AcpiHwClearGpe(ACPI_GPE_EVENT_INFO *GpeEventInfo);
 
 ACPI_STATUS
-AcpiHwClearGpeBlock (
-    ACPI_GPE_XRUPT_INFO     *GpeXruptInfo,
-    ACPI_GPE_BLOCK_INFO     *GpeBlock,
-    void                    *Context);
+AcpiHwClearGpeBlock(ACPI_GPE_XRUPT_INFO *GpeXruptInfo,
+					ACPI_GPE_BLOCK_INFO *GpeBlock,
+					void *Context);
 
 ACPI_STATUS
-AcpiHwGetGpeStatus (
-    ACPI_GPE_EVENT_INFO     *GpeEventInfo,
-    ACPI_EVENT_STATUS       *EventStatus);
+AcpiHwGetGpeStatus(ACPI_GPE_EVENT_INFO *GpeEventInfo, ACPI_EVENT_STATUS *EventStatus);
 
 ACPI_STATUS
-AcpiHwDisableAllGpes (
-    void);
+AcpiHwDisableAllGpes(void);
 
 ACPI_STATUS
-AcpiHwEnableAllRuntimeGpes (
-    void);
+AcpiHwEnableAllRuntimeGpes(void);
 
 ACPI_STATUS
-AcpiHwEnableAllWakeupGpes (
-    void);
+AcpiHwEnableAllWakeupGpes(void);
 
 ACPI_STATUS
-AcpiHwEnableRuntimeGpeBlock (
-    ACPI_GPE_XRUPT_INFO     *GpeXruptInfo,
-    ACPI_GPE_BLOCK_INFO     *GpeBlock,
-    void                    *Context);
+AcpiHwEnableRuntimeGpeBlock(ACPI_GPE_XRUPT_INFO *GpeXruptInfo,
+							ACPI_GPE_BLOCK_INFO *GpeBlock,
+							void *Context);
 
 
 /*
  * hwpci - PCI configuration support
  */
 ACPI_STATUS
-AcpiHwDerivePciId (
-    ACPI_PCI_ID             *PciId,
-    ACPI_HANDLE             RootPciDevice,
-    ACPI_HANDLE             PciRegion);
+AcpiHwDerivePciId(ACPI_PCI_ID *PciId, ACPI_HANDLE RootPciDevice, ACPI_HANDLE PciRegion);
 
 
 /*
  * hwtimer - ACPI Timer prototypes
  */
 ACPI_STATUS
-AcpiGetTimerResolution (
-    UINT32                  *Resolution);
+AcpiGetTimerResolution(UINT32 *Resolution);
 
 ACPI_STATUS
-AcpiGetTimer (
-    UINT32                  *Ticks);
+AcpiGetTimer(UINT32 *Ticks);
 
 ACPI_STATUS
-AcpiGetTimerDuration (
-    UINT32                  StartTicks,
-    UINT32                  EndTicks,
-    UINT32                  *TimeElapsed);
+AcpiGetTimerDuration(UINT32 StartTicks, UINT32 EndTicks, UINT32 *TimeElapsed);
 
 
 #endif /* __ACHWARE_H__ */

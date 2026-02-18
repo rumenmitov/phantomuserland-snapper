@@ -20,8 +20,8 @@
 #ifndef _MACH_I386_PROC_OPS_H_
 #define _MACH_I386_PROC_OPS_H_
 
-#include <mach/machine/vm_types.h>
 #include <mach/inline.h>
+#include <mach/machine/vm_types.h>
 
 #ifndef ARCH_ia32
 #warning Intel32 code! Wrong arch?

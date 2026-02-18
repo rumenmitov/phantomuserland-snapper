@@ -55,7 +55,7 @@
  *   0003: SVGA_ESCAPE_VMWARE_HINT (svga_escape.h)
  */
 
-#define SVGA_ESCAPE_VMWARE_MAJOR_MASK  0xFFFF0000
+#define SVGA_ESCAPE_VMWARE_MAJOR_MASK 0xFFFF0000
 
 
 /*
@@ -74,17 +74,17 @@
  *     Screen Object.
  */
 
-#define SVGA_ESCAPE_VMWARE_HINT               0x00030000
-#define SVGA_ESCAPE_VMWARE_HINT_FULLSCREEN    0x00030001  // Deprecated
+#define SVGA_ESCAPE_VMWARE_HINT            0x00030000
+#define SVGA_ESCAPE_VMWARE_HINT_FULLSCREEN 0x00030001  // Deprecated
 
-typedef
-struct {
-   uint32 command;
-   uint32 fullscreen;
-   struct {
-      int32 x, y;
-   } monitorPosition;
-} __packed
-SVGAEscapeHintFullscreen;
+typedef struct
+{
+	uint32 command;
+	uint32 fullscreen;
+	struct
+	{
+		int32 x, y;
+	} monitorPosition;
+} __packed SVGAEscapeHintFullscreen;
 
 #endif /* _SVGA_ESCAPE_H_ */

@@ -43,7 +43,7 @@
  * \endverbatim
  */
 
-//#include <sys/socket.h>
+// #include <sys/socket.h>
 #include <kernel/snmp/snmp_session.h>
 
 extern int SnmpAgent(void *socket);

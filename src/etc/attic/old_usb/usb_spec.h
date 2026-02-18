@@ -7,8 +7,8 @@
 #ifndef _USB_SPEC_H
 #define _USB_SPEC_H
 
-#include <sys/cdefs.h>
 #include <phantom_types.h>
+#include <sys/cdefs.h>
 
 typedef struct usb_request {
 	u_int8_t type;
@@ -19,21 +19,21 @@ typedef struct usb_request {
 } __packed usb_request;
 
 // USB Spec Rev 1.1, table 9-2, p 183
-#define USB_REQTYPE_DEVICE_IN         0x80
-#define USB_REQTYPE_DEVICE_OUT        0x00
-#define USB_REQTYPE_INTERFACE_IN      0x81
-#define USB_REQTYPE_INTERFACE_OUT     0x01
-#define USB_REQTYPE_ENDPOINT_IN       0x82
-#define USB_REQTYPE_ENDPOINT_OUT      0x02
-#define USB_REQTYPE_OTHER_OUT         0x03
-#define USB_REQTYPE_OTHER_IN          0x83
+#define USB_REQTYPE_DEVICE_IN            0x80
+#define USB_REQTYPE_DEVICE_OUT           0x00
+#define USB_REQTYPE_INTERFACE_IN         0x81
+#define USB_REQTYPE_INTERFACE_OUT        0x01
+#define USB_REQTYPE_ENDPOINT_IN          0x82
+#define USB_REQTYPE_ENDPOINT_OUT         0x02
+#define USB_REQTYPE_OTHER_OUT            0x03
+#define USB_REQTYPE_OTHER_IN             0x83
 
 // USB Spec Rev 1.1, table 9-2, p 183
-#define USB_REQTYPE_STANDARD          0x00
-#define USB_REQTYPE_CLASS             0x20
-#define USB_REQTYPE_VENDOR            0x40
-#define USB_REQTYPE_RESERVED          0x60
-#define USB_REQTYPE_MASK              0x9F
+#define USB_REQTYPE_STANDARD             0x00
+#define USB_REQTYPE_CLASS                0x20
+#define USB_REQTYPE_VENDOR               0x40
+#define USB_REQTYPE_RESERVED             0x60
+#define USB_REQTYPE_MASK                 0x9F
 
 // USB Spec Rev 1.1, table 9-4, p 187
 #define USB_REQUEST_GET_STATUS           0
@@ -44,9 +44,9 @@ typedef struct usb_request {
 #define USB_REQUEST_SET_DESCRIPTOR       7
 #define USB_REQUEST_GET_CONFIGURATION    8
 #define USB_REQUEST_SET_CONFIGURATION    9
-#define USB_REQUEST_GET_INTERFACE       10
-#define USB_REQUEST_SET_INTERFACE       11
-#define USB_REQUEST_SYNCH_FRAME         12
+#define USB_REQUEST_GET_INTERFACE        10
+#define USB_REQUEST_SET_INTERFACE        11
+#define USB_REQUEST_SYNCH_FRAME          12
 
 // USB Spec Rev 1.1, table 9-5, p 187
 #define USB_DESCRIPTOR_DEVICE            1
@@ -149,38 +149,38 @@ typedef struct {
 	u_int8_t removable[8];
 } __packed usb_hub_descriptor;
 
-#define USB_HUB_REQUEST_GET_STATE	2
+#define USB_HUB_REQUEST_GET_STATE 2
 
-#define USB_HUB_PORTSTAT_CONNECTION    0x0001
-#define USB_HUB_PORTSTAT_ENABLED       0x0002
-#define USB_HUB_PORTSTAT_SUSPEND       0x0004
-#define USB_HUB_PORTSTAT_OVER_CURRENT  0x0008
-#define USB_HUB_PORTSTAT_RESET         0x0010
-#define USB_HUB_PORTSTAT_POWER_ON      0x0100
-#define USB_HUB_PORTSTAT_LOW_SPEED     0x0200
+#define USB_HUB_PORTSTAT_CONNECTION   0x0001
+#define USB_HUB_PORTSTAT_ENABLED      0x0002
+#define USB_HUB_PORTSTAT_SUSPEND      0x0004
+#define USB_HUB_PORTSTAT_OVER_CURRENT 0x0008
+#define USB_HUB_PORTSTAT_RESET        0x0010
+#define USB_HUB_PORTSTAT_POWER_ON     0x0100
+#define USB_HUB_PORTSTAT_LOW_SPEED    0x0200
 
-#define USB_HUB_CX_PORT_CONNECTION     0x0001
-#define USB_HUB_CX_PORT_ENABLE         0x0002
-#define USB_HUB_CX_PORT_SUSPEND        0x0004
-#define USB_HUB_CX_PORT_OVER_CURRENT   0x0008
-#define USB_HUB_CX_PORT_RESET          0x0010
+#define USB_HUB_CX_PORT_CONNECTION   0x0001
+#define USB_HUB_CX_PORT_ENABLE       0x0002
+#define USB_HUB_CX_PORT_SUSPEND      0x0004
+#define USB_HUB_CX_PORT_OVER_CURRENT 0x0008
+#define USB_HUB_CX_PORT_RESET        0x0010
 
-#define USB_HUB_C_HUB_LOCAL_POWER		0
-#define USB_HUB_C_HUB_OVER_CURRENTR		1
+#define USB_HUB_C_HUB_LOCAL_POWER   0
+#define USB_HUB_C_HUB_OVER_CURRENTR 1
 
-#define USB_HUB_PORT_CONNECTION			0
-#define USB_HUB_PORT_ENABLE				1
-#define USB_HUB_PORT_SUSPEND			2
-#define USB_HUB_PORT_OVER_CURRENT		3
-#define	USB_HUB_PORT_RESET				4
-#define	USB_HUB_PORT_POWER				8
-#define USB_HUB_PORT_LOW_SPEED			9
+#define USB_HUB_PORT_CONNECTION   0
+#define USB_HUB_PORT_ENABLE       1
+#define USB_HUB_PORT_SUSPEND      2
+#define USB_HUB_PORT_OVER_CURRENT 3
+#define USB_HUB_PORT_RESET        4
+#define USB_HUB_PORT_POWER        8
+#define USB_HUB_PORT_LOW_SPEED    9
 
-#define USB_HUB_C_PORT_CONNECTION		16
-#define USB_HUB_C_PORT_ENABLE			17
-#define USB_HUB_C_PORT_SUSPEND			18
-#define USB_HUB_C_PORT_OVER_CURRENT		19
-#define USB_HUB_C_PORT_RESET			20
+#define USB_HUB_C_PORT_CONNECTION   16
+#define USB_HUB_C_PORT_ENABLE       17
+#define USB_HUB_C_PORT_SUSPEND      18
+#define USB_HUB_C_PORT_OVER_CURRENT 19
+#define USB_HUB_C_PORT_RESET        20
 
 #endif
 

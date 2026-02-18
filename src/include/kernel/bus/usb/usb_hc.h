@@ -13,7 +13,8 @@
 typedef void hc_cookie;
 typedef void hc_endpoint;
 
-typedef struct usb_hc_transfer {
+typedef struct usb_hc_transfer
+{
 	// setup portion of the transfer
 	void *setup_buf;
 	size_t setup_len;
@@ -31,25 +32,32 @@ typedef struct usb_hc_transfer {
 	sem_id completion_sem;
 } usb_hc_transfer;
 
-struct usb_hc_module_hooks {
+struct usb_hc_module_hooks
+{
 	// initialize the host controller.
 	// When a host controller is found, the callback needs to be called, passing back
 	// callback_cookie as the first arg, and a hc defined cookie as the second.
-	int (*init_hc)(int (*hc_init_callback)(void *callback_cookie, void *cookie), hc_cookie *callback_cookie);
+	int (*init_hc)(int (*hc_init_callback)(void *callback_cookie, void *cookie),
+				   hc_cookie *callback_cookie);
 
 	// deinitialize the host controller
 	// assumes all transactions are cancelled, all endpoints are destroyed
 	int (*uninit_hc)(hc_cookie *cookie);
 
 	// create an endpoint
-	int (*create_endpoint)(hc_cookie *cookie, hc_endpoint **endpoint,
-		usb_endpoint_descriptor *usb_endpoint, int address, bool lowspeed);
+	int (*create_endpoint)(hc_cookie *cookie,
+						   hc_endpoint **endpoint,
+						   usb_endpoint_descriptor *usb_endpoint,
+						   int address,
+						   bool lowspeed);
 
 	// delete an endpoint
 	int (*destroy_endpoint)(hc_cookie *cookie, hc_endpoint *endpoint);
 
 	// queue a transfer
-	int (*enqueue_transfer)(hc_cookie *cookie, hc_endpoint *endpoint, usb_hc_transfer *transfer);
+	int (*enqueue_transfer)(hc_cookie *cookie,
+							hc_endpoint *endpoint,
+							usb_hc_transfer *transfer);
 };
 
 #endif

@@ -13,25 +13,22 @@
  *
 **/
 
-#include <phantom_assert.h>
-#include <errno.h>
+#include "jit.h"
 
-#include "vm/root.h"
-#include "vm/internal_da.h"
-#include "vm/internal.h"
-#include "vm/object_flags.h"
-#include "vm/exception.h"
+#include "ids/opcode_ids.h"
 #include "vm/alloc.h"
-
-#include "vm/exec.h"
 #include "vm/code.h"
-
+#include "vm/exception.h"
+#include "vm/exec.h"
+#include "vm/internal.h"
+#include "vm/internal_da.h"
+#include "vm/object_flags.h"
+#include "vm/root.h"
 #include "vm/stacks.h"
 #include "vm/syscall.h"
 
-#include "ids/opcode_ids.h"
-
-#include "jit.h"
+#include <errno.h>
+#include <phantom_assert.h>
 
 
 
@@ -945,7 +942,6 @@ errno_t pvm_jit(struct pvm_object current_thread)
         }
     }
 }
-
 
 
 #endif

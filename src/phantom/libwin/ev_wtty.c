@@ -1,16 +1,15 @@
-#if 0 // moved
+#if 0  // moved
 
 #define DEBUG_MSG_PREFIX "wtty"
 #include <debug_ext.h>
-#define debug_level_flow 0
+#define debug_level_flow  0
 #define debug_level_error 10
-#define debug_level_info 10
+#define debug_level_info  10
 
-#include <phantom_libc.h>
-#include <ph_malloc.h>
-
-#include <kernel/mutex.h>
 #include <kernel/cond.h>
+#include <kernel/mutex.h>
+#include <ph_malloc.h>
+#include <phantom_libc.h>
 #include <wtty.h>
 
 // -----------------------------------------------------------------------

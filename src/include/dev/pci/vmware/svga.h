@@ -34,55 +34,58 @@
 #ifndef __VMWARE_SVGA_H__
 #define __VMWARE_SVGA_H__
 
-#include <shorttypes.h>
 #include <kernel/bus/pci.h>
-//#include "intr.h"
+#include <shorttypes.h>
+// #include "intr.h"
 
 // XXX: Shouldn't have to do this here.
 #define INLINE __inline__
 
-#include <dev/pci/vmware/svga_reg.h>
+#include <dev/pci/vmware/svga3d_reg.h>
 #include <dev/pci/vmware/svga_escape.h>
 #include <dev/pci/vmware/svga_overlay.h>
-#include <dev/pci/vmware/svga3d_reg.h>
+#include <dev/pci/vmware/svga_reg.h>
 
-typedef struct SVGADevice {
-    int           found;
-    //PCIAddress pciAddr;
+typedef struct SVGADevice
+{
+	int found;
+	// PCIAddress pciAddr;
 
-    u_int32_t     ioBase;
-    physaddr_t    fifoPhys;
-    u_int32_t    *fifoMem;
-    physaddr_t    fbMem;
-    u_int32_t     fifoSize;
-    u_int32_t     fbSize;
-    u_int32_t     fbOffset;
+	u_int32_t ioBase;
+	physaddr_t fifoPhys;
+	u_int32_t *fifoMem;
+	physaddr_t fbMem;
+	u_int32_t fifoSize;
+	u_int32_t fbSize;
+	u_int32_t fbOffset;
 
-    u_int32_t     deviceVersionId;
-    u_int32_t     capabilities;
+	u_int32_t deviceVersionId;
+	u_int32_t capabilities;
 
-    u_int32_t     width;
-    u_int32_t     height;
-    u_int32_t     bpp;
-    u_int32_t     pitch;
+	u_int32_t width;
+	u_int32_t height;
+	u_int32_t bpp;
+	u_int32_t pitch;
 
-    struct {
-        u_int32_t  reservedSize;
-        Bool    usingBounceBuffer;
-        uint8   bounceBuffer[1024 * 1024];
-        u_int32_t  nextFence;
-    } fifo;
+	struct
+	{
+		u_int32_t reservedSize;
+		Bool usingBounceBuffer;
+		uint8 bounceBuffer[1024 * 1024];
+		u_int32_t nextFence;
+	} fifo;
 
-    volatile struct {
-        u_int32_t        pending;
-        u_int32_t        switchContext;
+	volatile struct
+	{
+		u_int32_t pending;
+		u_int32_t switchContext;
 
-        // trap_state
-        //IntrContext   oldContext;
-        //IntrContext   newContext;
+		// trap_state
+		// IntrContext   oldContext;
+		// IntrContext   newContext;
 
-        u_int32_t        count;
-    } irq;
+		u_int32_t count;
+	} irq;
 
 } SVGADevice;
 
@@ -117,13 +120,15 @@ void SVGA_RingDoorbell(void);
 
 void SVGA_Update(u_int32_t x, u_int32_t y, u_int32_t width, u_int32_t height);
 void SVGA_BeginDefineCursor(const SVGAFifoCmdDefineCursor *cursorInfo,
-                            void **andMask, void **xorMask);
+							void **andMask,
+							void **xorMask);
 void SVGA_BeginDefineAlphaCursor(const SVGAFifoCmdDefineAlphaCursor *cursorInfo,
-                                 void **data);
+								 void **data);
 void SVGA_MoveCursor(u_int32_t visible, u_int32_t x, u_int32_t y, u_int32_t screenId);
 
-void SVGA_BeginVideoSetRegs(u_int32_t streamId, u_int32_t numItems,
-                            SVGAEscapeVideoSetRegs **setRegs);
+void SVGA_BeginVideoSetRegs(u_int32_t streamId,
+							u_int32_t numItems,
+							SVGAEscapeVideoSetRegs **setRegs);
 void SVGA_VideoSetAllRegs(u_int32_t streamId, SVGAOverlayUnit *regs, u_int32_t maxReg);
 void SVGA_VideoSetReg(u_int32_t streamId, u_int32_t registerId, u_int32_t value);
 void SVGA_VideoFlush(u_int32_t streamId);

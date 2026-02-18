@@ -36,36 +36,36 @@
 /*
  * Command related defines
  */
-#define VMMOUSE_CMD_READ_ID             0x45414552
-#define VMMOUSE_CMD_DISABLE             0x000000f5
-#define VMMOUSE_CMD_REQUEST_RELATIVE    0x4c455252
-#define VMMOUSE_CMD_REQUEST_ABSOLUTE    0x53424152
+#define VMMOUSE_CMD_READ_ID          0x45414552
+#define VMMOUSE_CMD_DISABLE          0x000000f5
+#define VMMOUSE_CMD_REQUEST_RELATIVE 0x4c455252
+#define VMMOUSE_CMD_REQUEST_ABSOLUTE 0x53424152
 
 /*
  * Data related defines
  */
-#define VMMOUSE_VERSION_ID_STR          "JUB4"
-#define VMMOUSE_VERSION_ID              0x3442554a
+#define VMMOUSE_VERSION_ID_STR "JUB4"
+#define VMMOUSE_VERSION_ID     0x3442554a
 
 /*
  * Device related defines
  */
-#define VMMOUSE_DATAPORT                96
-#define VMMOUSE_STATUSPORT              100
-#define VMMOUSE_IRQ                     12
-#define VMMOUSE_ERROR                   0xffff0000
+#define VMMOUSE_DATAPORT   96
+#define VMMOUSE_STATUSPORT 100
+#define VMMOUSE_IRQ        12
+#define VMMOUSE_ERROR      0xffff0000
 
 /*
  * VMMouse Input packet flags
  */
-#define VMMOUSE_MOVE_RELATIVE           1
-#define VMMOUSE_MOVE_ABSOLUTE           0
+#define VMMOUSE_MOVE_RELATIVE 1
+#define VMMOUSE_MOVE_ABSOLUTE 0
 
 /*
  * VMMouse Input button flags
  */
-#define VMMOUSE_LEFT_BUTTON             0x20
-#define VMMOUSE_RIGHT_BUTTON            0x10
-#define VMMOUSE_MIDDLE_BUTTON           0x08
+#define VMMOUSE_LEFT_BUTTON   0x20
+#define VMMOUSE_RIGHT_BUTTON  0x10
+#define VMMOUSE_MIDDLE_BUTTON 0x08
 
 #endif

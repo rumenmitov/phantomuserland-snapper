@@ -8,16 +8,16 @@
 
 struct queue_element
 {
-    void *next;
+	void *next;
 };
 
 typedef struct queue_element queue_element;
 
 struct queue
 {
-    void *head;
-    void *tail;
-    int count;
+	void *head;
+	void *tail;
+	int count;
 };
 
 typedef struct queue queue;
@@ -28,12 +28,13 @@ int queue_enqueue(queue *q, void *e);
 void *queue_dequeue(queue *q);
 void *queue_peek(queue *q);
 
-typedef struct fixed_queue {
-    void **table;
-    int head;
-    int tail;
-    int count;
-    int size;
+typedef struct fixed_queue
+{
+	void **table;
+	int head;
+	int tail;
+	int count;
+	int size;
 } fixed_queue;
 
 int fixed_queue_init(fixed_queue *q, int size);
@@ -43,4 +44,3 @@ void *fixed_queue_dequeue(fixed_queue *q);
 void *fixed_queue_peek(fixed_queue *q);
 
 #endif
-

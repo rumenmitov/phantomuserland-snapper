@@ -7,7 +7,7 @@
  * Unix dirent. TODO cleanup this mess! Make it binary compatible w. Linux.
  *
  *
-**/
+ **/
 
 /*
  * DIRENT.H (formerly DIRLIB.H)
@@ -22,35 +22,36 @@
 #define FILENAME_MAX 512
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 
-#define d_fileno d_ino			/* BSD compatible definition */
+#define d_fileno d_ino /* BSD compatible definition */
 
-/*
+	/*
 
-struct linux_dirent64 {
-	u64		d_ino;
-	s64		d_off;
-	unsigned short	d_reclen;
-	unsigned char	d_type;
-	char		d_name[0];
-};
+	struct linux_dirent64 {
+		u64		d_ino;
+		s64		d_off;
+		unsigned short	d_reclen;
+		unsigned char	d_type;
+		char		d_name[0];
+	};
 
-*/
-
-
-struct dirent
-{
-    long		d_ino;		/* Always zero. */
-    unsigned short	d_reclen;	/* Always zero. */
-    unsigned short	d_namlen;	/* Length of name in d_name. */
-    char		d_name[FILENAME_MAX]; /* File name. */
-};
+	*/
 
 
-int readdir( int fd, struct dirent *e );
+	struct dirent
+	{
+		long d_ino;                /* Always zero. */
+		unsigned short d_reclen;   /* Always zero. */
+		unsigned short d_namlen;   /* Length of name in d_name. */
+		char d_name[FILENAME_MAX]; /* File name. */
+	};
+
+
+	int readdir(int fd, struct dirent *e);
 
 
 #if 0
@@ -141,11 +142,11 @@ long __cdecl __MINGW_NOTHROW _wtelldir (_WDIR*);
 void __cdecl __MINGW_NOTHROW _wseekdir (_WDIR*, long);
 
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 }
 #endif
 
-#endif	// 0
+#endif  // 0
 
 
-#endif	/* Not _DIRENT_H_ */
+#endif /* Not _DIRENT_H_ */

@@ -1,6 +1,6 @@
+#include <CUnit/Basic.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <CUnit/Basic.h>
 
 // can't test wtty out of kernel for we need sync primitives impl out of kernel too
 
@@ -39,14 +39,15 @@ TEST_FUNCT(foo2) {
 }
 #endif
 
-void runSuite(void) {
-    /* ��� ���-���� */
+void runSuite(void)
+{
+	/* ��� ���-���� */
 
-    //ph_printf("test suite\n");
+	// ph_printf("test suite\n");
 
-    CU_pSuite suite = CUnitCreateSuite("Wtty");
-    if (suite) {
-        //ADD_SUITE_TEST(suite, foo)
-        //ADD_SUITE_TEST(suite, foo2)
-    }
+	CU_pSuite suite = CUnitCreateSuite("Wtty");
+	if (suite) {
+		// ADD_SUITE_TEST(suite, foo)
+		// ADD_SUITE_TEST(suite, foo2)
+	}
 }

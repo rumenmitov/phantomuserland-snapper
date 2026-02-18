@@ -2,92 +2,92 @@
 extern "C"
 {
 
-#include <hal.h>
-#include <threads.h>
-#include <stdio.h>
 #include "tests_hal.h"
 
-    static int counter = 0;
-    static hal_mutex_t cnt_mutex;
-    static hal_spinlock_t spinlock;
+#include <hal.h>
+#include <stdio.h>
+#include <threads.h>
 
-    static void thread_func()
-    {
-        // printf("Entered thread_func()\n");
-        // hal_mutex_lock(&cnt_mutex);
-        // printf("Entered thread_func() lock\n");
-        // counter++;
-        // hal_mutex_unlock(&cnt_mutex);
-        // printf("Leaving thread_func() lock\n");
-        // hal_spin_unlock(&spinlock);
-        // printf("Unlocking thread_func() spin\n");
+	static int counter = 0;
+	static hal_mutex_t cnt_mutex;
+	static hal_spinlock_t spinlock;
 
-        hal_mutex_lock(&cnt_mutex);
-        counter++;
-        hal_mutex_unlock(&cnt_mutex);
-        hal_spin_unlock(&spinlock);
-    }
+	static void thread_func()
+	{
+		// printf("Entered thread_func()\n");
+		// hal_mutex_lock(&cnt_mutex);
+		// printf("Entered thread_func() lock\n");
+		// counter++;
+		// hal_mutex_unlock(&cnt_mutex);
+		// printf("Leaving thread_func() lock\n");
+		// hal_spin_unlock(&spinlock);
+		// printf("Unlocking thread_func() spin\n");
 
-    static void thread_arg_func(void *args)
-    {
-        (void)args;
-        // hal_mutex_lock(&cnt_mutex);
-        // counter++;
-        // hal_mutex_unlock(&cnt_mutex);
-        // hal_spin_unlock(&spinlock);
-        thread_func();
-    }
+		hal_mutex_lock(&cnt_mutex);
+		counter++;
+		hal_mutex_unlock(&cnt_mutex);
+		hal_spin_unlock(&spinlock);
+	}
 
-    bool Phantom::test_hal_thread_creation()
-    {
-        // Initialization
-        hal_mutex_init(&cnt_mutex, "t_cnt_mutex");
-        hal_spin_unlock(&spinlock);
+	static void thread_arg_func(void *args)
+	{
+		(void)args;
+		// hal_mutex_lock(&cnt_mutex);
+		// counter++;
+		// hal_mutex_unlock(&cnt_mutex);
+		// hal_spin_unlock(&spinlock);
+		thread_func();
+	}
 
-        // Creating threads
-        hal_start_kernel_thread_arg(thread_arg_func, 0);
-        hal_spin_lock(&spinlock);
+	bool Phantom::test_hal_thread_creation()
+	{
+		// Initialization
+		hal_mutex_init(&cnt_mutex, "t_cnt_mutex");
+		hal_spin_unlock(&spinlock);
 
-        hal_start_kernel_thread_arg(thread_arg_func, 0);
-        hal_spin_lock(&spinlock);
+		// Creating threads
+		hal_start_kernel_thread_arg(thread_arg_func, 0);
+		hal_spin_lock(&spinlock);
 
-        hal_start_kernel_thread_arg(thread_arg_func, 0);
-        hal_spin_lock(&spinlock);
+		hal_start_kernel_thread_arg(thread_arg_func, 0);
+		hal_spin_lock(&spinlock);
 
-        hal_start_kernel_thread_arg(thread_arg_func, 0);
-        hal_spin_lock(&spinlock);
+		hal_start_kernel_thread_arg(thread_arg_func, 0);
+		hal_spin_lock(&spinlock);
 
-        hal_start_kernel_thread_arg(thread_arg_func, 0);
-        hal_spin_lock(&spinlock);
+		hal_start_kernel_thread_arg(thread_arg_func, 0);
+		hal_spin_lock(&spinlock);
 
-        hal_start_kernel_thread_arg(thread_arg_func, 0);
-        hal_spin_lock(&spinlock);
+		hal_start_kernel_thread_arg(thread_arg_func, 0);
+		hal_spin_lock(&spinlock);
 
-        hal_start_kernel_thread_arg(thread_arg_func, 0);
-        hal_spin_lock(&spinlock);
+		hal_start_kernel_thread_arg(thread_arg_func, 0);
+		hal_spin_lock(&spinlock);
 
-        hal_start_kernel_thread_arg(thread_arg_func, 0);
-        hal_spin_lock(&spinlock);
+		hal_start_kernel_thread_arg(thread_arg_func, 0);
+		hal_spin_lock(&spinlock);
 
-        hal_start_kernel_thread_arg(thread_arg_func, 0);
-        hal_spin_lock(&spinlock);
+		hal_start_kernel_thread_arg(thread_arg_func, 0);
+		hal_spin_lock(&spinlock);
 
-        hal_start_kernel_thread_arg(thread_arg_func, 0);
-        hal_spin_lock(&spinlock);
+		hal_start_kernel_thread_arg(thread_arg_func, 0);
+		hal_spin_lock(&spinlock);
 
-        hal_start_kernel_thread(thread_func);
-        hal_spin_lock(&spinlock);
+		hal_start_kernel_thread_arg(thread_arg_func, 0);
+		hal_spin_lock(&spinlock);
 
-        hal_start_kernel_thread(thread_func);
-        hal_spin_lock(&spinlock);
+		hal_start_kernel_thread(thread_func);
+		hal_spin_lock(&spinlock);
 
-        // Cleaning up
-        hal_mutex_destroy(&cnt_mutex);
-        if (counter == 12)
-        {
-            return true;
-        }
+		hal_start_kernel_thread(thread_func);
+		hal_spin_lock(&spinlock);
 
-        return false;
-    }
+		// Cleaning up
+		hal_mutex_destroy(&cnt_mutex);
+		if (counter == 12) {
+			return true;
+		}
+
+		return false;
+	}
 }

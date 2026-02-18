@@ -7,7 +7,7 @@
  * Virtio random number (entropy) devices.
  *
  *
-**/
+ **/
 
 
 #ifndef _VIRTIO_RNG_H
@@ -21,7 +21,7 @@
  */
 
 /* The ID for virtio_rng */
-#define VIRTIO_ID_RNG	4
+#define VIRTIO_ID_RNG 4
 
 #endif /* _VIRTIO_RNG_H */
 

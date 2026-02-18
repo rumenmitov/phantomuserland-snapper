@@ -1,4 +1,4 @@
-void pvm_exec_panic( const char *reason )
+void pvm_exec_panic(const char *reason)
 {
 	__coverity_panic__();
 }

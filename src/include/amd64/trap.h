@@ -1,13 +1,13 @@
 
-#ifndef	_AMD64_TRAP_H_
-#define	_AMD64_TRAP_H_
+#ifndef _AMD64_TRAP_H_
+#define _AMD64_TRAP_H_
 
 #ifndef ARCH_amd64
 #warning Intel64 code! Wrong arch?
 #endif
 
 #ifndef GENERAL_TRAP_H
-#warning include <kernel/trap.h> instead!
+#warning include<kernel/trap.h> instead!
 #endif
 
 #include <phantom_types.h>
@@ -44,34 +44,30 @@
 */
 
 #warning check write bit
-#define	T_PF_WRITE		0x2		// write access
+#define T_PF_WRITE 0x2  // write access
 
 
-#define	T_PRIVINFLT	1	/* privileged instruction */
-#define	T_BPTFLT	3	/* breakpoint instruction */
-#define	T_ARITHTRAP	6	/* arithmetic trap */
-#define	T_PROTFLT	9	/* protection fault */
-#define	T_TRCTRAP	10	/* debug exception (sic) */
-#define	T_PAGEFLT	12	/* page fault */
-#define	T_ALIGNFLT	14	/* alignment fault */
+#define T_PRIVINFLT 1  /* privileged instruction */
+#define T_BPTFLT    3  /* breakpoint instruction */
+#define T_ARITHTRAP 6  /* arithmetic trap */
+#define T_PROTFLT   9  /* protection fault */
+#define T_TRCTRAP   10 /* debug exception (sic) */
+#define T_PAGEFLT   12 /* page fault */
+#define T_ALIGNFLT  14 /* alignment fault */
 
-#define	T_DIVIDE	18	/* integer divide fault */
-#define	T_NMI		19	/* non-maskable trap */
-#define	T_OFLOW		20	/* overflow trap */
-#define	T_BOUND		21	/* bound instruction fault */
-#define	T_DNA		22	/* device not available fault */
-#define	T_DOUBLEFLT	23	/* double fault */
-#define	T_FPOPFLT	24	/* fp coprocessor operand fetch fault */
-#define	T_TSSFLT	25	/* invalid tss fault */
-#define	T_SEGNPFLT	26	/* segment not present fault */
-#define	T_STKFLT	27	/* stack fault */
-#define	T_MCHK		28	/* machine check trap */
-#define	T_XMMFLT	29	/* SIMD floating-point exception */
-#define	T_RESERVED	30	/* reserved (unknown) */
-
-
-
-
+#define T_DIVIDE    18 /* integer divide fault */
+#define T_NMI       19 /* non-maskable trap */
+#define T_OFLOW     20 /* overflow trap */
+#define T_BOUND     21 /* bound instruction fault */
+#define T_DNA       22 /* device not available fault */
+#define T_DOUBLEFLT 23 /* double fault */
+#define T_FPOPFLT   24 /* fp coprocessor operand fetch fault */
+#define T_TSSFLT    25 /* invalid tss fault */
+#define T_SEGNPFLT  26 /* segment not present fault */
+#define T_STKFLT    27 /* stack fault */
+#define T_MCHK      28 /* machine check trap */
+#define T_XMMFLT    29 /* SIMD floating-point exception */
+#define T_RESERVED  30 /* reserved (unknown) */
 
 
 #ifndef ASSEMBLER
@@ -117,35 +113,35 @@ struct trap_state {
 };
 */
 
-struct trap_state {
-	register_t	rdi;
-	register_t	rsi;
-	register_t	rdx;
-	register_t	rcx;
-	register_t	r8;
-	register_t	r9;
-	register_t	rax;
-	register_t	rbx;
-	register_t	rbp;
-	register_t	r10;
-	register_t	r11;
-	register_t	r12;
-	register_t	r13;
-	register_t	r14;
-        register_t	r15;
+struct trap_state
+{
+	register_t rdi;
+	register_t rsi;
+	register_t rdx;
+	register_t rcx;
+	register_t r8;
+	register_t r9;
+	register_t rax;
+	register_t rbx;
+	register_t rbp;
+	register_t r10;
+	register_t r11;
+	register_t r12;
+	register_t r13;
+	register_t r14;
+	register_t r15;
 
-        register_t	trapno;
+	register_t trapno;
 
-	register_t	addr;
-	register_t	flags;
+	register_t addr;
+	register_t flags;
 	/* below portion defined in hardware */
-	register_t	hw_err;
-	register_t	hw_rip;
-	register_t	hw_cs;
-	register_t	hw_rflags;
-	register_t	hw_rsp;
-	register_t	hw_ss;
-
+	register_t hw_err;
+	register_t hw_rip;
+	register_t hw_cs;
+	register_t hw_rflags;
+	register_t hw_rsp;
+	register_t hw_ss;
 };
 
 #define TS_PROGRAM_COUNTER hw_rip
@@ -153,22 +149,18 @@ struct trap_state {
 
 /* The actual trap_state frame pushed by the processor
    varies in size depending on where the trap came from.  */
-#define TR_KSIZE	((int)&((struct trap_state*)0)->esp)
-#define TR_USIZE	((int)&((struct trap_state*)0)->v86_es)
-#define TR_V86SIZE	sizeof(struct trap_state)
+#define TR_KSIZE   ((int)&((struct trap_state *)0)->esp)
+#define TR_USIZE   ((int)&((struct trap_state *)0)->v86_es)
+#define TR_V86SIZE sizeof(struct trap_state)
 
-//#define I386_N_TRAPS 32
+// #define I386_N_TRAPS 32
 #define ARCH_N_TRAPS 32
 
 
-//int (*phantom_trap_handlers[I386_N_TRAPS])(struct trap_state *ts);
+// int (*phantom_trap_handlers[I386_N_TRAPS])(struct trap_state *ts);
 
 
-#endif	// asm
+#endif  // asm
 
 
-
-
-
-#endif	// _AMD64_TRAP_H_
-
+#endif  // _AMD64_TRAP_H_

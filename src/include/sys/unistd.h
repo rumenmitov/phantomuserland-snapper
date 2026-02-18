@@ -4,31 +4,32 @@
 #include <unistd.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 #include <phantom_types.h>
 
-#define	_PTR		void *
-#define	_AND		,
-#define	_NOARGS		void
-#define	_CONST		const
-#define	_VOLATILE	volatile
-#define	_SIGNED		signed
-#define	_DOTS		, ...
-#define _VOID void
+#define _PTR      void *
+#define _AND      ,
+#define _NOARGS   void
+#define _CONST    const
+#define _VOLATILE volatile
+#define _SIGNED   signed
+#define _DOTS     , ...
+#define _VOID     void
 #ifdef __CYGWIN__
-#define	_EXFUN_NOTHROW(name, proto)	__cdecl name proto _NOTHROW
-#define	_EXFUN(name, proto)		__cdecl name proto
-#define	_EXPARM(name, proto)		(* __cdecl name) proto
+#define _EXFUN_NOTHROW(name, proto) __cdecl name proto _NOTHROW
+#define _EXFUN(name, proto)         __cdecl name proto
+#define _EXPARM(name, proto)        (*__cdecl name) proto
 #else
-#define	_EXFUN_NOTHROW(name, proto)	name proto _NOTHROW
-#define	_EXFUN(name, proto)		name proto
-#define _EXPARM(name, proto)		(* name) proto
+#define _EXFUN_NOTHROW(name, proto) name proto _NOTHROW
+#define _EXFUN(name, proto)         name proto
+#define _EXPARM(name, proto)        (*name) proto
 #endif
-#define	_DEFUN(name, arglist, args)	name(args)
-#define	_DEFUN_VOID(name)		name(_NOARGS)
-#define _CAST_VOID (void)
+#define _DEFUN(name, arglist, args) name(args)
+#define _DEFUN_VOID(name)           name(_NOARGS)
+#define _CAST_VOID                  (void)
 #ifndef _LONG_DOUBLE
 #define _LONG_DOUBLE long double
 #endif
@@ -36,37 +37,37 @@ extern "C" {
 #define _LONG_LONG_TYPE long long
 #endif
 #ifndef _PARAMS
-#define _PARAMS(paramlist)		paramlist
+#define _PARAMS(paramlist) paramlist
 #endif
 
 #ifdef __GNUC__
-#define _ATTRIBUTE(attrs) __attribute__ (attrs)
+#define _ATTRIBUTE(attrs) __attribute__(attrs)
 #else
 #define _ATTRIBUTE(attrs)
 #endif
 
-    //typedef int pid_t;
+	// typedef int pid_t;
 
-    void 		sleepmsec(int);
-    void 		ssyslog(int level, const char *string );
+	void sleepmsec(int);
+	void ssyslog(int level, const char *string);
 
 
-    int 		read(int __fd, void *__buf, size_t __nbyte );
-    int			write(int __fd, const void *__buf, size_t __nbyte );
+	int read(int __fd, void *__buf, size_t __nbyte);
+	int write(int __fd, const void *__buf, size_t __nbyte);
 
-    void		_exit(int __status ) _ATTRIBUTE ((noreturn)) ;
+	void _exit(int __status) _ATTRIBUTE((noreturn));
 
-    pid_t   		getpid(void);
-    pid_t   		getppid(void);
+	pid_t getpid(void);
+	pid_t getppid(void);
 
-int     close(int __fildes );
+	int close(int __fildes);
 
 #if 0
 
 
 #include <_ansi.h>
-#include <sys/types.h>
 #include <sys/_types.h>
+#include <sys/types.h>
 #define __need_size_t
 #define __need_ptrdiff_t
 #include <stddef.h>
@@ -172,10 +173,10 @@ int	_EXFUN(nice, (int __nice_value ));
 off_t   _EXFUN(lseek, (int __fildes, off_t __offset, int __whence ));
 #endif
 #if defined(__SPU__) || defined(__CYGWIN__)
-#define F_ULOCK	0
-#define F_LOCK	1
-#define F_TLOCK	2
-#define F_TEST	3
+#define F_ULOCK 0
+#define F_LOCK  1
+#define F_TLOCK 2
+#define F_TEST  3
 int     _EXFUN(lockf, (int __fd, int __cmd, off_t __len));
 #endif
 long    _EXFUN(pathconf, (const char *__path, int __name ));
@@ -225,16 +226,16 @@ pid_t   _EXFUN(tcgetpgrp, (int __fildes ));
 int     _EXFUN(tcsetpgrp, (int __fildes, pid_t __pgrp_id ));
 char    _EXFUN(*ttyname, (int __fildes ));
 #if defined(__CYGWIN__) || defined(__rtems__)
-int     _EXFUN(ttyname_r, (int, char *, size_t)); 
+int     _EXFUN(ttyname_r, (int, char *, size_t));
 #endif
 int     _EXFUN(unlink, (const char *__path ));
 int 	_EXFUN(usleep, (useconds_t __useconds));
 int     _EXFUN(vhangup, (void ));
 
 #ifdef __CYGWIN__
-# define __UNISTD_GETOPT__
-# include <getopt.h>
-# undef __UNISTD_GETOPT__
+#define __UNISTD_GETOPT__
+#include <getopt.h>
+#undef __UNISTD_GETOPT__
 #else
 extern char *optarg;			/* getopt(3) external variables */
 extern int optind, opterr, optopt;
@@ -242,7 +243,7 @@ int	 getopt(int, char * const [], const char *);
 extern int optreset;			/* getopt(3) external variable */
 #endif
 
-#ifndef        _POSIX_SOURCE
+#ifndef _POSIX_SOURCE
 pid_t   _EXFUN(vfork, (void ));
 
 extern char *suboptarg;			/* getsubopt(3) external variable */
@@ -279,7 +280,7 @@ int     _EXFUN(truncate, (const char *, off_t __length));
 int	_EXFUN(getdtablesize, (void));
 int	_EXFUN(setdtablesize, (int));
 useconds_t _EXFUN(ualarm, (useconds_t __useconds, useconds_t __interval));
-#if !(defined  (_WINSOCK_H) || defined (__USE_W32_SOCKETS))
+#if !(defined(_WINSOCK_H) || defined(__USE_W32_SOCKETS))
 /* winsock[2].h defines as __stdcall, and with int as 2nd arg */
  int	_EXFUN(gethostname, (char *__name, size_t __len));
 #endif
@@ -300,90 +301,78 @@ int     _EXFUN(symlink, (const char *__name1, const char *__name2));
 #include <sys/features.h>
 
 
+#endif  // 0
 
 
+#define F_OK 0
+#define R_OK 4
+#define W_OK 2
+#define X_OK 1
+
+#define SEEK_SET 0
+#define SEEK_CUR 1
+#define SEEK_END 2
 
 
+#define STDIN_FILENO  0 /* standard input file descriptor */
+#define STDOUT_FILENO 1 /* standard output file descriptor */
+#define STDERR_FILENO 2 /* standard error file descriptor */
 
-#endif // 0
+	/*
+	 *  sysconf values per IEEE Std 1003.1, 2008 Edition
+	 */
 
-
-
-
-
-
-
-
-
-#define	F_OK	0
-#define	R_OK	4
-#define	W_OK	2
-#define	X_OK	1
-
-# define	SEEK_SET	0
-# define	SEEK_CUR	1
-# define	SEEK_END	2
-
-
-#define STDIN_FILENO    0       /* standard input file descriptor */
-#define STDOUT_FILENO   1       /* standard output file descriptor */
-#define STDERR_FILENO   2       /* standard error file descriptor */
-
-/*
- *  sysconf values per IEEE Std 1003.1, 2008 Edition
- */
-
-#define _SC_ARG_MAX                       0
-#define _SC_CHILD_MAX                     1
-#define _SC_CLK_TCK                       2
-#define _SC_NGROUPS_MAX                   3
-#define _SC_OPEN_MAX                      4
-#define _SC_JOB_CONTROL                   5
-#define _SC_SAVED_IDS                     6
-#define _SC_VERSION                       7
-#define _SC_PAGESIZE                      8
-#define _SC_PAGE_SIZE                     _SC_PAGESIZE
+#define _SC_ARG_MAX     0
+#define _SC_CHILD_MAX   1
+#define _SC_CLK_TCK     2
+#define _SC_NGROUPS_MAX 3
+#define _SC_OPEN_MAX    4
+#define _SC_JOB_CONTROL 5
+#define _SC_SAVED_IDS   6
+#define _SC_VERSION     7
+#define _SC_PAGESIZE    8
+#define _SC_PAGE_SIZE   _SC_PAGESIZE
 /* These are non-POSIX values we accidentally introduced in 2000 without
    guarding them.  Keeping them unguarded for backward compatibility. */
-#define _SC_NPROCESSORS_CONF              9
-#define _SC_NPROCESSORS_ONLN             10
-#define _SC_PHYS_PAGES                   11
-#define _SC_AVPHYS_PAGES                 12
+#define _SC_NPROCESSORS_CONF 9
+#define _SC_NPROCESSORS_ONLN 10
+#define _SC_PHYS_PAGES       11
+#define _SC_AVPHYS_PAGES     12
 /* End of non-POSIX values. */
-#define _SC_MQ_OPEN_MAX                  13
-#define _SC_MQ_PRIO_MAX                  14
-#define _SC_RTSIG_MAX                    15
-#define _SC_SEM_NSEMS_MAX                16
-#define _SC_SEM_VALUE_MAX                17
-#define _SC_SIGQUEUE_MAX                 18
-#define _SC_TIMER_MAX                    19
-#define _SC_TZNAME_MAX                   20
-#define _SC_ASYNCHRONOUS_IO              21
-#define _SC_FSYNC                        22
-#define _SC_MAPPED_FILES                 23
-#define _SC_MEMLOCK                      24
-#define _SC_MEMLOCK_RANGE                25
-#define _SC_MEMORY_PROTECTION            26
-#define _SC_MESSAGE_PASSING              27
-#define _SC_PRIORITIZED_IO               28
-#define _SC_REALTIME_SIGNALS             29
-#define _SC_SEMAPHORES                   30
-#define _SC_SHARED_MEMORY_OBJECTS        31
-#define _SC_SYNCHRONIZED_IO              32
-#define _SC_TIMERS                       33
-#define _SC_AIO_LISTIO_MAX               34
-#define _SC_AIO_MAX                      35
-#define _SC_AIO_PRIO_DELTA_MAX           36
-#define _SC_DELAYTIMER_MAX               37
-#define _SC_THREAD_KEYS_MAX              38
-#define _SC_THREAD_STACK_MIN             39
-#define _SC_THREAD_THREADS_MAX           40
-#define _SC_TTY_NAME_MAX                 41
-#define _SC_THREADS                      42
-#define _SC_THREAD_ATTR_STACKADDR        43
-#define _SC_THREAD_ATTR_STACKSIZE        44
-#define _SC_THREAD_PRIORITY_SCHEDULING   45
-#define _SC_THREAD_PRIO_INHERIT          46
+#define _SC_MQ_OPEN_MAX                13
+#define _SC_MQ_PRIO_MAX                14
+#define _SC_RTSIG_MAX                  15
+#define _SC_SEM_NSEMS_MAX              16
+#define _SC_SEM_VALUE_MAX              17
+#define _SC_SIGQUEUE_MAX               18
+#define _SC_TIMER_MAX                  19
+#define _SC_TZNAME_MAX                 20
+#define _SC_ASYNCHRONOUS_IO            21
+#define _SC_FSYNC                      22
+#define _SC_MAPPED_FILES               23
+#define _SC_MEMLOCK                    24
+#define _SC_MEMLOCK_RANGE              25
+#define _SC_MEMORY_PROTECTION          26
+#define _SC_MESSAGE_PASSING            27
+#define _SC_PRIORITIZED_IO             28
+#define _SC_REALTIME_SIGNALS           29
+#define _SC_SEMAPHORES                 30
+#define _SC_SHARED_MEMORY_OBJECTS      31
+#define _SC_SYNCHRONIZED_IO            32
+#define _SC_TIMERS                     33
+#define _SC_AIO_LISTIO_MAX             34
+#define _SC_AIO_MAX                    35
+#define _SC_AIO_PRIO_DELTA_MAX         36
+#define _SC_DELAYTIMER_MAX             37
+#define _SC_THREAD_KEYS_MAX            38
+#define _SC_THREAD_STACK_MIN           39
+#define _SC_THREAD_THREADS_MAX         40
+#define _SC_TTY_NAME_MAX               41
+#define _SC_THREADS                    42
+#define _SC_THREAD_ATTR_STACKADDR      43
+#define _SC_THREAD_ATTR_STACKSIZE      44
+#define _SC_THREAD_PRIORITY_SCHEDULING 45
+#define _SC_THREAD_PRIO_INHERIT        46
 /* _SC_THREAD_PRIO_PROTECT was _SC_THREAD_PRIO_CEILING in early drafts */
 #define _SC_THREAD_PRIO_PROTECT          47
 #define _SC_THREAD_PRIO_CEILING          _SC_THREAD_PRIO_PROTECT
@@ -447,128 +436,126 @@ int     _EXFUN(symlink, (const char *__name1, const char *__name2));
 #define _SC_XOPEN_ENH_I18N               97
 #define _SC_XOPEN_LEGACY                 98
 #define _SC_XOPEN_REALTIME               99
-#define _SC_STREAM_MAX                  100
-#define _SC_PRIORITY_SCHEDULING         101
-#define _SC_XOPEN_REALTIME_THREADS      102
-#define _SC_XOPEN_SHM                   103
-#define _SC_XOPEN_STREAMS               104
-#define _SC_XOPEN_UNIX                  105
-#define _SC_XOPEN_VERSION               106
-#define _SC_2_CHAR_TERM                 107
-#define _SC_2_C_BIND                    108
-#define _SC_2_C_DEV                     109
-#define _SC_2_FORT_DEV                  110
-#define _SC_2_FORT_RUN                  111
-#define _SC_2_LOCALEDEF                 112
-#define _SC_2_PBS                       113
-#define _SC_2_PBS_ACCOUNTING            114
-#define _SC_2_PBS_CHECKPOINT            115
-#define _SC_2_PBS_LOCATE                116
-#define _SC_2_PBS_MESSAGE               117
-#define _SC_2_PBS_TRACK                 118
-#define _SC_2_SW_DEV                    119
-#define _SC_2_UPE                       120
-#define _SC_2_VERSION                   121
-#define _SC_THREAD_ROBUST_PRIO_INHERIT  122
-#define _SC_THREAD_ROBUST_PRIO_PROTECT  123
-#define _SC_XOPEN_UUCP                  124
+#define _SC_STREAM_MAX                   100
+#define _SC_PRIORITY_SCHEDULING          101
+#define _SC_XOPEN_REALTIME_THREADS       102
+#define _SC_XOPEN_SHM                    103
+#define _SC_XOPEN_STREAMS                104
+#define _SC_XOPEN_UNIX                   105
+#define _SC_XOPEN_VERSION                106
+#define _SC_2_CHAR_TERM                  107
+#define _SC_2_C_BIND                     108
+#define _SC_2_C_DEV                      109
+#define _SC_2_FORT_DEV                   110
+#define _SC_2_FORT_RUN                   111
+#define _SC_2_LOCALEDEF                  112
+#define _SC_2_PBS                        113
+#define _SC_2_PBS_ACCOUNTING             114
+#define _SC_2_PBS_CHECKPOINT             115
+#define _SC_2_PBS_LOCATE                 116
+#define _SC_2_PBS_MESSAGE                117
+#define _SC_2_PBS_TRACK                  118
+#define _SC_2_SW_DEV                     119
+#define _SC_2_UPE                        120
+#define _SC_2_VERSION                    121
+#define _SC_THREAD_ROBUST_PRIO_INHERIT   122
+#define _SC_THREAD_ROBUST_PRIO_PROTECT   123
+#define _SC_XOPEN_UUCP                   124
 
-/*
- *  pathconf values per IEEE Std 1003.1, 2008 Edition
- */
+	/*
+	 *  pathconf values per IEEE Std 1003.1, 2008 Edition
+	 */
 
-#define _PC_LINK_MAX                      0
-#define _PC_MAX_CANON                     1
-#define _PC_MAX_INPUT                     2
-#define _PC_NAME_MAX                      3
-#define _PC_PATH_MAX                      4
-#define _PC_PIPE_BUF                      5
-#define _PC_CHOWN_RESTRICTED              6
-#define _PC_NO_TRUNC                      7
-#define _PC_VDISABLE                      8
-#define _PC_ASYNC_IO                      9
-#define _PC_PRIO_IO                      10
-#define _PC_SYNC_IO                      11
-#define _PC_FILESIZEBITS                 12
-#define _PC_2_SYMLINKS                   13
-#define _PC_SYMLINK_MAX                  14
-#define _PC_ALLOC_SIZE_MIN               15
-#define _PC_REC_INCR_XFER_SIZE           16
-#define _PC_REC_MAX_XFER_SIZE            17
-#define _PC_REC_MIN_XFER_SIZE            18
-#define _PC_REC_XFER_ALIGN               19
-#define _PC_TIMESTAMP_RESOLUTION         20
+#define _PC_LINK_MAX             0
+#define _PC_MAX_CANON            1
+#define _PC_MAX_INPUT            2
+#define _PC_NAME_MAX             3
+#define _PC_PATH_MAX             4
+#define _PC_PIPE_BUF             5
+#define _PC_CHOWN_RESTRICTED     6
+#define _PC_NO_TRUNC             7
+#define _PC_VDISABLE             8
+#define _PC_ASYNC_IO             9
+#define _PC_PRIO_IO              10
+#define _PC_SYNC_IO              11
+#define _PC_FILESIZEBITS         12
+#define _PC_2_SYMLINKS           13
+#define _PC_SYMLINK_MAX          14
+#define _PC_ALLOC_SIZE_MIN       15
+#define _PC_REC_INCR_XFER_SIZE   16
+#define _PC_REC_MAX_XFER_SIZE    17
+#define _PC_REC_MIN_XFER_SIZE    18
+#define _PC_REC_XFER_ALIGN       19
+#define _PC_TIMESTAMP_RESOLUTION 20
 #ifdef __CYGWIN__
 /* Ask for POSIX permission bits support. */
-#define _PC_POSIX_PERMISSIONS            90
+#define _PC_POSIX_PERMISSIONS 90
 /* Ask for full POSIX permission support including uid/gid settings. */
-#define _PC_POSIX_SECURITY               91
+#define _PC_POSIX_SECURITY 91
 #endif
 
-/*
- *  confstr values per IEEE Std 1003.1, 2004 Edition
- */
+	/*
+	 *  confstr values per IEEE Std 1003.1, 2004 Edition
+	 */
 
-#ifdef __CYGWIN__	/* Only defined on Cygwin for now. */
-#define _CS_PATH                               0
-#define _CS_POSIX_V7_ILP32_OFF32_CFLAGS        1
-#define _CS_POSIX_V6_ILP32_OFF32_CFLAGS       _CS_POSIX_V7_ILP32_OFF32_CFLAGS
-#define _CS_XBS5_ILP32_OFF32_CFLAGS           _CS_POSIX_V7_ILP32_OFF32_CFLAGS
-#define _CS_POSIX_V7_ILP32_OFF32_LDFLAGS       2
-#define _CS_POSIX_V6_ILP32_OFF32_LDFLAGS      _CS_POSIX_V7_ILP32_OFF32_LDFLAGS
-#define _CS_XBS5_ILP32_OFF32_LDFLAGS          _CS_POSIX_V7_ILP32_OFF32_LDFLAGS
-#define _CS_POSIX_V7_ILP32_OFF32_LIBS          3
-#define _CS_POSIX_V6_ILP32_OFF32_LIBS         _CS_POSIX_V7_ILP32_OFF32_LIBS
-#define _CS_XBS5_ILP32_OFF32_LIBS             _CS_POSIX_V7_ILP32_OFF32_LIBS
-#define _CS_XBS5_ILP32_OFF32_LINTFLAGS         4
-#define _CS_POSIX_V7_ILP32_OFFBIG_CFLAGS       5
-#define _CS_POSIX_V6_ILP32_OFFBIG_CFLAGS      _CS_POSIX_V7_ILP32_OFFBIG_CFLAGS
-#define _CS_XBS5_ILP32_OFFBIG_CFLAGS          _CS_POSIX_V7_ILP32_OFFBIG_CFLAGS
-#define _CS_POSIX_V7_ILP32_OFFBIG_LDFLAGS      6
-#define _CS_POSIX_V6_ILP32_OFFBIG_LDFLAGS     _CS_POSIX_V7_ILP32_OFFBIG_LDFLAGS
-#define _CS_XBS5_ILP32_OFFBIG_LDFLAGS         _CS_POSIX_V7_ILP32_OFFBIG_LDFLAGS
-#define _CS_POSIX_V7_ILP32_OFFBIG_LIBS         7
-#define _CS_POSIX_V6_ILP32_OFFBIG_LIBS        _CS_POSIX_V7_ILP32_OFFBIG_LIBS
-#define _CS_XBS5_ILP32_OFFBIG_LIBS            _CS_POSIX_V7_ILP32_OFFBIG_LIBS
-#define _CS_XBS5_ILP32_OFFBIG_LINTFLAGS        8
-#define _CS_POSIX_V7_LP64_OFF64_CFLAGS         9
-#define _CS_POSIX_V6_LP64_OFF64_CFLAGS        _CS_POSIX_V7_LP64_OFF64_CFLAGS
-#define _CS_XBS5_LP64_OFF64_CFLAGS            _CS_POSIX_V7_LP64_OFF64_CFLAGS
-#define _CS_POSIX_V7_LP64_OFF64_LDFLAGS       10
-#define _CS_POSIX_V6_LP64_OFF64_LDFLAGS       _CS_POSIX_V7_LP64_OFF64_LDFLAGS
-#define _CS_XBS5_LP64_OFF64_LDFLAGS           _CS_POSIX_V7_LP64_OFF64_LDFLAGS
-#define _CS_POSIX_V7_LP64_OFF64_LIBS          11
-#define _CS_POSIX_V6_LP64_OFF64_LIBS          _CS_POSIX_V7_LP64_OFF64_LIBS
-#define _CS_XBS5_LP64_OFF64_LIBS              _CS_POSIX_V7_LP64_OFF64_LIBS
-#define _CS_XBS5_LP64_OFF64_LINTFLAGS         12
-#define _CS_POSIX_V7_LPBIG_OFFBIG_CFLAGS      13
-#define _CS_POSIX_V6_LPBIG_OFFBIG_CFLAGS      _CS_POSIX_V7_LPBIG_OFFBIG_CFLAGS
-#define _CS_XBS5_LPBIG_OFFBIG_CFLAGS          _CS_POSIX_V7_LPBIG_OFFBIG_CFLAGS
-#define _CS_POSIX_V7_LPBIG_OFFBIG_LDFLAGS     14
-#define _CS_POSIX_V6_LPBIG_OFFBIG_LDFLAGS     _CS_POSIX_V7_LPBIG_OFFBIG_LDFLAGS
-#define _CS_XBS5_LPBIG_OFFBIG_LDFLAGS         _CS_POSIX_V7_LPBIG_OFFBIG_LDFLAGS
-#define _CS_POSIX_V7_LPBIG_OFFBIG_LIBS        15
-#define _CS_POSIX_V6_LPBIG_OFFBIG_LIBS        _CS_POSIX_V7_LPBIG_OFFBIG_LIBS
-#define _CS_XBS5_LPBIG_OFFBIG_LIBS            _CS_POSIX_V7_LPBIG_OFFBIG_LIBS
-#define _CS_XBS5_LPBIG_OFFBIG_LINTFLAGS       16
-#define _CS_POSIX_V7_WIDTH_RESTRICTED_ENVS    17
-#define _CS_POSIX_V6_WIDTH_RESTRICTED_ENVS    _CS_POSIX_V7_WIDTH_RESTRICTED_ENVS
-#define _CS_POSIX_V7_THREADS_CFLAGS           18
-#define _CS_POSIX_V7_THREADS_LDFLAGS          19
-#define _CS_V7_ENV                            20
-#define _CS_V6_ENV                           _CS_V6_ENV
+#ifdef __CYGWIN__ /* Only defined on Cygwin for now. */
+#define _CS_PATH                           0
+#define _CS_POSIX_V7_ILP32_OFF32_CFLAGS    1
+#define _CS_POSIX_V6_ILP32_OFF32_CFLAGS    _CS_POSIX_V7_ILP32_OFF32_CFLAGS
+#define _CS_XBS5_ILP32_OFF32_CFLAGS        _CS_POSIX_V7_ILP32_OFF32_CFLAGS
+#define _CS_POSIX_V7_ILP32_OFF32_LDFLAGS   2
+#define _CS_POSIX_V6_ILP32_OFF32_LDFLAGS   _CS_POSIX_V7_ILP32_OFF32_LDFLAGS
+#define _CS_XBS5_ILP32_OFF32_LDFLAGS       _CS_POSIX_V7_ILP32_OFF32_LDFLAGS
+#define _CS_POSIX_V7_ILP32_OFF32_LIBS      3
+#define _CS_POSIX_V6_ILP32_OFF32_LIBS      _CS_POSIX_V7_ILP32_OFF32_LIBS
+#define _CS_XBS5_ILP32_OFF32_LIBS          _CS_POSIX_V7_ILP32_OFF32_LIBS
+#define _CS_XBS5_ILP32_OFF32_LINTFLAGS     4
+#define _CS_POSIX_V7_ILP32_OFFBIG_CFLAGS   5
+#define _CS_POSIX_V6_ILP32_OFFBIG_CFLAGS   _CS_POSIX_V7_ILP32_OFFBIG_CFLAGS
+#define _CS_XBS5_ILP32_OFFBIG_CFLAGS       _CS_POSIX_V7_ILP32_OFFBIG_CFLAGS
+#define _CS_POSIX_V7_ILP32_OFFBIG_LDFLAGS  6
+#define _CS_POSIX_V6_ILP32_OFFBIG_LDFLAGS  _CS_POSIX_V7_ILP32_OFFBIG_LDFLAGS
+#define _CS_XBS5_ILP32_OFFBIG_LDFLAGS      _CS_POSIX_V7_ILP32_OFFBIG_LDFLAGS
+#define _CS_POSIX_V7_ILP32_OFFBIG_LIBS     7
+#define _CS_POSIX_V6_ILP32_OFFBIG_LIBS     _CS_POSIX_V7_ILP32_OFFBIG_LIBS
+#define _CS_XBS5_ILP32_OFFBIG_LIBS         _CS_POSIX_V7_ILP32_OFFBIG_LIBS
+#define _CS_XBS5_ILP32_OFFBIG_LINTFLAGS    8
+#define _CS_POSIX_V7_LP64_OFF64_CFLAGS     9
+#define _CS_POSIX_V6_LP64_OFF64_CFLAGS     _CS_POSIX_V7_LP64_OFF64_CFLAGS
+#define _CS_XBS5_LP64_OFF64_CFLAGS         _CS_POSIX_V7_LP64_OFF64_CFLAGS
+#define _CS_POSIX_V7_LP64_OFF64_LDFLAGS    10
+#define _CS_POSIX_V6_LP64_OFF64_LDFLAGS    _CS_POSIX_V7_LP64_OFF64_LDFLAGS
+#define _CS_XBS5_LP64_OFF64_LDFLAGS        _CS_POSIX_V7_LP64_OFF64_LDFLAGS
+#define _CS_POSIX_V7_LP64_OFF64_LIBS       11
+#define _CS_POSIX_V6_LP64_OFF64_LIBS       _CS_POSIX_V7_LP64_OFF64_LIBS
+#define _CS_XBS5_LP64_OFF64_LIBS           _CS_POSIX_V7_LP64_OFF64_LIBS
+#define _CS_XBS5_LP64_OFF64_LINTFLAGS      12
+#define _CS_POSIX_V7_LPBIG_OFFBIG_CFLAGS   13
+#define _CS_POSIX_V6_LPBIG_OFFBIG_CFLAGS   _CS_POSIX_V7_LPBIG_OFFBIG_CFLAGS
+#define _CS_XBS5_LPBIG_OFFBIG_CFLAGS       _CS_POSIX_V7_LPBIG_OFFBIG_CFLAGS
+#define _CS_POSIX_V7_LPBIG_OFFBIG_LDFLAGS  14
+#define _CS_POSIX_V6_LPBIG_OFFBIG_LDFLAGS  _CS_POSIX_V7_LPBIG_OFFBIG_LDFLAGS
+#define _CS_XBS5_LPBIG_OFFBIG_LDFLAGS      _CS_POSIX_V7_LPBIG_OFFBIG_LDFLAGS
+#define _CS_POSIX_V7_LPBIG_OFFBIG_LIBS     15
+#define _CS_POSIX_V6_LPBIG_OFFBIG_LIBS     _CS_POSIX_V7_LPBIG_OFFBIG_LIBS
+#define _CS_XBS5_LPBIG_OFFBIG_LIBS         _CS_POSIX_V7_LPBIG_OFFBIG_LIBS
+#define _CS_XBS5_LPBIG_OFFBIG_LINTFLAGS    16
+#define _CS_POSIX_V7_WIDTH_RESTRICTED_ENVS 17
+#define _CS_POSIX_V6_WIDTH_RESTRICTED_ENVS _CS_POSIX_V7_WIDTH_RESTRICTED_ENVS
+#define _CS_POSIX_V7_THREADS_CFLAGS        18
+#define _CS_POSIX_V7_THREADS_LDFLAGS       19
+#define _CS_V7_ENV                         20
+#define _CS_V6_ENV                         _CS_V6_ENV
 #endif
 
 #ifndef __CYGWIN__
-# define	MAXPATHLEN	1024
+#define MAXPATHLEN 1024
 #endif
-
 
 
 #ifdef __cplusplus
 }
 #endif
-
 
 
 #endif /* _SYS_UNISTD_H */

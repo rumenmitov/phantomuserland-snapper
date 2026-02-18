@@ -8,7 +8,7 @@
  * frequently needed ones, such as SSE2 for ia32.
  *
  *
-**/
+ **/
 
 #ifndef _ARCH_FLAGS_
 #define _ARCH_FLAGS_
@@ -18,7 +18,7 @@
 #endif
 
 
-//#define ARCH_AMD64_SSE2          (1<<0)
+// #define ARCH_AMD64_SSE2          (1<<0)
 
 
-#endif // _ARCH_FLAGS_
+#endif  // _ARCH_FLAGS_

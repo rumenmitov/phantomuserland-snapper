@@ -6,7 +6,7 @@
 #define _NEWOS_KERNEL_NET_ETHERNET_H
 
 #include <newos/cbuf.h>
-//#include "newos.h"
+// #include "newos.h"
 #include <compat/newos.h>
 
 /*
@@ -27,9 +27,8 @@ typedef uint8 ethernet_addr[6];
 int ethernet_input(cbuf *buf, ifnet *i);
 int ethernet_output(cbuf *buf, ifnet *i, netaddr *target, int protocol_type);
 
-//int ethernet_init(void);
+// int ethernet_init(void);
 
 void dump_ethernet_addr(ethernet_addr addr);
 
 #endif
-

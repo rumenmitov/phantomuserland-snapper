@@ -1,328 +1,307 @@
+#include "phantom_env.h"
+
 #include <base/log.h>
 #include <base/registry.h>
-#include "phantom_env.h"
 
 using namespace Phantom;
 
 extern "C"
 {
 
-#include <hal.h>
 #include "tests_hal.h"
 
-    bool test_hal_vmem_alloc()
-    {
+#include <hal.h>
 
-        // Idea: - alloc bunch of addresses of different sizes
-        //       - check their addresses
-        //       - dealloc them
+	bool test_hal_vmem_alloc()
+	{
 
-        const int addr_cnt = 20;
-        void *addrs[addr_cnt];
+		// Idea: - alloc bunch of addresses of different sizes
+		//       - check their addresses
+		//       - dealloc them
 
-        size_t initialy_available = main_obj->_vmem_adapter._obj_space_allocator.avail();
-        log("Initially: ", initialy_available);
+		const int addr_cnt = 20;
+		void *addrs[addr_cnt];
 
-        for (int i = 0; i < addr_cnt; i++)
-        {
-            // errno_t err = 0;
+		size_t initialy_available = main_obj->_vmem_adapter._obj_space_allocator.avail();
+		log("Initially: ", initialy_available);
 
-            log("Allocating addr i=", i + 1);
+		for (int i = 0; i < addr_cnt; i++) {
+			// errno_t err = 0;
 
-            if (hal_alloc_vaddress(&addrs[i], i + 1))
-            {
-                return false;
-            }
+			log("Allocating addr i=", i + 1);
 
-            log("allocated at ", addrs[i]);
-            // log("is in obj space: ", hal_addr_is_in_object_vmem(addrs[i]));
+			if (hal_alloc_vaddress(&addrs[i], i + 1)) {
+				return false;
+			}
 
-            // if (!hal_addr_is_in_object_vmem(addrs[i]))
-            // {
-            //     return false;
-            // }
-        }
+			log("allocated at ", addrs[i]);
+			// log("is in obj space: ", hal_addr_is_in_object_vmem(addrs[i]));
 
-        for (int i = 0; i < addr_cnt; i++)
-        {
-            log("Freeing addr", addrs[i]);
-            hal_free_vaddress(addrs[i], i + 1);
-        }
+			// if (!hal_addr_is_in_object_vmem(addrs[i]))
+			// {
+			//     return false;
+			// }
+		}
 
-        // Checking if we deallocated all pages
+		for (int i = 0; i < addr_cnt; i++) {
+			log("Freeing addr", addrs[i]);
+			hal_free_vaddress(addrs[i], i + 1);
+		}
 
-        log("Currently: ", main_obj->_vmem_adapter._obj_space_allocator.avail());
+		// Checking if we deallocated all pages
 
-        if (initialy_available != main_obj->_vmem_adapter._obj_space_allocator.avail())
-        {
-            return false;
-        }
+		log("Currently: ", main_obj->_vmem_adapter._obj_space_allocator.avail());
 
-        // Let's try to allocate 10 pages and free them in 3 steps
+		if (initialy_available != main_obj->_vmem_adapter._obj_space_allocator.avail()) {
+			return false;
+		}
 
-        void *temp_addr = nullptr;
+		// Let's try to allocate 10 pages and free them in 3 steps
 
-        log("Allocating addr");
+		void *temp_addr = nullptr;
 
-        if (hal_alloc_vaddress(&temp_addr, 10))
-        {
-            return false;
-        }
+		log("Allocating addr");
 
-        log("free 5");
-        hal_free_vaddress((char *)temp_addr, 5);
-        log("free 2");
-        hal_free_vaddress((char *)temp_addr + (5 * ARCH_PAGE_SIZE), 2);
-        log("free 3");
-        hal_free_vaddress((char *)temp_addr + (7 * ARCH_PAGE_SIZE), 3);
+		if (hal_alloc_vaddress(&temp_addr, 10)) {
+			return false;
+		}
 
-        log("Currrntly: ", main_obj->_vmem_adapter._obj_space_allocator.avail());
+		log("free 5");
+		hal_free_vaddress((char *)temp_addr, 5);
+		log("free 2");
+		hal_free_vaddress((char *)temp_addr + (5 * ARCH_PAGE_SIZE), 2);
+		log("free 3");
+		hal_free_vaddress((char *)temp_addr + (7 * ARCH_PAGE_SIZE), 3);
 
-        if (initialy_available != main_obj->_vmem_adapter._obj_space_allocator.avail())
-        {
-            return false;
-        }
+		log("Currrntly: ", main_obj->_vmem_adapter._obj_space_allocator.avail());
 
-        return true;
-    }
+		if (initialy_available != main_obj->_vmem_adapter._obj_space_allocator.avail()) {
+			return false;
+		}
 
-    static bool check_pseudo_phys_registry(int size)
-    {
-        int cnt = 0;
+		return true;
+	}
 
-        main_obj->_vmem_adapter._pseudo_phys_pages_registry.for_each(
-            [&](Phys_region_handle &rh)
-            {
-                (void)rh;
-                cnt++;
-            });
+	static bool check_pseudo_phys_registry(int size)
+	{
+		int cnt = 0;
 
-        if (cnt != size)
-        {
+		main_obj->_vmem_adapter._pseudo_phys_pages_registry.for_each(
+			[&](Phys_region_handle &rh) {
+				(void)rh;
+				cnt++;
+			});
 
-            Genode::warning("check_pseudo_phys_registry() failed : cnt=", cnt, " expected=", size);
-            return false;
-        }
+		if (cnt != size) {
 
-        return true;
-    }
+			Genode::warning(
+				"check_pseudo_phys_registry() failed : cnt=", cnt, " expected=", size);
+			return false;
+		}
 
-    bool test_hal_phys_alloc()
-    {
+		return true;
+	}
 
-        const int addr_cnt = 20;
-        physaddr_t addrs[addr_cnt];
+	bool test_hal_phys_alloc()
+	{
 
-        // size_t initialy_consumed = main_obj->_vmem_adapter._pseudo_phys_ds_registry.;
-        // log("Initially consumed: ", initialy_consumed);
+		const int addr_cnt = 20;
+		physaddr_t addrs[addr_cnt];
 
-        if (!check_pseudo_phys_registry(0))
-        {
-            return false;
-        }
+		// size_t initialy_consumed = main_obj->_vmem_adapter._pseudo_phys_ds_registry.;
+		// log("Initially consumed: ", initialy_consumed);
 
-        for (int i = 0; i < addr_cnt; i++)
-        {
-            // errno_t err = 0;
+		if (!check_pseudo_phys_registry(0)) {
+			return false;
+		}
 
-            log("Allocating addr i=", i + 1);
+		for (int i = 0; i < addr_cnt; i++) {
+			// errno_t err = 0;
 
-            if (hal_alloc_phys_pages(&addrs[i], i + 1))
-            {
-                return false;
-            }
-
-            log("allocated at ", Hex(addrs[i]));
-            // log("is in obj space: ", hal_addr_is_in_object_vmem(addrs[i]));
-
-            // if (!hal_addr_is_in_object_vmem(addrs[i]))
-            // {
-            //     return false;
-            // }
-        }
+			log("Allocating addr i=", i + 1);
 
-        if (!check_pseudo_phys_registry(addr_cnt))
-        {
-            return false;
-        }
+			if (hal_alloc_phys_pages(&addrs[i], i + 1)) {
+				return false;
+			}
 
-        for (int i = 0; i < addr_cnt; i++)
-        {
-            log("Freeing addr", addrs[i]);
-            hal_free_phys_pages(addrs[i], i + 1);
-        }
+			log("allocated at ", Hex(addrs[i]));
+			// log("is in obj space: ", hal_addr_is_in_object_vmem(addrs[i]));
 
-        if (!check_pseudo_phys_registry(0))
-        {
-            return false;
-        }
+			// if (!hal_addr_is_in_object_vmem(addrs[i]))
+			// {
+			//     return false;
+			// }
+		}
 
-        log("Allocating addr");
+		if (!check_pseudo_phys_registry(addr_cnt)) {
+			return false;
+		}
 
-        physaddr_t temp_addr = 0;
+		for (int i = 0; i < addr_cnt; i++) {
+			log("Freeing addr", addrs[i]);
+			hal_free_phys_pages(addrs[i], i + 1);
+		}
 
-        if (hal_alloc_phys_pages(&temp_addr, 10))
-        {
-            return false;
-        }
+		if (!check_pseudo_phys_registry(0)) {
+			return false;
+		}
 
-        if (!check_pseudo_phys_registry(1))
-        {
-            return false;
-        }
+		log("Allocating addr");
 
-        log("free 5");
-        hal_free_phys_pages(temp_addr, 5); // should not work
+		physaddr_t temp_addr = 0;
 
-        if (!check_pseudo_phys_registry(1))
-        {
-            return false;
-        }
+		if (hal_alloc_phys_pages(&temp_addr, 10)) {
+			return false;
+		}
 
-        hal_free_phys_pages(temp_addr, 10); // should work
+		if (!check_pseudo_phys_registry(1)) {
+			return false;
+		}
 
-        if (!check_pseudo_phys_registry(0))
-        {
-            return false;
-        }
+		log("free 5");
+		hal_free_phys_pages(temp_addr, 5);  // should not work
 
-        return true;
-    }
+		if (!check_pseudo_phys_registry(1)) {
+			return false;
+		}
 
-    bool test_hal_vmem_mapping()
-    {
-        void *va = nullptr;
-        physaddr_t pa = 0x10000000;
+		hal_free_phys_pages(temp_addr, 10);  // should work
 
-        // mapping the page
+		if (!check_pseudo_phys_registry(0)) {
+			return false;
+		}
 
-        hal_pv_alloc(&pa, &va, ARCH_PAGE_SIZE);
-        // hal_alloc_vaddress(&va, 1);
-        // hal_alloc_phys_page(&pa);
+		return true;
+	}
 
-        // hal_page_control_etc(pa, va, page_map, page_readwrite, 0);
+	bool test_hal_vmem_mapping()
+	{
+		void *va = nullptr;
+		physaddr_t pa = 0x10000000;
 
-        // Checking the access
+		// mapping the page
 
-        // Checking addresses
-        char *addr_to_write = (char *)va;
+		hal_pv_alloc(&pa, &va, ARCH_PAGE_SIZE);
+		// hal_alloc_vaddress(&va, 1);
+		// hal_alloc_phys_page(&pa);
 
-        for (int i = 0; i < ARCH_PAGE_SIZE; i++)
-        {
-            char val1 = 'A';
-            char val2 = 'B';
+		// hal_page_control_etc(pa, va, page_map, page_readwrite, 0);
 
-            // reading and checking the value so that there is no place to random
+		// Checking the access
 
-            if (*(addr_to_write + i) != val1)
-            {
-                *(addr_to_write + i) = val1;
+		// Checking addresses
+		char *addr_to_write = (char *)va;
 
-                if (*addr_to_write != val1)
-                {
-                    error("Couldn't write the value on addr_to_write[", i, "]!");
-                    return false;
-                }
-            }
-            else
-            {
-                *(addr_to_write + i) = val2;
+		for (int i = 0; i < ARCH_PAGE_SIZE; i++) {
+			char val1 = 'A';
+			char val2 = 'B';
 
-                if (*addr_to_write != val2)
-                {
-                    error("Couldn't write the value on addr_to_write[", i, "]!");
-                    return false;
-                }
-            }
-        }
+			// reading and checking the value so that there is no place to random
 
-        // Unmapping the page
+			if (*(addr_to_write + i) != val1) {
+				*(addr_to_write + i) = val1;
 
-        // hal_page_control_etc(pa, va, page_unmap, page_readwrite, 0);
+				if (*addr_to_write != val1) {
+					error("Couldn't write the value on addr_to_write[", i, "]!");
+					return false;
+				}
+			} else {
+				*(addr_to_write + i) = val2;
 
-        // hal_free_vaddress(va, 1);
-        // hal_free_phys_page(pa);
+				if (*addr_to_write != val2) {
+					error("Couldn't write the value on addr_to_write[", i, "]!");
+					return false;
+				}
+			}
+		}
 
-        hal_pv_free(pa, va, ARCH_PAGE_SIZE);
+		// Unmapping the page
 
-        return true;
-    }
+		// hal_page_control_etc(pa, va, page_unmap, page_readwrite, 0);
 
-    bool test_hal_vmem_remapping()
-    {
-        // Scenario: map write and unmap several phys pages on a single virtual one, then check
+		// hal_free_vaddress(va, 1);
+		// hal_free_phys_page(pa);
 
-        const int phys_count = 10;
+		hal_pv_free(pa, va, ARCH_PAGE_SIZE);
 
-        void *va = nullptr;
-        physaddr_t pa_orig = 0x0;
+		return true;
+	}
 
-        // Allocating pv to get a free adress and the unmapping
-        hal_pv_alloc(&pa_orig, &va, ARCH_PAGE_SIZE);
-        hal_page_control(pa_orig, va, page_unmap, page_readwrite);
+	bool test_hal_vmem_remapping()
+	{
+		// Scenario: map write and unmap several phys pages on a single virtual one, then
+		// check
 
-        physaddr_t pas[phys_count];
+		const int phys_count = 10;
 
-        // allocating one virtual page
-        // hal_alloc_vaddress(&va, 1);
+		void *va = nullptr;
+		physaddr_t pa_orig = 0x0;
 
-        // And several physical
-        for (int i = 0; i < phys_count; i++)
-        {
-            hal_alloc_phys_page(&pas[i]);
-        }
+		// Allocating pv to get a free adress and the unmapping
+		hal_pv_alloc(&pa_orig, &va, ARCH_PAGE_SIZE);
+		hal_page_control(pa_orig, va, page_unmap, page_readwrite);
 
-        // writing phys pages
-        char *buf[ARCH_PAGE_SIZE];
+		physaddr_t pas[phys_count];
 
-        log("Writing phys pages using 1 virtual");
+		// allocating one virtual page
+		// hal_alloc_vaddress(&va, 1);
 
-        for (int i = 0; i < phys_count; i++)
-        {
+		// And several physical
+		for (int i = 0; i < phys_count; i++) {
+			hal_alloc_phys_page(&pas[i]);
+		}
 
-            hal_page_control_etc(pas[i], va, page_map, page_readwrite, 0);
+		// writing phys pages
+		char *buf[ARCH_PAGE_SIZE];
 
-            memset(buf, i, ARCH_PAGE_SIZE);
+		log("Writing phys pages using 1 virtual");
 
-            log("Starting memcpy");
+		for (int i = 0; i < phys_count; i++) {
 
-            // *(int *)va = i;
+			hal_page_control_etc(pas[i], va, page_map, page_readwrite, 0);
 
-            memcpy(va, buf, ARCH_PAGE_SIZE);
+			memset(buf, i, ARCH_PAGE_SIZE);
 
-            hal_page_control_etc(pas[i], va, page_unmap, page_readwrite, 0);
-            // hal_sleep_msec(1000);
-        }
+			log("Starting memcpy");
 
-        // verifying their values on separate pages
+			// *(int *)va = i;
 
-        for (int i = 0; i < phys_count; i++)
-        {
+			memcpy(va, buf, ARCH_PAGE_SIZE);
 
-            hal_page_control_etc(pas[i], va, page_map, page_readwrite, 0);
+			hal_page_control_etc(pas[i], va, page_unmap, page_readwrite, 0);
+			// hal_sleep_msec(1000);
+		}
 
-            memset(buf, i, ARCH_PAGE_SIZE);
-            if (memcmp(va, buf, ARCH_PAGE_SIZE))
-            {
-                error("Failed remapping test on ", i, "th case. memcmp()=",
-                      memcmp(va, buf, ARCH_PAGE_SIZE), " va[0]=", Hex((u_int8_t)(*(char *)va)));
+		// verifying their values on separate pages
 
-                return false;
-            }
+		for (int i = 0; i < phys_count; i++) {
 
-            hal_page_control_etc(pas[i], va, page_unmap, page_readwrite, 0);
-        }
+			hal_page_control_etc(pas[i], va, page_map, page_readwrite, 0);
 
-        // hal_free_vaddress(va, 1);
+			memset(buf, i, ARCH_PAGE_SIZE);
+			if (memcmp(va, buf, ARCH_PAGE_SIZE)) {
+				error("Failed remapping test on ",
+					  i,
+					  "th case. memcmp()=",
+					  memcmp(va, buf, ARCH_PAGE_SIZE),
+					  " va[0]=",
+					  Hex((u_int8_t)(*(char *)va)));
 
-        for (int i = 0; i < phys_count; i++)
-        {
-            hal_free_phys_page(pas[i]);
-        }
+				return false;
+			}
 
-        hal_page_control(pa_orig, va, page_map, page_rw);
-        hal_pv_free(pa_orig, va, ARCH_PAGE_SIZE);
+			hal_page_control_etc(pas[i], va, page_unmap, page_readwrite, 0);
+		}
 
-        return true;
-    }
+		// hal_free_vaddress(va, 1);
+
+		for (int i = 0; i < phys_count; i++) {
+			hal_free_phys_page(pas[i]);
+		}
+
+		hal_page_control(pa_orig, va, page_map, page_rw);
+		hal_pv_free(pa_orig, va, ARCH_PAGE_SIZE);
+
+		return true;
+	}
 };

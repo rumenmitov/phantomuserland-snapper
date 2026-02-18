@@ -1,17 +1,19 @@
 /*
  * Generic mouse interface.
  */
-typedef struct _mouse_move_t {
-	unsigned short buttons;			/* current button state */
-	signed short int dx, dy, dz;		/* change in position */
+typedef struct _mouse_move_t
+{
+	unsigned short buttons;      /* current button state */
+	signed short int dx, dy, dz; /* change in position */
 } mouse_move_t;
 
 /* Mouse button bits */
-#define MOUSE_BTN_LEFT		01
-#define MOUSE_BTN_RIGHT		02
-#define MOUSE_BTN_MIDDLE	04
+#define MOUSE_BTN_LEFT   01
+#define MOUSE_BTN_RIGHT  02
+#define MOUSE_BTN_MIDDLE 04
 
-typedef struct _mouse_t {
+typedef struct _mouse_t
+{
 	struct _mouse_interface_t *interface;
 #ifdef __KERNEL_UOS_H_
 	mutex_t lock;

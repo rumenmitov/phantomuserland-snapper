@@ -8,7 +8,7 @@
  * Preliminary: no
  *
  *
-**/
+ **/
 
 
 #ifndef DRV_VIDEO_WRAPPERS_H_
@@ -17,8 +17,7 @@
 #include "vm/object.h"
 
 
-int drv_video_bmpblt( pvm_object_t bmp, int xpos, int ypos, int zpos );
-
+int drv_video_bmpblt(pvm_object_t bmp, int xpos, int ypos, int zpos);
 
 
 #endif /* DRV_VIDEO_WRAPPERS_H_ */

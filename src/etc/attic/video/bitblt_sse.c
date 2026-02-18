@@ -12,6 +12,7 @@
 **/
 
 #include "drv_video_screen.h"
+
 #include <assert.h>
 #include <sys/types.h>
 #include <video/color.h>

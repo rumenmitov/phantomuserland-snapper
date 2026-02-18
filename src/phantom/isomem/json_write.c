@@ -7,229 +7,230 @@
  * JSON generator.
  *
  *
-**/
+ **/
 
 #include <kernel/json.h>
-
-#include <ph_malloc.h>
 #include <ph_io.h>
+#include <ph_malloc.h>
 
 #ifndef PHANTOM_GENODE
-#include <kunix.h> // default write func
+#include <kunix.h>  // default write func
 // #include <stdio.h> // default write func
 #endif
 
 static inline char hex_nibble(char c)
 {
-    return (c >= 10) ? 'A' + c - 10 : '0' + c;
+	return (c >= 10) ? 'A' + c - 10 : '0' + c;
 }
 
 // TODO UTF-8
 
 void json_encode_string(json_output *jo, const char *in)
 {
-    jo->putc(jo, '"');
+	jo->putc(jo, '"');
 
-    while (*in)
-    {
-        const char c = *in++;
+	while (*in) {
+		const char c = *in++;
 
-        if (c == 0)
-            break;
+		if (c == 0)
+			break;
 
-        switch (c)
-        {
+		switch (c) {
 
-        case '\\':
-        case '"':
-        case '/':
-            jo->putc(jo, '\\');
-            jo->putc(jo, c);
-            break;
+			case '\\':
+			case '"':
+			case '/':
+				jo->putc(jo, '\\');
+				jo->putc(jo, c);
+				break;
 
-        case '\b':
-            jo->putc(jo, '\\');
-            jo->putc(jo, 'b');
-            break;
+			case '\b':
+				jo->putc(jo, '\\');
+				jo->putc(jo, 'b');
+				break;
 
-        case '\t':
-            jo->putc(jo, '\\');
-            jo->putc(jo, 't');
-            break;
+			case '\t':
+				jo->putc(jo, '\\');
+				jo->putc(jo, 't');
+				break;
 
-        case '\n':
-            jo->putc(jo, '\\');
-            jo->putc(jo, 'n');
-            break;
+			case '\n':
+				jo->putc(jo, '\\');
+				jo->putc(jo, 'n');
+				break;
 
-        case '\f':
-            jo->putc(jo, '\\');
-            jo->putc(jo, 'f');
-            break;
+			case '\f':
+				jo->putc(jo, '\\');
+				jo->putc(jo, 'f');
+				break;
 
-        case '\r':
-            jo->putc(jo, '\\');
-            jo->putc(jo, 'r');
-            break;
+			case '\r':
+				jo->putc(jo, '\\');
+				jo->putc(jo, 'r');
+				break;
 
-        default:
-            if (c < ' ')
-            {
-                jo->putc(jo, '\\');
-                jo->putc(jo, 'u');
-                jo->putc(jo, hex_nibble(0x0F & (c >> 4)));
-                jo->putc(jo, hex_nibble(0x0F & c));
-            }
-            else
-            {
-                jo->putc(jo, c);
-            }
-        }
-    }
+			default:
+				if (c < ' ') {
+					jo->putc(jo, '\\');
+					jo->putc(jo, 'u');
+					jo->putc(jo, hex_nibble(0x0F & (c >> 4)));
+					jo->putc(jo, hex_nibble(0x0F & c));
+				} else {
+					jo->putc(jo, c);
+				}
+		}
+	}
 
-    jo->putc(jo, '"');
+	jo->putc(jo, '"');
 }
 
 void json_encode_int(json_output *jo, unsigned long v)
 {
-    // TODO loop me
-    if (v > 10)
-        json_encode_int(jo, v / 10);
-    jo->putc(jo, (v % 10) + '0');
+	// TODO loop me
+	if (v > 10)
+		json_encode_int(jo, v / 10);
+	jo->putc(jo, (v % 10) + '0');
 }
 
 void json_put_tabs(json_output *jo)
 {
-    int d = jo->depth;
-    while (d--)
-        jo->putc(jo, '\t');
+	int d = jo->depth;
+	while (d--)
+		jo->putc(jo, '\t');
 }
 
 void json_put_name(json_output *jo, const char *name)
 {
-    json_put_tabs(jo);
-    json_encode_string(jo, name);
-    jo->putc(jo, ':');
-    jo->putc(jo, ' ');
+	json_put_tabs(jo);
+	json_encode_string(jo, name);
+	jo->putc(jo, ':');
+	jo->putc(jo, ' ');
 }
 
 void json_out_int(json_output *jo, const char *name, int value)
 {
-    json_put_name(jo, name);
-    json_encode_int(jo, value);
+	json_put_name(jo, name);
+	json_encode_int(jo, value);
 }
 
 void json_out_long(json_output *jo, const char *name, long value)
 {
-    json_put_name(jo, name);
-    json_encode_int(jo, value);
+	json_put_name(jo, name);
+	json_encode_int(jo, value);
 }
 
 void json_out_string(json_output *jo, const char *name, const char *value)
 {
-    json_put_name(jo, name);
-    json_encode_string(jo, value);
+	json_put_name(jo, name);
+	json_encode_string(jo, value);
 }
 
 void json_out_open_struct(json_output *jo, const char *name)
 {
-    jo->depth++;
-    json_put_name(jo, name);
-    jo->putc(jo, '{');
-    jo->putc(jo, '\n');
+	jo->depth++;
+	json_put_name(jo, name);
+	jo->putc(jo, '{');
+	jo->putc(jo, '\n');
 }
 
 void json_out_open_anon_struct(json_output *jo)
 {
-    jo->depth++;
-    json_put_tabs(jo);
-    jo->putc(jo, '{');
-    jo->putc(jo, '\n');
+	jo->depth++;
+	json_put_tabs(jo);
+	jo->putc(jo, '{');
+	jo->putc(jo, '\n');
 }
 
 void json_out_close_struct(json_output *jo)
 {
-    jo->putc(jo, '\n');
-    json_put_tabs(jo);
-    jo->putc(jo, '}');
-    //jo->putc( jo, '\n' );
-    jo->depth--;
+	jo->putc(jo, '\n');
+	json_put_tabs(jo);
+	jo->putc(jo, '}');
+	// jo->putc( jo, '\n' );
+	jo->depth--;
 }
 
 void json_out_open_array(json_output *jo, const char *name)
 {
-    jo->depth++;
-    json_put_name(jo, name);
-    jo->putc(jo, '[');
-    jo->putc(jo, '\n');
+	jo->depth++;
+	json_put_name(jo, name);
+	jo->putc(jo, '[');
+	jo->putc(jo, '\n');
 }
 
 void json_out_close_array(json_output *jo)
 {
-    jo->putc(jo, '\n');
-    json_put_tabs(jo);
-    jo->putc(jo, ']');
-    //jo->putc( jo, '\n' );
-    jo->depth--;
+	jo->putc(jo, '\n');
+	json_put_tabs(jo);
+	jo->putc(jo, ']');
+	// jo->putc( jo, '\n' );
+	jo->depth--;
 }
 
 void json_start(json_output *jo)
 {
-    jo->depth = 0;
-    jo->err = 0;
+	jo->depth = 0;
+	jo->err = 0;
 
-    if (jo->putc == 0)
-    {
-        jo->putc = json_putc_console;
-        ph_printf("JSON putc is missing\n");
-    }
+	if (jo->putc == 0) {
+		jo->putc = json_putc_console;
+		ph_printf("JSON putc is missing\n");
+	}
 
-    jo->putc(jo, '{');
-    jo->putc(jo, '\n');
+	jo->putc(jo, '{');
+	jo->putc(jo, '\n');
 }
 
 void json_stop(json_output *jo)
 {
-    if (jo->depth)
-        ph_printf("JSON non-balanced\n");
-    jo->putc(jo, '\n');
-    jo->putc(jo, '}');
-    jo->putc(jo, '\n');
+	if (jo->depth)
+		ph_printf("JSON non-balanced\n");
+	jo->putc(jo, '\n');
+	jo->putc(jo, '}');
+	jo->putc(jo, '\n');
 
-    if (jo->err)
-        ph_printf("JSON errno %d\n", jo->err);
+	if (jo->err)
+		ph_printf("JSON errno %d\n", jo->err);
 }
 
 void json_out_delimiter(json_output *jo)
 {
-    //json_put_tabs( jo );
-    jo->putc(jo, ',');
-    jo->putc(jo, '\n');
+	// json_put_tabs( jo );
+	jo->putc(jo, ',');
+	jo->putc(jo, '\n');
 }
 
-void json_foreach(json_output *jo, const char *name, void *array, size_t el_size, size_t count, void (*encoder)(json_output *jo, void *el))
+void json_foreach(json_output *jo,
+				  const char *name,
+				  void *array,
+				  size_t el_size,
+				  size_t count,
+				  void (*encoder)(json_output *jo, void *el))
 {
-    int i;
+	int i;
 
-    json_out_open_array(jo, name);
+	json_out_open_array(jo, name);
 
-    for (i = 0; i < count; i++)
-    {
-        if (i > 0)
-            json_out_delimiter(jo);
+	for (i = 0; i < count; i++) {
+		if (i > 0)
+			json_out_delimiter(jo);
 
-        json_out_open_anon_struct(jo);
-        encoder(jo, array + (i * el_size));
-        json_out_close_struct(jo);
-    }
-    json_out_close_array(jo);
+		json_out_open_anon_struct(jo);
+		encoder(jo, array + (i * el_size));
+		json_out_close_struct(jo);
+	}
+	json_out_close_array(jo);
 }
 
 void json_out_int_array(json_output *jo, const char *name, int *value, size_t count);
 
-void json_out_string_array(json_output *jo, const char *name, const char *value, size_t count);
+void json_out_string_array(json_output *jo,
+						   const char *name,
+						   const char *value,
+						   size_t count);
 
-//! Default output function, assumes that jo->putc_arg contains kernel file descriptor for k_write()
+//! Default output function, assumes that jo->putc_arg contains kernel file descriptor for
+//! k_write()
 // void json_putc_kfd(json_output *jo, char c)
 // {
 //     int nwrite = 0;
@@ -244,6 +245,6 @@ void json_out_string_array(json_output *jo, const char *name, const char *value,
 //! Default output function, console
 void json_putc_console(json_output *jo, char c)
 {
-    if (ph_putchar(c) < 0)
-        jo->err = EIO;
+	if (ph_putchar(c) < 0)
+		jo->err = EIO;
 }

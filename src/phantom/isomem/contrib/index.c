@@ -30,25 +30,24 @@
  * SUCH DAMAGE.
  */
 
-//#include <sys/cdefs.h>
-//__FBSDID("$FreeBSD: src/lib/libc/string/index.c,v 1.8.6.1 2008/11/25 02:59:29 kensmith Exp $");
+// #include <sys/cdefs.h>
+//__FBSDID("$FreeBSD: src/lib/libc/string/index.c,v 1.8.6.1 2008/11/25 02:59:29 kensmith
+//Exp $");
 
-//#include <stddef.h>
+// #include <stddef.h>
 #include <phantom_libc.h>
 
 
 #ifdef STRCHR
-//#include <string.h>
+// #include <string.h>
 
-char *
-ph_strchr
+char *ph_strchr
 #else
-//#include <strings.h>
+// #include <strings.h>
 
-char *
-index
+char *index
 #endif
-(const char *p, int ch)
+	(const char *p, int ch)
 {
 	char c;
 

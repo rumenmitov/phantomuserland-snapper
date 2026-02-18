@@ -6,38 +6,38 @@
  *
  * Common ATA defs.
  *
-**/
+ **/
 
 #ifndef ATA_H
 #define ATA_H
 
 #include <sys/types.h>
 
-#define ATA_CMD_IDENT	0xEC	/* Identify Device		*/
+#define ATA_CMD_IDENT 0xEC /* Identify Device		*/
 
-#define ATA_CMD_RD_DMA	0xC8	/* Read DMA (with retries)	*/
-#define ATA_CMD_RD_DMAN	0xC9	/* Read DMS ( no  retries)	*/
-#define ATA_CMD_WR_DMA	0xCA	/* Write DMA (with retries)	*/
-#define ATA_CMD_WR_DMAN	0xCB	/* Write DMA ( no  retires)	*/
+#define ATA_CMD_RD_DMA  0xC8 /* Read DMA (with retries)	*/
+#define ATA_CMD_RD_DMAN 0xC9 /* Read DMS ( no  retries)	*/
+#define ATA_CMD_WR_DMA  0xCA /* Write DMA (with retries)	*/
+#define ATA_CMD_WR_DMAN 0xCB /* Write DMA ( no  retires)	*/
 
-#define ATA_CMD_READ_DMA	0xC8	/* Read DMA (with retries)	*/
-#define ATA_CMD_READ_DMA_ONCE	0xC9	/* Read DMS ( no  retries)	*/
-#define ATA_CMD_WRITE_DMA	0xCA	/* Write DMA (with retries)	*/
-#define ATA_CMD_WRITE_DMA_ONCE	0xCB	/* Write DMA ( no  retires)	*/
+#define ATA_CMD_READ_DMA       0xC8 /* Read DMA (with retries)	*/
+#define ATA_CMD_READ_DMA_ONCE  0xC9 /* Read DMS ( no  retries)	*/
+#define ATA_CMD_WRITE_DMA      0xCA /* Write DMA (with retries)	*/
+#define ATA_CMD_WRITE_DMA_ONCE 0xCB /* Write DMA ( no  retires)	*/
 
 
-#define ATA_CMD_READ_DMA_EXT                 0x25
-#define ATA_CMD_WRITE_DMA_EXT                0x35
+#define ATA_CMD_READ_DMA_EXT  0x25
+#define ATA_CMD_WRITE_DMA_EXT 0x35
 
-#define ATA_CMD_READ_FPDMA_QUEUED            0x60
-#define ATA_CMD_WRITE_FPDMA_QUEUED           0x61
+#define ATA_CMD_READ_FPDMA_QUEUED  0x60
+#define ATA_CMD_WRITE_FPDMA_QUEUED 0x61
 
 
 // Data set management
-#define ATA_CMD_DSM                          0x06
+#define ATA_CMD_DSM 0x06
 
 /* feature values for Data Set Management */
-#define DSM_TRIM                        0x01
+#define DSM_TRIM 0x01
 
 #if 0
 /*
@@ -138,6 +138,4 @@ typedef struct hd_driveid {
 #endif
 
 
-#endif // ATA_H
-
-
+#endif  // ATA_H

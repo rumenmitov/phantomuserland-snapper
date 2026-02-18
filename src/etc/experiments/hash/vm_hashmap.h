@@ -9,10 +9,10 @@
 #ifndef __VM_HASHMAP_H__
 #define __VM_HASHMAP_H__
 
-#define MAP_MISSING -3  /* No such element */
-#define MAP_FULL -2 	/* Hashmap is full */
-#define MAP_OMEM -1 	/* Out of Memory */
-#define MAP_OK 0 	/* OK */
+#define MAP_MISSING -3 /* No such element */
+#define MAP_FULL    -2 /* Hashmap is full */
+#define MAP_OMEM    -1 /* Out of Memory */
+#define MAP_OK      0  /* OK */
 
 // TODO TEMP replace me with lib
 unsigned long crc32(const unsigned char *s, unsigned int len);
@@ -38,7 +38,7 @@ typedef any_t map_t;
 
 /*
  * Return an empty hashmap. Returns NULL if empty.
-*/
+ */
 extern map_t vm_hashmap_new();
 
 /*
@@ -53,17 +53,17 @@ extern int vm_hashmap_iterate(map_t in, PFany f, any_t item);
 /*
  * Add an element to the hashmap. Return MAP_OK or MAP_OMEM.
  */
-extern int vm_hashmap_put(map_t in, char* key, any_t value);
+extern int vm_hashmap_put(map_t in, char *key, any_t value);
 
 /*
  * Get an element from the hashmap. Return MAP_OK or MAP_MISSING.
  */
-extern int vm_hashmap_get(map_t in, char* key, any_t *arg);
+extern int vm_hashmap_get(map_t in, char *key, any_t *arg);
 
 /*
  * Remove an element from the hashmap. Return MAP_OK or MAP_MISSING.
  */
-extern int vm_hashmap_remove(map_t in, char* key);
+extern int vm_hashmap_remove(map_t in, char *key);
 
 /*
  * Get any element. Return MAP_OK or MAP_MISSING.
@@ -81,5 +81,4 @@ extern void vm_hashmap_free(map_t in);
  */
 extern int vm_hashmap_length(map_t in);
 
-#endif // __VM_HASHMAP_H__
-
+#endif  // __VM_HASHMAP_H__

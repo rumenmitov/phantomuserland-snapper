@@ -1,20 +1,21 @@
-#include <stdarg.h>
-#include <ph_os.h>
 #include "zgl.h"
 
-void gl_fatal_error(char *format, ...) //__attribute__((noreturn))
+#include <ph_os.h>
+#include <stdarg.h>
+
+void gl_fatal_error(char *format, ...)  //__attribute__((noreturn))
 {
-  va_list ap;
+	va_list ap;
 
-  va_start(ap,format);
+	va_start(ap, format);
 
-  //fprintf(stderr,"TinyGL: fatal error: ");
-  //vfprintf(stderr,format,ap);
-  //fprintf(stderr,"\n");
+	// fprintf(stderr,"TinyGL: fatal error: ");
+	// vfprintf(stderr,format,ap);
+	// fprintf(stderr,"\n");
 
-  ph_vprintf(format,ap);
+	ph_vprintf(format, ap);
 
-  exit(1);
+	exit(1);
 
-  va_end(ap);
+	va_end(ap);
 }

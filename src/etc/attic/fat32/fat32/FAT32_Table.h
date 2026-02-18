@@ -1,5 +1,5 @@
-#include "unix/fat32/define.h"
 #include "FAT32_Opts.h"
+#include "unix/fat32/define.h"
 
 #ifndef __FAT32_TABLE_H__
 #define __FAT32_TABLE_H__
@@ -8,7 +8,7 @@
 //-----------------------------------------------------------------------------
 // Prototypes
 //-----------------------------------------------------------------------------
-void FAT32_InitFatBuffer(f32_t *impl );
+void FAT32_InitFatBuffer(f32_t *impl);
 BOOL FAT32_ReadFATSector(f32_t *impl, UINT32 sector);
 BOOL FAT32_WriteFATSector(f32_t *impl, UINT32 sector);
 BOOL FAT32_PurgeFATBuffer(f32_t *impl);

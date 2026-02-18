@@ -6,7 +6,7 @@
  *
  * Internal video ops/definitions - needed mostly by windowing code.
  *
-**/
+ **/
 
 #ifdef PHANTOM_GENODE
 
@@ -17,12 +17,12 @@
 
 #ifndef VCONFIG_H
 #include <video/vconfig.h>
-#endif // VCONFIG_H
+#endif  // VCONFIG_H
 
 #include <video/bitmap.h>
+#include <video/font.h>
 #include <video/window.h>
 #include <video/zbuf.h>
-#include <video/font.h>
 
 void init_new_windows(void);
 
@@ -52,21 +52,21 @@ void iw_enter_allwq(window_handle_t w);
 // Screen repaint
 // -----------------------------------------------------------------------
 
-void    iw_winblt_locked( window_handle_t from );
-void    iw_winblt( window_handle_t from );
+void iw_winblt_locked(window_handle_t from);
+void iw_winblt(window_handle_t from);
 
 
-void 	scr_repaint_all(void) __attribute__((deprecated));
-void    repaint_all_for_square( rect_t *todo );
-void    scr_repaint_win( window_handle_t w );
+void scr_repaint_all(void) __attribute__((deprecated));
+void repaint_all_for_square(rect_t *todo);
+void scr_repaint_win(window_handle_t w);
 
-void    w_request_async_repaint( rect_t *r );
+void w_request_async_repaint(rect_t *r);
 
-void    request_repaint_all_for_square( rect_t *todo );
-void    request_repaint_all_for_win( window_handle_t w );
+void request_repaint_all_for_square(rect_t *todo);
+void request_repaint_all_for_win(window_handle_t w);
 
-void    win_make_decorations( window_handle_t w );
-void	win_move_decorations( drv_video_window_t *w );
+void win_make_decorations(window_handle_t w);
+void win_move_decorations(drv_video_window_t *w);
 
 
 // -----------------------------------------------------------------------
@@ -80,7 +80,6 @@ void vid_mouse_off_deflt(void);
 void vid_mouse_on_deflt(void);
 
 
-
 // -----------------------------------------------------------------------
 // vm stuff?
 // -----------------------------------------------------------------------
@@ -88,20 +87,23 @@ void vid_mouse_on_deflt(void);
 
 struct data_area_4_bitmap;
 
-int drv_video_string2bmp( struct data_area_4_bitmap *bmp, void *_from );
+int drv_video_string2bmp(struct data_area_4_bitmap *bmp, void *_from);
 
 // -----------------------------------------------------------------------
 // video movers for main screen update - replaced for 24/32/vga io
 // -----------------------------------------------------------------------
 
 
-extern void (*bit_zbmover_to_screen)( void *dest, const struct rgba_t *src, zbuf_t *zb, int nelem, zbuf_t zpos );
-extern void (*bit_mover_to_screen)( void *dest, const struct rgba_t *src, int nelem );
-extern void (*bit_mover_to_screen_noalpha)( void *dest, const struct rgba_t *src, int nelem );
+extern void (*bit_zbmover_to_screen)(
+	void *dest, const struct rgba_t *src, zbuf_t *zb, int nelem, zbuf_t zpos);
+extern void (*bit_mover_to_screen)(void *dest, const struct rgba_t *src, int nelem);
+extern void (*bit_mover_to_screen_noalpha)(void *dest,
+										   const struct rgba_t *src,
+										   int nelem);
 
 
-extern void (*bit_mover_from_screen)( struct rgba_t *dest, void *src, int nelem );
-extern int      bit_mover_byte_step;
+extern void (*bit_mover_from_screen)(struct rgba_t *dest, void *src, int nelem);
+extern int bit_mover_byte_step;
 
 
 // -----------------------------------------------------------------------
@@ -118,8 +120,7 @@ drv_video_window_t *private_drv_video_window_create(int xsize, int ysize);
 /// Is one of topmost - i.e. covered only by WFLAG_WIN_ONTOP ones
 int iw_is_top(drv_video_window_t *w);
 
-void w_fill_bitmap( rgba_t *dest, rgba_t color, int npixels );
+void w_fill_bitmap(rgba_t *dest, rgba_t color, int npixels);
 
-void iw_setup_buffers(drv_video_window_t *w); //< setup r_ and w_pointers
-void iw_switch_buffers(drv_video_window_t *w); //< for double buffered mode
-
+void iw_setup_buffers(drv_video_window_t *w);   //< setup r_ and w_pointers
+void iw_switch_buffers(drv_video_window_t *w);  //< for double buffered mode

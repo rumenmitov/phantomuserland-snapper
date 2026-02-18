@@ -7,7 +7,7 @@
  * VM exceptions
  *
  *
-**/
+ **/
 
 #ifndef PVM_EXCEPTION_H
 #define PVM_EXCEPTION_H
@@ -18,13 +18,12 @@
 
 struct pvm_exception_handler
 {
-    pvm_object_t   object;
-    unsigned int   jump;
+	pvm_object_t object;
+	unsigned int jump;
 };
 
 
-void pvm_exec_throw( const char *reason );
+void pvm_exec_throw(const char *reason);
 
 
-#endif // PVM_EXCEPTION_H
-
+#endif  // PVM_EXCEPTION_H

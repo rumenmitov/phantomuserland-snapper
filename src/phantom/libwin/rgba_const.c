@@ -7,7 +7,7 @@
  * Color constants
  *
  *
-**/
+ **/
 
 
 #include <video/color.h>

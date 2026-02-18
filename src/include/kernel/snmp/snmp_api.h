@@ -50,49 +50,50 @@
  */
 /*@{*/
 
-#define SNMP_MAX_MSG_SIZE          1472 /* ethernet MTU minus IP/UDP header */
+#define SNMP_MAX_MSG_SIZE 1472 /* ethernet MTU minus IP/UDP header */
 
 
 /*
  * SNMP statistic counters.
  */
-#define  SNMP_STAT_INPKTS                0
-#define  SNMP_STAT_OUTPKTS               1
-#define  SNMP_STAT_INBADVERSIONS         2
-#define  SNMP_STAT_INBADCOMMUNITYNAMES   3
-#define  SNMP_STAT_INBADCOMMUNITYUSES    4
-#define  SNMP_STAT_INASNPARSEERRS        5
-#define  SNMP_STAT_INTOOBIGS             6
-#define  SNMP_STAT_INNOSUCHNAMES         7
-#define  SNMP_STAT_INBADVALUES           8
-#define  SNMP_STAT_INREADONLYS           9
-#define  SNMP_STAT_INGENERRS             10
-#define  SNMP_STAT_INTOTALREQVARS        11
-#define  SNMP_STAT_INTOTALSETVARS        12
-#define  SNMP_STAT_INGETREQUESTS         13
-#define  SNMP_STAT_INGETNEXTS            14
-#define  SNMP_STAT_INSETREQUESTS         15
-#define  SNMP_STAT_INGETRESPONSES        16
-#define  SNMP_STAT_INTRAPS               17
-#define  SNMP_STAT_OUTTOOBIGS            18
-#define  SNMP_STAT_OUTNOSUCHNAMES        19
-#define  SNMP_STAT_OUTBADVALUES          20
-#define  SNMP_STAT_OUTGENERRS            21
-#define  SNMP_STAT_OUTGETREQUESTS        22
-#define  SNMP_STAT_OUTGETNEXTS           23
-#define  SNMP_STAT_OUTSETREQUESTS        24
-#define  SNMP_STAT_OUTGETRESPONSES       25
-#define  SNMP_STAT_OUTTRAPS              26
-#define  SNMP_STAT_ENABLEAUTHENTRAPS     27
+#define SNMP_STAT_INPKTS              0
+#define SNMP_STAT_OUTPKTS             1
+#define SNMP_STAT_INBADVERSIONS       2
+#define SNMP_STAT_INBADCOMMUNITYNAMES 3
+#define SNMP_STAT_INBADCOMMUNITYUSES  4
+#define SNMP_STAT_INASNPARSEERRS      5
+#define SNMP_STAT_INTOOBIGS           6
+#define SNMP_STAT_INNOSUCHNAMES       7
+#define SNMP_STAT_INBADVALUES         8
+#define SNMP_STAT_INREADONLYS         9
+#define SNMP_STAT_INGENERRS           10
+#define SNMP_STAT_INTOTALREQVARS      11
+#define SNMP_STAT_INTOTALSETVARS      12
+#define SNMP_STAT_INGETREQUESTS       13
+#define SNMP_STAT_INGETNEXTS          14
+#define SNMP_STAT_INSETREQUESTS       15
+#define SNMP_STAT_INGETRESPONSES      16
+#define SNMP_STAT_INTRAPS             17
+#define SNMP_STAT_OUTTOOBIGS          18
+#define SNMP_STAT_OUTNOSUCHNAMES      19
+#define SNMP_STAT_OUTBADVALUES        20
+#define SNMP_STAT_OUTGENERRS          21
+#define SNMP_STAT_OUTGETREQUESTS      22
+#define SNMP_STAT_OUTGETNEXTS         23
+#define SNMP_STAT_OUTSETREQUESTS      24
+#define SNMP_STAT_OUTGETRESPONSES     25
+#define SNMP_STAT_OUTTRAPS            26
+#define SNMP_STAT_ENABLEAUTHENTRAPS   27
 
-#define  SNMP_STAT_MAX                   28
+#define SNMP_STAT_MAX 28
 
 /*@}*/
 
 extern int SnmpOidCmp(CONST OID *, size_t, CONST OID *, size_t);
 extern int SnmpOidLenCmp(CONST OID *name1, CONST OID *name2, size_t len);
 extern int SnmpOidTreeCmp(CONST OID *, size_t, CONST OID *, size_t);
-extern int SnmpOidCmpIdx(CONST OID *name1, size_t len1, CONST OID *name2, size_t len2, OID index);
+extern int SnmpOidCmpIdx(
+	CONST OID *name1, size_t len1, CONST OID *name2, size_t len2, OID index);
 extern int SnmpOidEquals(CONST OID *, size_t, CONST OID *, size_t);
 
 extern void SnmpStatsInc(int);

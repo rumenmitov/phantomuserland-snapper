@@ -21,8 +21,12 @@ errno_t udp_listen(void *prot_data);
 errno_t udp_accept(void *prot_data, i4sockaddr *addr, void **new_socket);
 errno_t udp_close(void *prot_data);
 
-ssize_t udp_recvfrom(void *prot_data, void *buf, ssize_t len, i4sockaddr *saddr, int flags, bigtime_t timeout);
+ssize_t udp_recvfrom(void *prot_data,
+					 void *buf,
+					 ssize_t len,
+					 i4sockaddr *saddr,
+					 int flags,
+					 bigtime_t timeout);
 ssize_t udp_sendto(void *prot_data, const void *buf, ssize_t len, i4sockaddr *addr);
 
 #endif
-

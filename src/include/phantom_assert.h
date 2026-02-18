@@ -45,7 +45,7 @@
 #define __PANIC_DEFINED
 // coverity[+kill]
 void panic(const char *__format, ...) __dead2;
-#endif // __PANIC_DEFINED
+#endif  // __PANIC_DEFINED
 
 
 void stack_dump(void);
@@ -53,8 +53,7 @@ void stack_dump_from(void *ebp);
 void *arch_get_frame_pointer();
 
 
-extern char * (*phantom_symtab_getname)( void *addr );
-
+extern char *(*phantom_symtab_getname)(void *addr);
 
 
 /*
@@ -66,27 +65,29 @@ extern char * (*phantom_symtab_getname)( void *addr );
 #undef _assert
 
 #ifdef NDEBUG
-#define	assert(e)	((void)0)
-#define	_assert(e)	((void)0)
+#define assert(e)  ((void)0)
+#define _assert(e) ((void)0)
 #else
-#define	_assert(e)	assert(e)
+#define _assert(e) assert(e)
 
-//#define	assert(e)	((e) ? (void)0 : __assert(__func__, __FILE__, __LINE__, #e))
-#define	assert(e)	((e) ? (void)0 : panic( __FILE__ ":%u, %s: assertion '" #e "' failed" , __LINE__, __func__ ))
+// #define	assert(e)	((e) ? (void)0 : __assert(__func__, __FILE__, __LINE__, #e))
+#define assert(e)  \
+	((e) ? (void)0 \
+		 : panic(__FILE__ ":%u, %s: assertion '" #e "' failed", __LINE__, __func__))
 #endif /* NDEBUG */
 
 //__BEGIN_DECLS
-//void __assert(const char *, const char *, int, const char *);
+// void __assert(const char *, const char *, int, const char *);
 //__END_DECLS
 
 // two top bits are 'no softint req' and 'softint disabled'
-extern int      irq_nest; 
+extern int irq_nest;
 
 
 #define assert_not_interrupt() assert(!(irq_nest & ~0xC0000000))
 
-#define assert_int_disabled() assert(!hal_is_sti())
+#define assert_int_disabled()        assert(!hal_is_sti())
 #define assert_interrupts_disabled() assert_int_disabled()
 
-#define assert_int_enabled() assert(hal_is_sti())
+#define assert_int_enabled()        assert(hal_is_sti())
 #define assert_interrupts_enabled() assert_int_enabled()

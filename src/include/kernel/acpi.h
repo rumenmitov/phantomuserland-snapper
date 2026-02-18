@@ -6,7 +6,7 @@
  *
  * ACPI related stuff.
  *
-**/
+ **/
 
 #ifndef KERNEL_ACPI_H
 #define KERNEL_ACPI_H
@@ -15,7 +15,8 @@
 
 /* Sleep states */
 
-enum {
+enum
+{
 	ACPI_POWER_STATE_ON = 0,
 	ACPI_POWER_STATE_SLEEP_S1,
 	ACPI_POWER_STATE_SLEEP_S2,
@@ -28,6 +29,4 @@ errno_t acpi_powerdown(void);
 errno_t acpi_reboot(void);
 
 
-
-#endif // KERNEL_ACPI_H
-
+#endif  // KERNEL_ACPI_H

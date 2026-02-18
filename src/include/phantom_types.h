@@ -7,8 +7,7 @@
  * Integer-derived types.
  *
  *
-**/
-
+ **/
 
 
 #ifndef PHANTOM_TYPES_H
@@ -22,115 +21,106 @@
 // #include <stdbool.h>
 
 // next are for Unix emulation env
-typedef int		_pid_t;
-typedef _pid_t		pid_t;
-typedef int		tid_t;
+typedef int _pid_t;
+typedef _pid_t pid_t;
+typedef int tid_t;
 
-typedef u_int32_t 	disk_page_no_t;
+typedef u_int32_t disk_page_no_t;
 
-typedef u_int64_t   	bigtime_t;
+typedef u_int64_t bigtime_t;
 
 
-// Required by LzmaDec.c 
+// Required by LzmaDec.c
 #ifndef __cplusplus
-typedef u_int8_t        Bool; // vmware svga
+typedef u_int8_t Bool;  // vmware svga
 #endif
 
 // Required by time.h
-typedef	u_int64_t	time_t;
-typedef u_int64_t   	bigtime_t;
+typedef u_int64_t time_t;
+typedef u_int64_t bigtime_t;
 
 // Required by window system
 // typedef u_int32_t       wchar_t;
 
 // Required for Unix emulation env
-typedef unsigned int 	_dev_t;
-typedef unsigned int 	dev_t;
-typedef unsigned int 	_ino_t;
-typedef unsigned int 	ino_t;
-typedef int		_pid_t;
-typedef _pid_t		pid_t;
-typedef int		tid_t;
-typedef unsigned short 	_mode_t;
-typedef _mode_t		mode_t;
-typedef int		_sigset_t;
-typedef _sigset_t	sigset_t;
+typedef unsigned int _dev_t;
+typedef unsigned int dev_t;
+typedef unsigned int _ino_t;
+typedef unsigned int ino_t;
+typedef int _pid_t;
+typedef _pid_t pid_t;
+typedef int tid_t;
+typedef unsigned short _mode_t;
+typedef _mode_t mode_t;
+typedef int _sigset_t;
+typedef _sigset_t sigset_t;
 
 // for wamr/wasi
 typedef u_int64_t uintmax_t;
 
 #ifndef __cplusplus
-typedef u_int8_t        bool;
+typedef u_int8_t bool;
 // typedef u_int8_t        Bool; // vmware svga
 #endif
 
 
 #else
 
-typedef u_int32_t       wchar_t;
+typedef u_int32_t wchar_t;
 
 // FreeBSD code wants these
-typedef u_int64_t       uintmax_t;
-typedef int64_t         intmax_t;
-typedef unsigned char   u_char;
-typedef unsigned short  u_short;
-typedef unsigned int    u_int;
-typedef unsigned long   u_long;
+typedef u_int64_t uintmax_t;
+typedef int64_t intmax_t;
+typedef unsigned char u_char;
+typedef unsigned short u_short;
+typedef unsigned int u_int;
+typedef unsigned long u_long;
 
 
-typedef	u_int64_t   	u_quad_t;	/* quads (deprecated) */
-typedef	int64_t		quad_t;
+typedef u_int64_t u_quad_t; /* quads (deprecated) */
+typedef int64_t quad_t;
 
 
 #ifndef __cplusplus
-typedef u_int8_t        bool;
-typedef u_int8_t        Bool; // vmware svga
+typedef u_int8_t bool;
+typedef u_int8_t Bool;  // vmware svga
 #endif
 
 
-typedef u_int32_t 	disk_page_no_t;
+typedef u_int32_t disk_page_no_t;
 
 // physical mem page no - used as physaddr! fix?
-typedef u_int32_t       phys_page_t;
-
-
-
-
+typedef u_int32_t phys_page_t;
 
 
 // next are for Unix emulation env
-typedef unsigned int 	_ino_t;
-typedef unsigned int 	ino_t;
-typedef int		_pid_t;
-typedef _pid_t		pid_t;
-typedef int		tid_t;
-typedef unsigned short 	_mode_t;
-typedef _mode_t		mode_t;
-typedef int		_sigset_t;
-typedef _sigset_t	sigset_t;
-
-
+typedef unsigned int _ino_t;
+typedef unsigned int ino_t;
+typedef int _pid_t;
+typedef _pid_t pid_t;
+typedef int tid_t;
+typedef unsigned short _mode_t;
+typedef _mode_t mode_t;
+typedef int _sigset_t;
+typedef _sigset_t sigset_t;
 
 
 // time
 
-typedef u_int64_t   	bigtime_t;
+typedef u_int64_t bigtime_t;
 
 #ifndef _TIME_T
 #ifndef _TIME_T_DECLARED
 
-typedef	u_int64_t	time_t;
+typedef u_int64_t time_t;
 
-#define	_TIME_T_DECLARED
-#define	_TIME_T
+#define _TIME_T_DECLARED
+#define _TIME_T
 
 #endif
 #endif
-
-
-
 
 
 #endif
 
-#endif // PAGER_TYPES_H
+#endif  // PAGER_TYPES_H

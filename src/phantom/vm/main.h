@@ -7,12 +7,14 @@
  * This source file implements Windows based wrapper for VM to
  * run in Windows-hosted environment.
  *
-**/
+ **/
 
-void save_mem( void *addr, int size );
+#include "vm/object.h"
+
+void save_mem(void *addr, int size);
 
 
-void setDiffMem( void *mem, void *copy, int size );
+void setDiffMem(void *mem, void *copy, int size);
 void checkDiffMem(void);
 
 
@@ -25,5 +27,4 @@ extern int debug_trace;
 
 void videotest_truetype(void);
 void videotest_overlay(void);
-void videotest_pbm( void );
-
+void videotest_pbm(void);

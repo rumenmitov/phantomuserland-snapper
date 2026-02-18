@@ -3,69 +3,69 @@
 
 typedef struct ringbuf
 {
-    unsigned int 	getindex;
-    unsigned int 	putindex;
-    unsigned int 	used;
-    unsigned int 	total;
-    unsigned char 	ringbuffer[];
+	unsigned int getindex;
+	unsigned int putindex;
+	unsigned int used;
+	unsigned int total;
+	unsigned char ringbuffer[];
 } ringbuf_t;
 
 
-int ring_put( ringbuf_t *r, char c )
+int ring_put(ringbuf_t *r, char c)
 {
-    if ( r->used >= r->total )
-        return -1;
+	if (r->used >= r->total)
+		return -1;
 
-    r->ringbuffer[ r->putindex++ ] = c;
+	r->ringbuffer[r->putindex++] = c;
 
-    if( r->putindex >= r->total )
-        r->putindex = 0;
+	if (r->putindex >= r->total)
+		r->putindex = 0;
 
-    r->used++;
+	r->used++;
 
-    return 0;
+	return 0;
 }
 
-int ring_get( ringbuf_t *r )
+int ring_get(ringbuf_t *r)
 {
-    if ( !r->used )
-        return -1;
+	if (!r->used)
+		return -1;
 
-    char c;
+	char c;
 
-    r->used--;
-    c = r->ringbuffer[ r->getindex++ ];
+	r->used--;
+	c = r->ringbuffer[r->getindex++];
 
-    if ( r->getindex >= r->total )
-        r->getindex = 0;
-    return c;
+	if (r->getindex >= r->total)
+		r->getindex = 0;
+	return c;
 }
 
-int ring_empty( ringbuf_t *r )
+int ring_empty(ringbuf_t *r)
 {
-    return !r->used;
+	return !r->used;
 }
 
-int ring_full( ringbuf_t *r )
+int ring_full(ringbuf_t *r)
 {
-    return r->used >= r->total;
+	return r->used >= r->total;
 }
 
-ringbuf_t * ring_alloc( int size )
+ringbuf_t *ring_alloc(int size)
 {
-    ringbuf_t *r = calloc(1, sizeof(ringbuf_t) + size );
+	ringbuf_t *r = calloc(1, sizeof(ringbuf_t) + size);
 
-    r->getindex = 0;
-    r->putindex = 0;
-    r->used = 0;
-    r->total = size;
+	r->getindex = 0;
+	r->putindex = 0;
+	r->used = 0;
+	r->total = size;
 
-    return r;
+	return r;
 }
 
-void ring_free( ringbuf_t *r )
+void ring_free(ringbuf_t *r)
 {
-    free(r);
+	free(r);
 }
 
-#endif // RINGBUF_H
+#endif  // RINGBUF_H

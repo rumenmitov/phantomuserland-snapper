@@ -4,7 +4,7 @@
 /*
  * Copyright (C) 2009 by Thermotemp GmbH. All rights reserved.
  *
- * This code is based on a public domain implementation of md5.c by 
+ * This code is based on a public domain implementation of md5.c by
  * Colin Plumb, June 1993
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,8 +24,8 @@
  * ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
  * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THERMOTEMP
- * GMBH OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
+ * GMBH OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
  * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
  * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
  * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
@@ -41,7 +41,7 @@
  */
 /*@{*/
 
-//#include <stdint.h>
+// #include <stdint.h>
 #include <sys/types.h>
 
 /*!
@@ -55,10 +55,11 @@
  * \struct MD5CONTEXT md5.h
  * \brief MD5 context structure.
  */
-typedef struct _MD5CONTEXT {
-    u_int32_t buf[4];
-    u_int32_t bits[2];
-    u_int8_t  in[64];
+typedef struct _MD5CONTEXT
+{
+	u_int32_t buf[4];
+	u_int32_t bits[2];
+	u_int8_t in[64];
 } MD5CONTEXT;
 
 /* Function prototypes. */

@@ -116,14 +116,13 @@
 #ifndef _ACAPPS
 #define _ACAPPS
 
-#ifdef _MSC_VER /* disable some level-4 warnings */
-#pragma warning( \
-    disable : 4100) /* warning C4100: unreferenced formal parameter */
+#ifdef _MSC_VER                 /* disable some level-4 warnings */
+#pragma warning(disable : 4100) /* warning C4100: unreferenced formal parameter */
 #endif
 
 /* Common info for tool signons */
 
-#define ACPICA_NAME "Intel ACPI Component Architecture"
+#define ACPICA_NAME      "Intel ACPI Component Architecture"
 #define ACPICA_COPYRIGHT "Copyright (c) 2000 - 2011 Intel Corporation"
 
 #if ACPI_MACHINE_WIDTH == 64
@@ -140,24 +139,23 @@
 
 /* Macros for signons and file headers */
 
-#define ACPI_COMMON_SIGNON(UtilityName)                              \
-  "\n%s\n%s version %8.8X%s [%s]\n%s\n\n", ACPICA_NAME, UtilityName, \
-      ((UINT32)ACPI_CA_VERSION), ACPI_WIDTH, __DATE__, ACPICA_COPYRIGHT
+#define ACPI_COMMON_SIGNON(UtilityName)                                \
+	"\n%s\n%s version %8.8X%s [%s]\n%s\n\n", ACPICA_NAME, UtilityName, \
+		((UINT32)ACPI_CA_VERSION), ACPI_WIDTH, __DATE__, ACPICA_COPYRIGHT
 
-#define ACPI_COMMON_HEADER(UtilityName, Prefix)                               \
-  "%s%s\n%s%s version %8.8X%s [%s]\n%s%s\n%s\n", Prefix, ACPICA_NAME, Prefix, \
-      UtilityName, ((UINT32)ACPI_CA_VERSION), ACPI_WIDTH, __DATE__, Prefix,   \
-      ACPICA_COPYRIGHT, Prefix
+#define ACPI_COMMON_HEADER(UtilityName, Prefix)                                 \
+	"%s%s\n%s%s version %8.8X%s [%s]\n%s%s\n%s\n", Prefix, ACPICA_NAME, Prefix, \
+		UtilityName, ((UINT32)ACPI_CA_VERSION), ACPI_WIDTH, __DATE__, Prefix,   \
+		ACPICA_COPYRIGHT, Prefix
 
 /* Macros for usage messages */
 
 #define ACPI_USAGE_HEADER(Usage) ph_printf("Usage: %s\nOptions:\n", Usage);
 
-#define ACPI_OPTION(Name, Description) \
-  ph_printf("  %-18s%s\n", Name, Description);
+#define ACPI_OPTION(Name, Description) ph_printf("  %-18s%s\n", Name, Description);
 
 #define FILE_SUFFIX_DISASSEMBLY "dsl"
-#define ACPI_TABLE_FILE_SUFFIX ".dat"
+#define ACPI_TABLE_FILE_SUFFIX  ".dat"
 
 /*
  * getopt
@@ -172,8 +170,11 @@ extern char *AcpiGbl_Optarg;
  * adisasm
  */
 ACPI_STATUS
-AdAmlDisassemble(BOOLEAN OutToFile, char *Filename, char *Prefix,
-                 char **OutFilename, BOOLEAN GetAllTables);
+AdAmlDisassemble(BOOLEAN OutToFile,
+				 char *Filename,
+				 char *Prefix,
+				 char **OutFilename,
+				 BOOLEAN GetAllTables);
 
 void AdPrintStatistics(void);
 
@@ -186,8 +187,10 @@ ACPI_STATUS
 AdGetLocalTables(char *Filename, BOOLEAN GetAllTables);
 
 ACPI_STATUS
-AdParseTable(ACPI_TABLE_HEADER *Table, ACPI_OWNER_ID *OwnerId,
-             BOOLEAN LoadTable, BOOLEAN External);
+AdParseTable(ACPI_TABLE_HEADER *Table,
+			 ACPI_OWNER_ID *OwnerId,
+			 BOOLEAN LoadTable,
+			 BOOLEAN External);
 
 ACPI_STATUS
 AdDisplayTables(char *Filename, ACPI_TABLE_HEADER *Table);
@@ -199,19 +202,19 @@ AdDisplayStatistics(void);
  * adwalk
  */
 void AcpiDmCrossReferenceNamespace(ACPI_PARSE_OBJECT *ParseTreeRoot,
-                                   ACPI_NAMESPACE_NODE *NamespaceRoot,
-                                   ACPI_OWNER_ID OwnerId);
+								   ACPI_NAMESPACE_NODE *NamespaceRoot,
+								   ACPI_OWNER_ID OwnerId);
 
 void AcpiDmDumpTree(ACPI_PARSE_OBJECT *Origin);
 
 void AcpiDmFindOrphanMethods(ACPI_PARSE_OBJECT *Origin);
 
 void AcpiDmFinishNamespaceLoad(ACPI_PARSE_OBJECT *ParseTreeRoot,
-                               ACPI_NAMESPACE_NODE *NamespaceRoot,
-                               ACPI_OWNER_ID OwnerId);
+							   ACPI_NAMESPACE_NODE *NamespaceRoot,
+							   ACPI_OWNER_ID OwnerId);
 
 void AcpiDmConvertResourceIndexes(ACPI_PARSE_OBJECT *ParseTreeRoot,
-                                  ACPI_NAMESPACE_NODE *NamespaceRoot);
+								  ACPI_NAMESPACE_NODE *NamespaceRoot);
 
 /*
  * adfile
@@ -222,12 +225,13 @@ AdInitialize(void);
 char *FlGenerateFilename(char *InputFilename, char *Suffix);
 
 ACPI_STATUS
-FlSplitInputPathname(char *InputPath, char **OutDirectoryPath,
-                     char **OutFilename);
+FlSplitInputPathname(char *InputPath, char **OutDirectoryPath, char **OutFilename);
 
 char *AdGenerateFilename(char *Prefix, char *TableId);
 
-void AdWriteTable(ACPI_TABLE_HEADER *Table, UINT32 Length, char *TableName,
-                  char *OemTableId);
+void AdWriteTable(ACPI_TABLE_HEADER *Table,
+				  UINT32 Length,
+				  char *TableName,
+				  char *OemTableId);
 
 #endif /* _ACAPPS */

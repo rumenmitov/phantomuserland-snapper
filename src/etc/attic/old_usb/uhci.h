@@ -3,11 +3,10 @@
 
 //#include "uhcireg.h"
 #include "uhci_hardware.h"
-#include <queue.h>
 
 #include <hal.h>
-
 #include <kernel/bus/usb/usb_spec.h>
+#include <queue.h>
 
 #define UHCI_MAXTD 256
 

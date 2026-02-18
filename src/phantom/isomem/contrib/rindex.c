@@ -32,23 +32,22 @@
 #include <phantom_libc.h>
 
 
-//#include <sys/cdefs.h>
-//__FBSDID("$FreeBSD: src/lib/libc/string/rindex.c,v 1.8.6.1 2008/11/25 02:59:29 kensmith Exp $");
+// #include <sys/cdefs.h>
+//__FBSDID("$FreeBSD: src/lib/libc/string/rindex.c,v 1.8.6.1 2008/11/25 02:59:29 kensmith
+//Exp $");
 
-//#include <stddef.h>
+// #include <stddef.h>
 
 #ifdef STRRCHR
-//#include <string.h>
+// #include <string.h>
 
-char *
-strrchr
+char *strrchr
 #else
-//#include <strings.h>
+// #include <strings.h>
 
-char *
-ph_rindex
+char *ph_rindex
 #endif
-(const char *p, int ch)
+	(const char *p, int ch)
 {
 	char *save;
 	char c;

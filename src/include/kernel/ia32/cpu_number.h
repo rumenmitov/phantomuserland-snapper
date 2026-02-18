@@ -1,5 +1,5 @@
 #warning who uses me?
-/* 
+/*
  * Copyright (c) 1994 The University of Utah and
  * the Computer Systems Laboratory at the University of Utah (CSL).
  * All rights reserved.
@@ -33,23 +33,21 @@
 
 #include <kernel/ia32/apic.h>
 
-static inline int
-cpu_number()
+static inline int cpu_number()
 {
 	return apic_local_unit.unit_id.r >> 24;
 }
 
 #else ASSEMBLER
 
-//#include "impsasm.h"
+// #include "impsasm.h"
 
-#define	CPU_NUMBER(reg)		\
-	movzbl	APIC_LOCAL_VA+APIC_LOCAL_UNIT_ID+3,reg
+#define CPU_NUMBER(reg) movzbl APIC_LOCAL_VA + APIC_LOCAL_UNIT_ID + 3, reg
 
 #endif ASSEMBLER
 
 
-//#include "i386/cpu_number.h"
+// #include "i386/cpu_number.h"
 
 
 #endif _IMPS_CPU_NUMBER_

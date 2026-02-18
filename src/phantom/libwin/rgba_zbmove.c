@@ -7,30 +7,29 @@
  * Asm ia32 blitter
  *
  *
-**/
+ **/
 
-//#include <drv_video_screen.h>
-#include <video/screen.h>
+// #include <drv_video_screen.h>
 #include <phantom_assert.h>
 #include <sys/types.h>
+#include <video/screen.h>
 
 
 #ifndef ARCH_ia32
 
-void rgba2rgba_zbmove( struct rgba_t *dest, const struct rgba_t *src, zbuf_t *zb, int nelem, zbuf_t zpos )
+void rgba2rgba_zbmove(
+	struct rgba_t *dest, const struct rgba_t *src, zbuf_t *zb, int nelem, zbuf_t zpos)
 {
-    while(nelem-- > 0)
-    {
-        if(src->a && (*zb <= zpos) )
-        {
-            *zb = zpos;
-            *dest = *src;
-        }
+	while (nelem-- > 0) {
+		if (src->a && (*zb <= zpos)) {
+			*zb = zpos;
+			*dest = *src;
+		}
 
-        dest++;
-        src++;
-        zb++;
-    }
+		dest++;
+		src++;
+		zb++;
+	}
 }
 
 #if 0
@@ -90,10 +89,4 @@ void rgba2rgba_zbmove( struct rgba_t *dest, const struct rgba_t *src, zbuf_t *zb
 #endif
 
 
-
-#endif // ARCH_ia32
-
-
-
-
-
+#endif  // ARCH_ia32

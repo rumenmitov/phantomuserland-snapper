@@ -31,7 +31,7 @@
  */
 
 #ifndef _MACHINE__LIMITS_H_
-#define	_MACHINE__LIMITS_H_
+#define _MACHINE__LIMITS_H_
 
 #error used hardcoded limits, something is wrong
 #if 0
@@ -46,62 +46,62 @@
  * some other compilers as well, but this should not be depended on.
  */
 
-#define	__CHAR_BIT	8		/* number of bits in a char */
+#define __CHAR_BIT 8 /* number of bits in a char */
 
-#define	__SCHAR_MAX	0x7f		/* max value for a signed char */
-#define	__SCHAR_MIN	(-0x7f - 1)	/* min value for a signed char */
+#define __SCHAR_MAX 0x7f        /* max value for a signed char */
+#define __SCHAR_MIN (-0x7f - 1) /* min value for a signed char */
 
-#define	__UCHAR_MAX	0xff		/* max value for an unsigned char */
+#define __UCHAR_MAX 0xff /* max value for an unsigned char */
 
-#define	__USHRT_MAX	0xffff		/* max value for an unsigned short */
-#define	__SHRT_MAX	0x7fff		/* max value for a short */
-#define	__SHRT_MIN	(-0x7fff - 1)	/* min value for a short */
+#define __USHRT_MAX 0xffff        /* max value for an unsigned short */
+#define __SHRT_MAX  0x7fff        /* max value for a short */
+#define __SHRT_MIN  (-0x7fff - 1) /* min value for a short */
 
-#define	__UINT_MAX	0xffffffffU	/* max value for an unsigned int */
-#define	__INT_MAX	0x7fffffff	/* max value for an int */
-#define	__INT_MIN	(-0x7fffffff - 1)	/* min value for an int */
+#define __UINT_MAX 0xffffffffU       /* max value for an unsigned int */
+#define __INT_MAX  0x7fffffff        /* max value for an int */
+#define __INT_MIN  (-0x7fffffff - 1) /* min value for an int */
 
 /* Bad hack for gcc configured to give 64-bit longs. */
 #ifdef _LARGE_LONG
-#define	__ULONG_MAX	0xffffffffffffffffUL
-#define	__LONG_MAX	0x7fffffffffffffffL
-#define	__LONG_MIN	(-0x7fffffffffffffffL - 1)
+#define __ULONG_MAX 0xffffffffffffffffUL
+#define __LONG_MAX  0x7fffffffffffffffL
+#define __LONG_MIN  (-0x7fffffffffffffffL - 1)
 #else
-#define	__ULONG_MAX	0xffffffffUL	/* max value for an unsigned long */
-#define	__LONG_MAX	0x7fffffffL	/* max value for a long */
-#define	__LONG_MIN	(-0x7fffffffL - 1)	/* min value for a long */
+#define __ULONG_MAX 0xffffffffUL       /* max value for an unsigned long */
+#define __LONG_MAX  0x7fffffffL        /* max value for a long */
+#define __LONG_MIN  (-0x7fffffffL - 1) /* min value for a long */
 #endif
 
 			/* max value for an unsigned long long */
-#define	__ULLONG_MAX	0xffffffffffffffffULL
-#define	__LLONG_MAX	0x7fffffffffffffffLL	/* max value for a long long */
-#define	__LLONG_MIN	(-0x7fffffffffffffffLL - 1)  /* min for a long long */
+#define __ULLONG_MAX 0xffffffffffffffffULL
+#define __LLONG_MAX  0x7fffffffffffffffLL        /* max value for a long long */
+#define __LLONG_MIN  (-0x7fffffffffffffffLL - 1) /* min for a long long */
 
-#define	__SSIZE_MAX	__INT_MAX	/* max value for a ssize_t */
+#define __SSIZE_MAX __INT_MAX /* max value for a ssize_t */
 
-#define	__SIZE_T_MAX	__UINT_MAX	/* max value for a size_t */
+#define __SIZE_T_MAX __UINT_MAX /* max value for a size_t */
 
-#define	__OFF_MAX	__LLONG_MAX	/* max value for an off_t */
-#define	__OFF_MIN	__LLONG_MIN	/* min value for an off_t */
+#define __OFF_MAX   __LLONG_MAX  /* max value for an off_t */
+#define __OFF_MIN   __LLONG_MIN  /* min value for an off_t */
 
 /* Quads and long longs are the same size.  Ensure they stay in sync. */
-#define	__UQUAD_MAX	__ULLONG_MAX	/* max value for a uquad_t */
-#define	__QUAD_MAX	__LLONG_MAX	/* max value for a quad_t */
-#define	__QUAD_MIN	__LLONG_MIN	/* min value for a quad_t */
+#define __UQUAD_MAX __ULLONG_MAX /* max value for a uquad_t */
+#define __QUAD_MAX  __LLONG_MAX  /* max value for a quad_t */
+#define __QUAD_MIN  __LLONG_MIN  /* min value for a quad_t */
 
 #ifdef _LARGE_LONG
-#define	__LONG_BIT	64
+#define __LONG_BIT 64
 #else
-#define	__LONG_BIT	32
+#define __LONG_BIT 32
 #endif
-#define	__WORD_BIT	32
+#define __WORD_BIT    32
 
 /*
  * Minimum signal stack size. The current signal frame
  * for i386 is 408 bytes large.
  */
-#define	__MINSIGSTKSZ	(512 * 4)
+#define __MINSIGSTKSZ (512 * 4)
 
-#endif // 0
+#endif  // 0
 
 #endif /* !_MACHINE__LIMITS_H_ */

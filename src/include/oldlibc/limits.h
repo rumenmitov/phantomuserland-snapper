@@ -34,11 +34,11 @@
  */
 
 #ifndef _MACHINE_LIMITS_H_
-#define	_MACHINE_LIMITS_H_
+#define _MACHINE_LIMITS_H_
 
 
-//#define	CHAR_BIT	8		/* number of bits in a char */
-#define	MB_LEN_MAX	6		/* Allow 31 bit UTF2 */
+// #define	CHAR_BIT	8		/* number of bits in a char */
+#define MB_LEN_MAX 6 /* Allow 31 bit UTF2 */
 
 #include <arch/arch-limits.h>
 

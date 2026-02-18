@@ -129,29 +129,29 @@
 
 typedef enum
 {
-    OSL_GLOBAL_LOCK_HANDLER,
-    OSL_NOTIFY_HANDLER,
-    OSL_GPE_HANDLER,
-    OSL_DEBUGGER_THREAD,
-    OSL_EC_POLL_HANDLER,
-    OSL_EC_BURST_HANDLER
+	OSL_GLOBAL_LOCK_HANDLER,
+	OSL_NOTIFY_HANDLER,
+	OSL_GPE_HANDLER,
+	OSL_DEBUGGER_THREAD,
+	OSL_EC_POLL_HANDLER,
+	OSL_EC_BURST_HANDLER
 
 } ACPI_EXECUTE_TYPE;
 
-#define ACPI_NO_UNIT_LIMIT          ((UINT32) -1)
-#define ACPI_MUTEX_SEM              1
+#define ACPI_NO_UNIT_LIMIT ((UINT32) - 1)
+#define ACPI_MUTEX_SEM     1
 
 
 /* Functions for AcpiOsSignal */
 
-#define ACPI_SIGNAL_FATAL           0
-#define ACPI_SIGNAL_BREAKPOINT      1
+#define ACPI_SIGNAL_FATAL      0
+#define ACPI_SIGNAL_BREAKPOINT 1
 
 typedef struct acpi_signal_fatal_info
 {
-    UINT32                  Type;
-    UINT32                  Code;
-    UINT32                  Argument;
+	UINT32 Type;
+	UINT32 Code;
+	UINT32 Argument;
 
 } ACPI_SIGNAL_FATAL_INFO;
 
@@ -160,76 +160,53 @@ typedef struct acpi_signal_fatal_info
  * OSL Initialization and shutdown primitives
  */
 ACPI_STATUS
-AcpiOsInitialize (
-    void);
+AcpiOsInitialize(void);
 
 ACPI_STATUS
-AcpiOsTerminate (
-    void);
+AcpiOsTerminate(void);
 
 
 /*
  * ACPI Table interfaces
  */
 ACPI_PHYSICAL_ADDRESS
-AcpiOsGetRootPointer (
-    void);
+AcpiOsGetRootPointer(void);
 
 ACPI_STATUS
-AcpiOsPredefinedOverride (
-    const ACPI_PREDEFINED_NAMES *InitVal,
-    ACPI_STRING                 *NewVal);
+AcpiOsPredefinedOverride(const ACPI_PREDEFINED_NAMES *InitVal, ACPI_STRING *NewVal);
 
 ACPI_STATUS
-AcpiOsTableOverride (
-    ACPI_TABLE_HEADER       *ExistingTable,
-    ACPI_TABLE_HEADER       **NewTable);
+AcpiOsTableOverride(ACPI_TABLE_HEADER *ExistingTable, ACPI_TABLE_HEADER **NewTable);
 
 
 /*
  * Spinlock primitives
  */
 ACPI_STATUS
-AcpiOsCreateLock (
-    ACPI_SPINLOCK           *OutHandle);
+AcpiOsCreateLock(ACPI_SPINLOCK *OutHandle);
 
-void
-AcpiOsDeleteLock (
-    ACPI_SPINLOCK           Handle);
+void AcpiOsDeleteLock(ACPI_SPINLOCK Handle);
 
 ACPI_CPU_FLAGS
-AcpiOsAcquireLock (
-    ACPI_SPINLOCK           Handle);
+AcpiOsAcquireLock(ACPI_SPINLOCK Handle);
 
-void
-AcpiOsReleaseLock (
-    ACPI_SPINLOCK           Handle,
-    ACPI_CPU_FLAGS          Flags);
+void AcpiOsReleaseLock(ACPI_SPINLOCK Handle, ACPI_CPU_FLAGS Flags);
 
 
 /*
  * Semaphore primitives
  */
 ACPI_STATUS
-AcpiOsCreateSemaphore (
-    UINT32                  MaxUnits,
-    UINT32                  InitialUnits,
-    ACPI_SEMAPHORE          *OutHandle);
+AcpiOsCreateSemaphore(UINT32 MaxUnits, UINT32 InitialUnits, ACPI_SEMAPHORE *OutHandle);
 
 ACPI_STATUS
-AcpiOsDeleteSemaphore (
-    ACPI_SEMAPHORE          Handle);
+AcpiOsDeleteSemaphore(ACPI_SEMAPHORE Handle);
 
 ACPI_STATUS
-AcpiOsWaitSemaphore (
-    ACPI_SEMAPHORE          Handle,
-    UINT32                  Units,
-    UINT16                  Timeout);
+AcpiOsWaitSemaphore(ACPI_SEMAPHORE Handle, UINT32 Units, UINT16 Timeout);
 
 ACPI_STATUS
-AcpiOsSignalSemaphore (
-    ACPI_SEMAPHORE          Handle,
-    UINT32                  Units);
+AcpiOsSignalSemaphore(ACPI_SEMAPHORE Handle, UINT32 Units);
 
 
 /*
@@ -239,150 +216,99 @@ AcpiOsSignalSemaphore (
 #if (ACPI_MUTEX_TYPE != ACPI_BINARY_SEMAPHORE)
 
 ACPI_STATUS
-AcpiOsCreateMutex (
-    ACPI_MUTEX              *OutHandle);
+AcpiOsCreateMutex(ACPI_MUTEX *OutHandle);
 
-void
-AcpiOsDeleteMutex (
-    ACPI_MUTEX              Handle);
+void AcpiOsDeleteMutex(ACPI_MUTEX Handle);
 
 ACPI_STATUS
-AcpiOsAcquireMutex (
-    ACPI_MUTEX              Handle,
-    UINT16                  Timeout);
+AcpiOsAcquireMutex(ACPI_MUTEX Handle, UINT16 Timeout);
 
-void
-AcpiOsReleaseMutex (
-    ACPI_MUTEX              Handle);
+void AcpiOsReleaseMutex(ACPI_MUTEX Handle);
 #endif
 
 
 /*
  * Memory allocation and mapping
  */
-void *
-AcpiOsAllocate (
-    ACPI_SIZE               Size);
+void *AcpiOsAllocate(ACPI_SIZE Size);
 
-void
-AcpiOsFree (
-    void *                  Memory);
+void AcpiOsFree(void *Memory);
 
-void *
-AcpiOsMapMemory (
-    ACPI_PHYSICAL_ADDRESS   Where,
-    ACPI_SIZE               Length);
+void *AcpiOsMapMemory(ACPI_PHYSICAL_ADDRESS Where, ACPI_SIZE Length);
 
-void
-AcpiOsUnmapMemory (
-    void                    *LogicalAddress,
-    ACPI_SIZE               Size);
+void AcpiOsUnmapMemory(void *LogicalAddress, ACPI_SIZE Size);
 
 ACPI_STATUS
-AcpiOsGetPhysicalAddress (
-    void                    *LogicalAddress,
-    ACPI_PHYSICAL_ADDRESS   *PhysicalAddress);
+AcpiOsGetPhysicalAddress(void *LogicalAddress, ACPI_PHYSICAL_ADDRESS *PhysicalAddress);
 
 
 /*
  * Memory/Object Cache
  */
 ACPI_STATUS
-AcpiOsCreateCache (
-    char                    *CacheName,
-    UINT16                  ObjectSize,
-    UINT16                  MaxDepth,
-    ACPI_CACHE_T            **ReturnCache);
+AcpiOsCreateCache(char *CacheName,
+				  UINT16 ObjectSize,
+				  UINT16 MaxDepth,
+				  ACPI_CACHE_T **ReturnCache);
 
 ACPI_STATUS
-AcpiOsDeleteCache (
-    ACPI_CACHE_T            *Cache);
+AcpiOsDeleteCache(ACPI_CACHE_T *Cache);
 
 ACPI_STATUS
-AcpiOsPurgeCache (
-    ACPI_CACHE_T            *Cache);
+AcpiOsPurgeCache(ACPI_CACHE_T *Cache);
 
-void *
-AcpiOsAcquireObject (
-    ACPI_CACHE_T            *Cache);
+void *AcpiOsAcquireObject(ACPI_CACHE_T *Cache);
 
 ACPI_STATUS
-AcpiOsReleaseObject (
-    ACPI_CACHE_T            *Cache,
-    void                    *Object);
+AcpiOsReleaseObject(ACPI_CACHE_T *Cache, void *Object);
 
 
 /*
  * Interrupt handlers
  */
 ACPI_STATUS
-AcpiOsInstallInterruptHandler (
-    UINT32                  InterruptNumber,
-    ACPI_OSD_HANDLER        ServiceRoutine,
-    void                    *Context);
+AcpiOsInstallInterruptHandler(UINT32 InterruptNumber,
+							  ACPI_OSD_HANDLER ServiceRoutine,
+							  void *Context);
 
 ACPI_STATUS
-AcpiOsRemoveInterruptHandler (
-    UINT32                  InterruptNumber,
-    ACPI_OSD_HANDLER        ServiceRoutine);
+AcpiOsRemoveInterruptHandler(UINT32 InterruptNumber, ACPI_OSD_HANDLER ServiceRoutine);
 
 
 /*
  * Threads and Scheduling
  */
 ACPI_THREAD_ID
-AcpiOsGetThreadId (
-    void);
+AcpiOsGetThreadId(void);
 
 ACPI_STATUS
-AcpiOsExecute (
-    ACPI_EXECUTE_TYPE       Type,
-    ACPI_OSD_EXEC_CALLBACK  Function,
-    void                    *Context);
+AcpiOsExecute(ACPI_EXECUTE_TYPE Type, ACPI_OSD_EXEC_CALLBACK Function, void *Context);
 
-void
-AcpiOsWaitEventsComplete (
-    void                    *Context);
+void AcpiOsWaitEventsComplete(void *Context);
 
-void
-AcpiOsSleep (
-    UINT64                  Milliseconds);
+void AcpiOsSleep(UINT64 Milliseconds);
 
-void
-AcpiOsStall (
-    UINT32                  Microseconds);
+void AcpiOsStall(UINT32 Microseconds);
 
 
 /*
  * Platform and hardware-independent I/O interfaces
  */
 ACPI_STATUS
-AcpiOsReadPort (
-    ACPI_IO_ADDRESS         Address,
-    UINT32                  *Value,
-    UINT32                  Width);
+AcpiOsReadPort(ACPI_IO_ADDRESS Address, UINT32 *Value, UINT32 Width);
 
 ACPI_STATUS
-AcpiOsWritePort (
-    ACPI_IO_ADDRESS         Address,
-    UINT32                  Value,
-    UINT32                  Width);
+AcpiOsWritePort(ACPI_IO_ADDRESS Address, UINT32 Value, UINT32 Width);
 
 
 /*
  * Platform and hardware-independent physical memory interfaces
  */
 ACPI_STATUS
-AcpiOsReadMemory (
-    ACPI_PHYSICAL_ADDRESS   Address,
-    UINT32                  *Value,
-    UINT32                  Width);
+AcpiOsReadMemory(ACPI_PHYSICAL_ADDRESS Address, UINT32 *Value, UINT32 Width);
 
 ACPI_STATUS
-AcpiOsWriteMemory (
-    ACPI_PHYSICAL_ADDRESS   Address,
-    UINT32                  Value,
-    UINT32                  Width);
+AcpiOsWriteMemory(ACPI_PHYSICAL_ADDRESS Address, UINT32 Value, UINT32 Width);
 
 
 /*
@@ -391,93 +317,59 @@ AcpiOsWriteMemory (
  * certain compilers complain.
  */
 ACPI_STATUS
-AcpiOsReadPciConfiguration (
-    ACPI_PCI_ID             *PciId,
-    UINT32                  Reg,
-    UINT64                  *Value,
-    UINT32                  Width);
+AcpiOsReadPciConfiguration(ACPI_PCI_ID *PciId, UINT32 Reg, UINT64 *Value, UINT32 Width);
 
 ACPI_STATUS
-AcpiOsWritePciConfiguration (
-    ACPI_PCI_ID             *PciId,
-    UINT32                  Reg,
-    UINT64                  Value,
-    UINT32                  Width);
+AcpiOsWritePciConfiguration(ACPI_PCI_ID *PciId, UINT32 Reg, UINT64 Value, UINT32 Width);
 
 
 /*
  * Miscellaneous
  */
 BOOLEAN
-AcpiOsReadable (
-    void                    *Pointer,
-    ACPI_SIZE               Length);
+AcpiOsReadable(void *Pointer, ACPI_SIZE Length);
 
 BOOLEAN
-AcpiOsWritable (
-    void                    *Pointer,
-    ACPI_SIZE               Length);
+AcpiOsWritable(void *Pointer, ACPI_SIZE Length);
 
 UINT64
-AcpiOsGetTimer (
-    void);
+AcpiOsGetTimer(void);
 
 ACPI_STATUS
-AcpiOsSignal (
-    UINT32                  Function,
-    void                    *Info);
+AcpiOsSignal(UINT32 Function, void *Info);
 
 
 /*
  * Debug print routines
  */
-void ACPI_INTERNAL_VAR_XFACE
-AcpiOsPrintf (
-    const char              *Format,
-    ...);
+void ACPI_INTERNAL_VAR_XFACE AcpiOsPrintf(const char *Format, ...);
 
-void
-AcpiOsVprintf (
-    const char              *Format,
-    va_list                 Args);
+void AcpiOsVprintf(const char *Format, va_list Args);
 
-void
-AcpiOsRedirectOutput (
-    void                    *Destination);
+void AcpiOsRedirectOutput(void *Destination);
 
 
 /*
  * Debug input
  */
 ACPI_STATUS
-AcpiOsGetLine (
-    char                    *Buffer,
-    UINT32                  BufferLength,
-    UINT32                  *BytesRead);
+AcpiOsGetLine(char *Buffer, UINT32 BufferLength, UINT32 *BytesRead);
 
 
 /*
  * Directory manipulation
  */
-void *
-AcpiOsOpenDirectory (
-    char                    *Pathname,
-    char                    *WildcardSpec,
-    char                    RequestedFileType);
+void *AcpiOsOpenDirectory(char *Pathname, char *WildcardSpec, char RequestedFileType);
 
 /* RequesteFileType values */
 
-#define REQUEST_FILE_ONLY                   0
-#define REQUEST_DIR_ONLY                    1
+#define REQUEST_FILE_ONLY 0
+#define REQUEST_DIR_ONLY  1
 
 
-char *
-AcpiOsGetNextFilename (
-    void                    *DirHandle);
+char *AcpiOsGetNextFilename(void *DirHandle);
 
-void
-AcpiOsCloseDirectory (
-    void                    *DirHandle);
+void AcpiOsCloseDirectory(void *DirHandle);
 
 
 #endif /* __ACPIOSXF_H__ */

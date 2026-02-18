@@ -7,81 +7,72 @@
  * Main paging/persistent memory unit.
  *
  *
-**/
+ **/
 
 #define DEBUG_MSG_PREFIX "pager"
 #include "debug_ext.h"
-#define debug_level_flow 10
+#define debug_level_flow  10
 #define debug_level_error 10
-#define debug_level_info 10
+#define debug_level_info  10
 
 #include <kernel/config.h>
-#include <ph_syslog.h>
 #include <kernel/debug_graphical.h>
-
+#include <ph_syslog.h>
 #include <phantom_assert.h>
 
 
 //---------------------------------------------------------------------------
 
 
-#include <phantom_libc.h>
-
-
-#include <kernel/vm.h>
-#include <kernel/stats.h>
+#include <init_routines.h>
 #include <kernel/dpc.h>
-#include <kernel/snap_sync.h>
-#include <kernel/physalloc.h>
 #include <kernel/init.h>
+#include <kernel/physalloc.h>
+#include <kernel/snap_sync.h>
+#include <kernel/stats.h>
 #include <kernel/trap.h>
-
+#include <kernel/vm.h>
+#include <phantom_libc.h>
 #include <threads.h>
 
-#include <init_routines.h>
-
 #ifdef ARCH_ia32
-#include <ia32/proc_reg.h>
 #include <ia32/phantom_pmap.h>
+#include <ia32/proc_reg.h>
 #endif
 
 #ifdef PHANTOM_GENODE
 #include <arch/arch_vmem_util.h>
 #endif
 
-#include <ph_time.h>
-
-#include <ph_malloc.h>
-#include <ph_string.h>
-#include <ph_snapper.h>
-
-
-#include "vm_map.h"
 #include "pager.h"
+#include "vm_map.h"
 
 #include <machdep.h>
+#include <ph_malloc.h>
+#include <ph_snapper.h>
+#include <ph_string.h>
+#include <ph_time.h>
 
 
 // header used only for testing
 #include "snap_internal.h"
 
-//#include <kernel/ia32/cpu.h>
-//#include <kernel/ia32/mmx.h>
-// #include <kernel/trap.h>
+// #include <kernel/ia32/cpu.h>
+// #include <kernel/ia32/mmx.h>
+//  #include <kernel/trap.h>
 
-//#define volatile /* */
+// #define volatile /* */
 
 #define USE_SNAP_WAIT 1
 
 
 #if USE_SNAP_WAIT
 
-static void init_snap_wait( void );
-static void signal_snap_snap_passed( void );
-static void signal_snap_done_passed( void );
+static void init_snap_wait(void);
+static void signal_snap_snap_passed(void);
+static void signal_snap_done_passed(void);
 
 #endif
-
 
 
 static int DEBUG_MARK = 0;
@@ -94,20 +85,14 @@ static int COW_DEBUG = 0;
 static int PAGEOUT_DEBUG = 0;
 
 
-
-
-
-
-
-
 // We do atomic works with this mutex taken.
 // If something long happens with ne page we
 // set
 static hal_mutex_t vm_map_mutex;
 
-//vm_map_impl   vm_map;
-//spinlock    vm_page_lock;
-//static hal_mutex_t vm_page_mutex;
+// vm_map_impl   vm_map;
+// spinlock    vm_page_lock;
+// static hal_mutex_t vm_page_mutex;
 
 
 static void vm_map_deferred_disk_alloc_thread(void);
@@ -121,54 +106,60 @@ static void page_clear_engine_clear_page(physaddr_t p);
 static void vm_verify_snap(disk_page_no_t head);
 static void vm_verify_vm(void);
 
-static hal_cond_t      deferred_alloc_thread_sleep;
+static hal_cond_t deferred_alloc_thread_sleep;
 
 /*
  * Lock ordering for both clean and dirty queues:
  * first lock vm_page, second -- *_q_mutex.
  */
 // clean physical pages queue (to reclaim from the end)
-static hal_mutex_t      clean_q_mutex;
-static hal_cond_t       clean_q_nonempty;
-static queue_head_t     clean_q;
-static size_t           clean_q_size;
+static hal_mutex_t clean_q_mutex;
+static hal_cond_t clean_q_nonempty;
+static queue_head_t clean_q;
+static size_t clean_q_size;
 // dirty physical pages queue (to pageout from the end)
-static hal_mutex_t      dirty_q_mutex;
-static queue_head_t     dirty_q;
-static size_t           dirty_q_size;
-
+static hal_mutex_t dirty_q_mutex;
+static queue_head_t dirty_q;
+static size_t dirty_q_size;
 
 
 // for each copy of system this address can't change - we
 // keep it in a pagefile.
 
-static void *              vm_map_start_of_virtual_address_space;
-static unsigned long       vm_map_vm_page_count = 0;         // how many pages VM has, if 0 = we are not running yet
+static void *vm_map_start_of_virtual_address_space;
+static unsigned long vm_map_vm_page_count =
+	0;  // how many pages VM has, if 0 = we are not running yet
 
 // INFO pages_per_snapshot_file x ARCH_PAGES_SIZE should not
 // exceeed the `bufsize` in the Snapper configuration!
-static unsigned long       pages_per_snapshot_file = 1024;    // how many VM pages will be saved in one snapshot file
+static unsigned long pages_per_snapshot_file =
+	1024;  // how many VM pages will be saved in one snapshot file
 
-static vm_page *           vm_map_map;                       // array of pages
-static vm_page *           vm_map_map_end;                   // a byte after map
+static vm_page *vm_map_map;      // array of pages
+static vm_page *vm_map_map_end;  // a byte after map
 
 static int last_snap_is_done = 0;
 
 
-void                vm_map_wait_for_finish() { while(!last_snap_is_done) hal_sleep_msec(100); }
-void *              vm_map_get_object_address_space_start() { return vm_map_start_of_virtual_address_space; }
+void vm_map_wait_for_finish()
+{
+	while (!last_snap_is_done)
+		hal_sleep_msec(100);
+}
+void *vm_map_get_object_address_space_start()
+{
+	return vm_map_start_of_virtual_address_space;
+}
 
 
 //---------------------------------------------------------------------------
 
 
+// static void process_deferred_allocations(void *arg);
+// static volatile pager_io_request *deferred_allocations = 0; // memory
+// dpc_request deferred_allocation_dpc;
 
-
-//static void process_deferred_allocations(void *arg);
-//static volatile pager_io_request *deferred_allocations = 0; // memory
-//dpc_request deferred_allocation_dpc;
-
-//static volatile vm_page *deferred_disk_allocations = 0;
+// static volatile vm_page *deferred_disk_allocations = 0;
 
 /* unused
 unsigned char      phantom_vm_generation; // system's current generation number
@@ -176,113 +167,121 @@ unsigned char      phantom_vm_generation; // system's current generation number
 // generation is cycling, do special comparison
 __inline__ static int page_generation_is_less( unsigned char page_gen )
 {
-    // take wraparound in account
-    if( phantom_vm_generation & 0x80 ) // upper bit? Move both down a half
-        return (page_gen - 0x80) < (phantom_vm_generation - 0x80);
-    else
-        return page_gen < phantom_vm_generation;
+	// take wraparound in account
+	if( phantom_vm_generation & 0x80 ) // upper bit? Move both down a half
+		return (page_gen - 0x80) < (phantom_vm_generation - 0x80);
+	else
+		return page_gen < phantom_vm_generation;
 }
 */
 
 #ifdef PAGE_TOUCH_HISTORY_SIZE
 static void page_touch_history(vm_page *p)
 {
-    void **ebp;
-    asm volatile ("movl %%ebp,%0" : "=r" (ebp));
+	void **ebp;
+	asm volatile("movl %%ebp,%0" : "=r"(ebp));
 
-    ph_memmove(p->touch_history + 1, p->touch_history, sizeof(p->touch_history) - sizeof(void*));
-    p->touch_history[0] = ebp[1];
+	ph_memmove(p->touch_history + 1,
+			   p->touch_history,
+			   sizeof(p->touch_history) - sizeof(void *));
+	p->touch_history[0] = ebp[1];
 }
 
 static void page_touch_history_arg(vm_page *p, int arg)
 {
-    void **ebp;
-    asm volatile ("movl %%ebp,%0" : "=r" (ebp));
+	void **ebp;
+	asm volatile("movl %%ebp,%0" : "=r"(ebp));
 
-    ph_memmove(p->touch_history + 2, p->touch_history, sizeof(p->touch_history) - 2 * sizeof(void*));
-    p->touch_history[0] = ebp[1];
-    p->touch_history[1] = (void*)arg;
+	ph_memmove(p->touch_history + 2,
+			   p->touch_history,
+			   sizeof(p->touch_history) - 2 * sizeof(void *));
+	p->touch_history[0] = ebp[1];
+	p->touch_history[1] = (void *)arg;
 }
 #else
 static inline void page_touch_history(vm_page *p)
 {
-    (void)p;
+	(void)p;
 }
 static inline void page_touch_history_arg(vm_page *p, int arg)
 {
-    (void)p;
-    (void)arg;
+	(void)p;
+	(void)arg;
 }
 #endif
 
 
-static void    page_fault( vm_page *p, int  is_writing );
+static void page_fault(vm_page *p, int is_writing);
 
 static vm_page *addr_to_vm_page(unsigned long addr, struct trap_state *ts)
 {
-    // ph_printf("addr_raw=%X\n", addr);
-    // ph_printf("start==%X\n", vm_map_start_of_virtual_address_space);
-    // ph_printf("limit=%X\n", (((unsigned long)vm_map_vm_page_count) * __MEM_PAGE));
-    addr -= (addr_t)vm_map_start_of_virtual_address_space;
+	// ph_printf("addr_raw=%X\n", addr);
+	// ph_printf("start==%X\n", vm_map_start_of_virtual_address_space);
+	// ph_printf("limit=%X\n", (((unsigned long)vm_map_vm_page_count) * __MEM_PAGE));
+	addr -= (addr_t)vm_map_start_of_virtual_address_space;
 
 
-    if( addr >= ( ((unsigned long)vm_map_vm_page_count) * __MEM_PAGE) )
-    {
-        if( ts ) phantom_check_user_trap( ts );
-        //dump_ds
-        panic("address 0x%X is outside of object space", addr);
-    }
+	if (addr >= (((unsigned long)vm_map_vm_page_count) * __MEM_PAGE)) {
+		if (ts)
+			phantom_check_user_trap(ts);
+		// dump_ds
+		panic("address 0x%X is outside of object space", addr);
+	}
 
-    int pageno = addr / __MEM_PAGE;
+	int pageno = addr / __MEM_PAGE;
 
-    if(FAULT_DEBUG) ph_syslog( 0, "fault 0x%lX pgno %d\n", addr, pageno );
+	if (FAULT_DEBUG)
+		ph_syslog(0, "fault 0x%lX pgno %d\n", addr, pageno);
 
-    return vm_map_map + pageno;
+	return vm_map_map + pageno;
 }
 
 
-static void
-vm_map_page_fault_handler( void *address, int  write, int ip, struct trap_state *ts )
+static void vm_map_page_fault_handler(void *address,
+									  int write,
+									  int ip,
+									  struct trap_state *ts)
 {
-    (void) ip;
+	(void)ip;
 
 #if CONF_DUAL_PAGEMAP
-	int ola = arch_is_object_land_access_enabled(); //< check if current thread attempts to access object space having access disabled
-	if( !ola )
-	{
+	int ola = arch_is_object_land_access_enabled();  //< check if current thread attempts
+													 //to access object space having
+													 //access disabled
+	if (!ola) {
 		lprintf("\nObject land access disabled\n");
 		trap_panic(ts);
 	}
 #endif
 
 #if 1
-    vm_page *vmp = addr_to_vm_page((addr_t) address, ts);
+	vm_page *vmp = addr_to_vm_page((addr_t)address, ts);
 #else
-    // TODO! Stack growth? Object space growth?
-    long addr = (unsigned int) address;
+	// TODO! Stack growth? Object space growth?
+	long addr = (unsigned int)address;
 
-    addr -= (unsigned int)vm_map_start_of_virtual_address_space;
-    /*
-    if( addr < 0 || addr >= (vm_map_vm_page_count*__MEM_PAGE) )
-    {
-        dump_ds
-        panic("fault address 0x%X is outside of object space, IP 0x%X", address, ip);
-    }
-    */
+	addr -= (unsigned int)vm_map_start_of_virtual_address_space;
+	/*
+	if( addr < 0 || addr >= (vm_map_vm_page_count*__MEM_PAGE) )
+	{
+		dump_ds
+		panic("fault address 0x%X is outside of object space, IP 0x%X", address, ip);
+	}
+	*/
 
-    int pageno = addr / __MEM_PAGE;
+	int pageno = addr / __MEM_PAGE;
 
-    vm_page *vmp = vm_map_map + pageno;
+	vm_page *vmp = vm_map_map + pageno;
 
-    if(FAULT_DEBUG) ph_syslog( 0, "fault 0x%X pgno %d\n", addr, pageno );
+	if (FAULT_DEBUG)
+		ph_syslog(0, "fault 0x%X pgno %d\n", addr, pageno);
 
 #endif
 
-    hal_mutex_lock(&vmp->lock);
-    page_touch_history_arg(vmp, ip);
-    page_fault( vmp, write );
-    hal_mutex_unlock(&vmp->lock);
-
+	hal_mutex_lock(&vmp->lock);
+	page_touch_history_arg(vmp, ip);
+	page_fault(vmp, write);
+	hal_mutex_unlock(&vmp->lock);
 }
 
 
@@ -290,96 +289,89 @@ vm_map_page_fault_handler( void *address, int  write, int ip, struct trap_state 
  * Trap handler. All we (currently) care about is page faults. Everything
  * else is passed through.
  */
-int
-vm_map_page_fault_trap_handler(struct trap_state *ts)
+int vm_map_page_fault_trap_handler(struct trap_state *ts)
 {
 
 #ifdef ARCH_ia32
-    if (ts->trapno == T_DEBUG)
-    {
-        //hal_printf("\n\n\n --- debug trap at EIP=0x%X --- \n\n\n", ts->eip );
-        return 0;
-    }
+	if (ts->trapno == T_DEBUG) {
+		// hal_printf("\n\n\n --- debug trap at EIP=0x%X --- \n\n\n", ts->eip );
+		return 0;
+	}
 
-    if (ts->trapno == T_PAGE_FAULT)
+	if (ts->trapno == T_PAGE_FAULT)
 #endif
-    {
+	{
 #ifdef ARCH_e2k
-#  warning check me
-        addr_t fa = arch_get_fault_address(); // TODO put it to trap_state!
-        addr_t ip = TS_PROGRAM_COUNTER;
-#  warning find out if it was a write op
-        int is_write = 0;
+#warning check me
+		addr_t fa = arch_get_fault_address();  // TODO put it to trap_state!
+		addr_t ip = TS_PROGRAM_COUNTER;
+#warning find out if it was a write op
+		int is_write = 0;
 #endif
 #ifdef ARCH_ia32
-        addr_t fa = arch_get_fault_address();
-        ts->cr2 = fa;
-        addr_t ip = ts->eip;
-        int is_write = ts->err & T_PF_WRITE;
+		addr_t fa = arch_get_fault_address();
+		ts->cr2 = fa;
+		addr_t ip = ts->eip;
+		int is_write = ts->err & T_PF_WRITE;
 #endif
 #ifdef ARCH_amd64
-        addr_t fa = arch_get_fault_address(); // TODO put it to trap_state!
+		addr_t fa = arch_get_fault_address();  // TODO put it to trap_state!
 #warning is_write
-        //ts->cr2 = fa;
-        addr_t ip = ts->hw_rip;
-        int is_write = ts->hw_err & T_PF_WRITE;
+		// ts->cr2 = fa;
+		addr_t ip = ts->hw_rip;
+		int is_write = ts->hw_err & T_PF_WRITE;
 #endif
 #ifdef ARCH_arm
-        addr_t fa = arch_get_fault_address(); // TODO put it to trap_state!
-        addr_t ip = ts->pc;
-#  warning find out if it was a write op
-        int is_write = 0;
+		addr_t fa = arch_get_fault_address();  // TODO put it to trap_state!
+		addr_t ip = ts->pc;
+#warning find out if it was a write op
+		int is_write = 0;
 #endif
 #ifdef ARCH_mips
-        addr_t fa = ts->va;
-        addr_t ip = ts->pc;
-        int is_write = ts->trapno == T_TLB_STORE;
+		addr_t fa = ts->va;
+		addr_t ip = ts->pc;
+		int is_write = ts->trapno == T_TLB_STORE;
 #endif
 
 #if NEW_SNAP_SYNC
-        if( ((addr_t)fa) == ((addr_t)snap_catch_va) )
-        {
-            // This is a snap trap fired, let it go
-            snap_trap();
-            return 0; // trap supposed to be open now
-        }
+		if (((addr_t)fa) == ((addr_t)snap_catch_va)) {
+			// This is a snap trap fired, let it go
+			snap_trap();
+			return 0;  // trap supposed to be open now
+		}
 #endif
 
-        // TODO: GENODE BINDINGS
-        addr_t fa = 0; // TODO put it to trap_state!
-        //ts->cr2 = fa;
-        addr_t ip = 0;
-        int is_write = 0;
+		// TODO: GENODE BINDINGS
+		addr_t fa = 0;  // TODO put it to trap_state!
+		// ts->cr2 = fa;
+		addr_t ip = 0;
+		int is_write = 0;
 
 
-        {
-            unsigned long addr = fa;
+		{
+			unsigned long addr = fa;
 
-            addr -= (addr_t)vm_map_start_of_virtual_address_space;
+			addr -= (addr_t)vm_map_start_of_virtual_address_space;
 
-            if( addr >= (vm_map_vm_page_count*__MEM_PAGE) )
-            {
-                phantom_check_user_trap( ts );
-                dump_ss(ts);
-                panic("fault address 0x%p is outside of object space, IP 0x%X", fa, ip);
-            }
-        }
+			if (addr >= (vm_map_vm_page_count * __MEM_PAGE)) {
+				phantom_check_user_trap(ts);
+				dump_ss(ts);
+				panic("fault address 0x%p is outside of object space, IP 0x%X", fa, ip);
+			}
+		}
 
 
-        vm_map_page_fault_handler( (void *)fa, is_write, ip, ts );
-        return 0;
-    }
+		vm_map_page_fault_handler((void *)fa, is_write, ip, ts);
+		return 0;
+	}
 
-    /*
-     * Not a page fault. Pass it through to the application as
-     * a signal. If signal handling is not enabled, a trap dump
-     * will be generated.
-     */
-    panic("Not a page fault in vm_map_page_fault_trap_handler\n");
+	/*
+	 * Not a page fault. Pass it through to the application as
+	 * a signal. If signal handling is not enabled, a trap dump
+	 * will be generated.
+	 */
+	panic("Not a page fault in vm_map_page_fault_trap_handler\n");
 }
-
-
-
 
 
 // vm_map_init is not called for tests, so we leave there just real vm_map init code
@@ -387,128 +379,117 @@ vm_map_page_fault_trap_handler(struct trap_state *ts)
 
 void vm_map_pre_init(void)
 {
-    page_clear_engine_init();
+	page_clear_engine_init();
 
-    queue_init(&clean_q);
-    hal_mutex_init(&clean_q_mutex, "CleanQueue");
-    hal_cond_init(&clean_q_nonempty, "CleanQueueNonempty");
-    queue_init(&dirty_q);
-    hal_mutex_init(&dirty_q_mutex, "DirtyQueue");
-    hal_mutex_init(&vm_map_mutex, "VM Map");
-    hal_mutex_lock(&vm_map_mutex);
+	queue_init(&clean_q);
+	hal_mutex_init(&clean_q_mutex, "CleanQueue");
+	hal_cond_init(&clean_q_nonempty, "CleanQueueNonempty");
+	queue_init(&dirty_q);
+	hal_mutex_init(&dirty_q_mutex, "DirtyQueue");
+	hal_mutex_init(&vm_map_mutex, "VM Map");
+	hal_mutex_lock(&vm_map_mutex);
 
-    hal_cond_init(&deferred_alloc_thread_sleep, "Deferred");
-    hal_mutex_unlock(&vm_map_mutex);
+	hal_cond_init(&deferred_alloc_thread_sleep, "Deferred");
+	hal_mutex_unlock(&vm_map_mutex);
 
 #if USE_SNAP_WAIT
-    init_snap_wait();
+	init_snap_wait();
 #endif
-
 }
 
-INIT_ME(0,vm_map_pre_init,0)
-
+INIT_ME(0, vm_map_pre_init, 0)
 
 
 #ifdef PHANTOM_GENODE
 // XXX : not sure why int is returned
-int
-genode_pf_handler_wrapper( void *address, int  write, int ip, struct trap_state *ts )
+int genode_pf_handler_wrapper(void *address, int write, int ip, struct trap_state *ts)
 {
-    char* orig_addr = ((char*)address) + 0x80000000;
-    vm_map_page_fault_handler((void*)orig_addr, write, ip, ts);
-    return 0;
+	char *orig_addr = ((char *)address) + 0x80000000;
+	vm_map_page_fault_handler((void *)orig_addr, write, ip, ts);
+	return 0;
 }
 #endif
 
-void
-vm_map_init(unsigned long page_count)
+void vm_map_init(unsigned long page_count)
 {
-    //page_clear_engine_init();
-    SHOW_FLOW0( 1, "Started");
+	// page_clear_engine_init();
+	SHOW_FLOW0(1, "Started");
 
-    vm_map_vm_page_count = page_count;
+	vm_map_vm_page_count = page_count;
 
-    vm_map_map = (vm_page *)ph_calloc( vm_map_vm_page_count, sizeof(vm_page) );
-    vm_map_map_end = vm_map_map + page_count;
+	vm_map_map = (vm_page *)ph_calloc(vm_map_vm_page_count, sizeof(vm_page));
+	vm_map_map_end = vm_map_map + page_count;
 
-    vm_map_start_of_virtual_address_space = (void *)hal_object_space_address();
+	vm_map_start_of_virtual_address_space = (void *)hal_object_space_address();
 
-    /*
-    queue_init(&clean_q);
-    hal_mutex_init(&clean_q_mutex, "CleanQueue");
-    hal_cond_init(&clean_q_nonempty, "CleanQueueNonempty");
-    queue_init(&dirty_q);
-    hal_mutex_init(&dirty_q_mutex, "DirtyQueue");
-    hal_mutex_init(&vm_map_mutex, "VM Map");
-    hal_mutex_lock(&vm_map_mutex);
-    */
+	/*
+	queue_init(&clean_q);
+	hal_mutex_init(&clean_q_mutex, "CleanQueue");
+	hal_cond_init(&clean_q_nonempty, "CleanQueueNonempty");
+	queue_init(&dirty_q);
+	hal_mutex_init(&dirty_q_mutex, "DirtyQueue");
+	hal_mutex_init(&vm_map_mutex, "VM Map");
+	hal_mutex_lock(&vm_map_mutex);
+	*/
 
-    unsigned int np;
-    for( np = 0; np < page_count; np++ )
-        vm_page_init( &vm_map_map[np], ((char *)vm_map_start_of_virtual_address_space) + (__MEM_PAGE * np) );
-
-
-    disk_page_no_t snap_start = 0;
-
-    if(pager_superblock_ptr()->last_snap != 0 )
-    {
-        hal_printf("-- Use last snap\n");
-        snap_start = pager_superblock_ptr()->last_snap;
-    }
-    else if(pager_superblock_ptr()->prev_snap != 0 )
-    {
-        hal_printf("-- Missing last snap, use previous snap\n");
-        snap_start = pager_superblock_ptr()->prev_snap;
-    }
+	unsigned int np;
+	for (np = 0; np < page_count; np++)
+		vm_page_init(&vm_map_map[np],
+					 ((char *)vm_map_start_of_virtual_address_space) + (__MEM_PAGE * np));
 
 
-    if( snap_start == 0 )
-    {
-        hal_printf("\n!!! No pagelist to load !!!\n");
-        //panic("vmem load: no pagelist!");
-    }
-    else
-    {
+	disk_page_no_t snap_start = 0;
 
-        hal_printf("Loading pagelist from %d...\n", snap_start);
+	if (pager_superblock_ptr()->last_snap != 0) {
+		hal_printf("-- Use last snap\n");
+		snap_start = pager_superblock_ptr()->last_snap;
+	} else if (pager_superblock_ptr()->prev_snap != 0) {
+		hal_printf("-- Missing last snap, use previous snap\n");
+		snap_start = pager_superblock_ptr()->prev_snap;
+	}
 
-        pagelist loader;
-        pagelist_init( &loader, snap_start, 0, DISK_STRUCT_MAGIC_SNAP_LIST );
 
-        pagelist_seek(&loader);
+	if (snap_start == 0) {
+		hal_printf("\n!!! No pagelist to load !!!\n");
+		// panic("vmem load: no pagelist!");
+	} else {
 
-        for( np = 0; np < page_count; np++ )
-        {
-            if( !pagelist_read_seq(&loader, &vm_map_map[np].prev_page) )
-            {
-                ph_printf("\n!!! Incomplete pagelist !!!\n");
-                //panic("Incomplete pagelist\n");
-                break;
-            }
+		hal_printf("Loading pagelist from %d...\n", snap_start);
 
-            // Zero page means we have no data fr this block and it must be zero
-            vm_map_map[np].flag_have_prev = (vm_map_map[np].prev_page != 0);
-        }
+		pagelist loader;
+		pagelist_init(&loader, snap_start, 0, DISK_STRUCT_MAGIC_SNAP_LIST);
 
-        pagelist_finish( &loader );
-    }
+		pagelist_seek(&loader);
 
-    //dpc_request_init(&deferred_allocation_dpc,process_deferred_allocations);
+		for (np = 0; np < page_count; np++) {
+			if (!pagelist_read_seq(&loader, &vm_map_map[np].prev_page)) {
+				ph_printf("\n!!! Incomplete pagelist !!!\n");
+				// panic("Incomplete pagelist\n");
+				break;
+			}
 
-    hal_init_object_vmem(vm_map_start_of_virtual_address_space);
+			// Zero page means we have no data fr this block and it must be zero
+			vm_map_map[np].flag_have_prev = (vm_map_map[np].prev_page != 0);
+		}
 
-    //hal_cond_init(&deferred_alloc_thread_sleep, "Deferred");
-    //hal_mutex_unlock(&vm_map_mutex);
+		pagelist_finish(&loader);
+	}
 
-    hal_start_kernel_thread(vm_map_deferred_disk_alloc_thread);
-    // hal_start_kernel_thread(vm_map_lazy_pageout_thread);
-    hal_start_kernel_thread(vm_map_snapshot_thread);
+	// dpc_request_init(&deferred_allocation_dpc,process_deferred_allocations);
 
-    // Ok, everything is ready now. Turn on pagefaults handling
+	hal_init_object_vmem(vm_map_start_of_virtual_address_space);
+
+	// hal_cond_init(&deferred_alloc_thread_sleep, "Deferred");
+	// hal_mutex_unlock(&vm_map_mutex);
+
+	hal_start_kernel_thread(vm_map_deferred_disk_alloc_thread);
+	// hal_start_kernel_thread(vm_map_lazy_pageout_thread);
+	hal_start_kernel_thread(vm_map_snapshot_thread);
+
+	// Ok, everything is ready now. Turn on pagefaults handling
 #ifdef ARCH_ia32
-    phantom_trap_handlers[T_PAGE_FAULT] = vm_map_page_fault_trap_handler;
-#  define HAVE_PGFAULT_HANDLER
+	phantom_trap_handlers[T_PAGE_FAULT] = vm_map_page_fault_trap_handler;
+#define HAVE_PGFAULT_HANDLER
 #endif
 
 #ifdef ARCH_arm
@@ -516,111 +497,97 @@ vm_map_init(unsigned long page_count)
 
 #ifdef PHANTOM_GENODE
 
-    genode_register_page_fault_handler(genode_pf_handler_wrapper);
+	genode_register_page_fault_handler(genode_pf_handler_wrapper);
 #endif
 
 #ifndef HAVE_PGFAULT_HANDLER
-#  warning no page fault trap handler set
-#endif    
-
+#warning no page fault trap handler set
+#endif
 }
 
 
-static int  stop_deferred_disk_alloc_thread =  0;
-static int  stop_lazy_pageout_thread        =  0;
+static int stop_deferred_disk_alloc_thread = 0;
+static int stop_lazy_pageout_thread = 0;
 
 void vm_map_finish(void)
 {
-    stop_lazy_pageout_thread = 1;
-    // stop_deferred_disk_alloc_thread is asserted in lazy pageout thread
-    // after the last snapshot
+	stop_lazy_pageout_thread = 1;
+	// stop_deferred_disk_alloc_thread is asserted in lazy pageout thread
+	// after the last snapshot
 }
 
 
-
-void
-vm_page_init( vm_page *me, void *my_vaddr)
+void vm_page_init(vm_page *me, void *my_vaddr)
 {
-    ph_memset( me, 0, sizeof(vm_page) );
-    me->virt_addr = my_vaddr;
-    hal_cond_init(&me->done, "VM PG");
-    hal_mutex_init(&me->lock, "VM PG" );
-    page_touch_history(me);
-    pager_io_request_init( &me->pager_io );
+	ph_memset(me, 0, sizeof(vm_page));
+	me->virt_addr = my_vaddr;
+	hal_cond_init(&me->done, "VM PG");
+	hal_mutex_init(&me->lock, "VM PG");
+	page_touch_history(me);
+	pager_io_request_init(&me->pager_io);
 }
-
-
-
-
-
 
 
 // memory reclaiming helpers
 
-static int is_on_reclaim_q( vm_page *p )
+static int is_on_reclaim_q(vm_page *p)
 {
-    return p->reclaim_q_chain.next != 0;
+	return p->reclaim_q_chain.next != 0;
 }
 
 static void put_on_clean_q(vm_page *p)
 {
-    assert(!is_on_reclaim_q(p));
-    hal_mutex_lock(&clean_q_mutex);
-    queue_enter(&clean_q, p, vm_page *, reclaim_q_chain);
-    ++clean_q_size;
-    hal_cond_broadcast(&clean_q_nonempty);
-    hal_mutex_unlock(&clean_q_mutex);
+	assert(!is_on_reclaim_q(p));
+	hal_mutex_lock(&clean_q_mutex);
+	queue_enter(&clean_q, p, vm_page *, reclaim_q_chain);
+	++clean_q_size;
+	hal_cond_broadcast(&clean_q_nonempty);
+	hal_mutex_unlock(&clean_q_mutex);
 }
 
 static void put_on_dirty_q(vm_page *p)
 {
-    assert(!is_on_reclaim_q(p));
-    hal_mutex_lock(&dirty_q_mutex);
-    queue_enter_first(&dirty_q, p, vm_page *, reclaim_q_chain);
-    ++dirty_q_size;
-    hal_mutex_unlock(&dirty_q_mutex);
+	assert(!is_on_reclaim_q(p));
+	hal_mutex_lock(&dirty_q_mutex);
+	queue_enter_first(&dirty_q, p, vm_page *, reclaim_q_chain);
+	++dirty_q_size;
+	hal_mutex_unlock(&dirty_q_mutex);
 }
 
 static void remove_from_clean_q(vm_page *p)
 {
-    assert(clean_q_size > 0);
-    assert(is_on_reclaim_q(p));
-    hal_mutex_lock(&clean_q_mutex);
-    queue_remove(&clean_q, p, vm_page *, reclaim_q_chain);
-    --clean_q_size;
-    p->reclaim_q_chain.next = 0;
-    hal_mutex_unlock(&clean_q_mutex);
+	assert(clean_q_size > 0);
+	assert(is_on_reclaim_q(p));
+	hal_mutex_lock(&clean_q_mutex);
+	queue_remove(&clean_q, p, vm_page *, reclaim_q_chain);
+	--clean_q_size;
+	p->reclaim_q_chain.next = 0;
+	hal_mutex_unlock(&clean_q_mutex);
 }
 
 static void remove_from_dirty_q(vm_page *p)
 {
-    assert(dirty_q_size > 0);
-    assert(is_on_reclaim_q(p));
-    hal_mutex_lock(&dirty_q_mutex);
-    queue_remove(&dirty_q, p, vm_page *, reclaim_q_chain);
-    --dirty_q_size;
-    p->reclaim_q_chain.next = 0;
-    hal_mutex_unlock(&dirty_q_mutex);
+	assert(dirty_q_size > 0);
+	assert(is_on_reclaim_q(p));
+	hal_mutex_lock(&dirty_q_mutex);
+	queue_remove(&dirty_q, p, vm_page *, reclaim_q_chain);
+	--dirty_q_size;
+	p->reclaim_q_chain.next = 0;
+	hal_mutex_unlock(&dirty_q_mutex);
 }
 
 static void move_to_dirty_q(vm_page *p)
 {
-    remove_from_clean_q(p);
-    put_on_dirty_q(p);
+	remove_from_clean_q(p);
+	put_on_dirty_q(p);
 }
-
-
-
-
-
 
 
 // -------------
 // Global snapshot related variables
-int     is_in_snapshot_process = 0;
-//int     snapshot_swapout_queue_size = 0;
-// -------------
-
+int is_in_snapshot_process = 0;
+// int     snapshot_swapout_queue_size = 0;
+//  -------------
 
 
 /*
@@ -647,7 +614,6 @@ int     is_in_snapshot_process = 0;
  */
 
 
-
 //---------------------------------------------------------------------------
 //       vm_page helpers - CALL UNDER MUTEX!!!
 //---------------------------------------------------------------------------
@@ -656,142 +622,144 @@ int     is_in_snapshot_process = 0;
 void
 vm_page_req_deferred_disk_alloc(vm_page *me)
 {
-    if(me->flag_dfda_active) return;
-    me->flag_dfda_active = 1;
+	if(me->flag_dfda_active) return;
+	me->flag_dfda_active = 1;
 
-    me->dfda_next = (vm_page *)deferred_disk_allocations;
-    deferred_disk_allocations = (volatile vm_page *)me;
+	me->dfda_next = (vm_page *)deferred_disk_allocations;
+	deferred_disk_allocations = (volatile vm_page *)me;
 
-    hal_printf("req deferred disk alloc 0x%X\n", me->virt_addr );
+	hal_printf("req deferred disk alloc 0x%X\n", me->virt_addr );
 
-    // wake allocator
-    //hal_wakeup(&deferred_disk_allocations);
-    hal_cond_broadcast( &deferred_alloc_thread_sleep );
+	// wake allocator
+	//hal_wakeup(&deferred_disk_allocations);
+	hal_cond_broadcast( &deferred_alloc_thread_sleep );
 }*/
 
-static void
-pagein_callback( pager_io_request *p, int  pageout );
+static void pagein_callback(pager_io_request *p, int pageout);
 
 // Called under the lock
 
-void
-vm_page_req_pageout(vm_page *me)
+void vm_page_req_pageout(vm_page *me)
 {
-    extern void pageout_callback( pager_io_request *req, int  write );
+	extern void pageout_callback(pager_io_request * req, int write);
 
-    if(PAGING_DEBUG) hal_printf("req pageout 0x%X: ", me->virt_addr );
+	if (PAGING_DEBUG)
+		hal_printf("req pageout 0x%X: ", me->virt_addr);
 
-    if (me->flag_pager_io_busy)
-    {
-        // if it is in the pager, it will return clean. no reason to wait
-        if(PAGING_DEBUG) hal_printf("already in pager\n" );
-        page_touch_history(me);
-        return;
-    }
+	if (me->flag_pager_io_busy) {
+		// if it is in the pager, it will return clean. no reason to wait
+		if (PAGING_DEBUG)
+			hal_printf("already in pager\n");
+		page_touch_history(me);
+		return;
+	}
 
-    if(!me->flag_phys_mem)
-    {
-        if(PAGING_DEBUG) hal_printf("no phys mem\n" );
-        page_touch_history(me);
-        return;
-    }
+	if (!me->flag_phys_mem) {
+		if (PAGING_DEBUG)
+			hal_printf("no phys mem\n");
+		page_touch_history(me);
+		return;
+	}
 
-    if(!me->flag_phys_dirty)
-    {
-        if(PAGING_DEBUG) hal_printf("not dirty\n" );
-        page_touch_history(me);
-        return;
-    }
+	if (!me->flag_phys_dirty) {
+		if (PAGING_DEBUG)
+			hal_printf("not dirty\n");
+		page_touch_history(me);
+		return;
+	}
 
-    if(!me->flag_have_curr)
-    {
-        page_touch_history(me);
-        if(PAGING_DEBUG) hal_printf("no curr disk page\n" );
+	if (!me->flag_have_curr) {
+		page_touch_history(me);
+		if (PAGING_DEBUG)
+			hal_printf("no curr disk page\n");
 
-        // Ask them to allocate us some disk space.
-        if(PAGING_DEBUG) hal_printf("ask disk block 0x%X\n", me->virt_addr );
+		// Ask them to allocate us some disk space.
+		if (PAGING_DEBUG)
+			hal_printf("ask disk block 0x%X\n", me->virt_addr);
 
-        if( !pager_alloc_page_locked(&me->curr_page) )
-        {
-            panic("can't alloc disk page in req pageout");
-        }
+		if (!pager_alloc_page_locked(&me->curr_page)) {
+			panic("can't alloc disk page in req pageout");
+		}
 
-        me->flag_have_curr = 1;
-        if(PAGING_DEBUG) hal_printf("got disk block for 0x%X\n", me->virt_addr );
-    }
+		me->flag_have_curr = 1;
+		if (PAGING_DEBUG)
+			hal_printf("got disk block for 0x%X\n", me->virt_addr);
+	}
 
-    hal_page_control(me->phys_addr, me->virt_addr, page_map, page_ro);
+	hal_page_control(me->phys_addr, me->virt_addr, page_map, page_ro);
 
-    me->flag_phys_protect = 1;
-    me->flag_pager_io_busy = 1;
-    me->pager_io.phys_page = me->phys_addr;
-    me->pager_io.pager_callback = pageout_callback;
-    me->pager_io.disk_page = me->curr_page;
+	me->flag_phys_protect = 1;
+	me->flag_pager_io_busy = 1;
+	me->pager_io.phys_page = me->phys_addr;
+	me->pager_io.pager_callback = pageout_callback;
+	me->pager_io.disk_page = me->curr_page;
 
-    remove_from_dirty_q(me);
-    page_touch_history(me);
-    // Unlocks since it is under the lock already by vm_map_do_for_all
-    // XXX : Do we need to unlock here at all?
-    hal_mutex_unlock(&me->lock);
-    if(PAGEOUT_DEBUG||PAGING_DEBUG) hal_printf("really req pageout\n" );
-    pager_enqueue_for_pageout(&me->pager_io);
-    hal_mutex_lock(&me->lock);
+	remove_from_dirty_q(me);
+	page_touch_history(me);
+	// Unlocks since it is under the lock already by vm_map_do_for_all
+	// XXX : Do we need to unlock here at all?
+	hal_mutex_unlock(&me->lock);
+	if (PAGEOUT_DEBUG || PAGING_DEBUG)
+		hal_printf("really req pageout\n");
+	pager_enqueue_for_pageout(&me->pager_io);
+	hal_mutex_lock(&me->lock);
 }
 
 
-void pageout_callback( pager_io_request *req, int write )
+void pageout_callback(pager_io_request *req, int write)
 {
-    assert(write);
+	assert(write);
 
-    if(req->rc) panic("pager write error, disk page %d", req->disk_page );
+	if (req->rc)
+		panic("pager write error, disk page %d", req->disk_page);
 
-    vm_page *vmp = (vm_page *)req;
+	vm_page *vmp = (vm_page *)req;
 
-    hal_mutex_lock(&vmp->lock);
+	hal_mutex_lock(&vmp->lock);
 
-    if(PAGEOUT_DEBUG||PAGING_DEBUG) hal_printf("pageout callback 0x%X\n", vmp->virt_addr );
+	if (PAGEOUT_DEBUG || PAGING_DEBUG)
+		hal_printf("pageout callback 0x%X\n", vmp->virt_addr);
 
-    assert(vmp->flag_pager_io_busy);
+	assert(vmp->flag_pager_io_busy);
 
-    req->pager_callback = 0;
+	req->pager_callback = 0;
 
-    vmp->flag_phys_dirty = 0; // just saved out, we're clean
-    put_on_clean_q(vmp);
-    vmp->flag_pager_io_busy = 0;
-    page_touch_history(vmp);
+	vmp->flag_phys_dirty = 0;  // just saved out, we're clean
+	put_on_clean_q(vmp);
+	vmp->flag_pager_io_busy = 0;
+	page_touch_history(vmp);
 
-    hal_cond_broadcast(&vmp->done);
+	hal_cond_broadcast(&vmp->done);
 
-    hal_mutex_unlock(&vmp->lock);
+	hal_mutex_unlock(&vmp->lock);
 }
 
 // call under lock
-static inline void select_make_page(vm_page *p) {
-    assert(!p->flag_have_make);
+static inline void select_make_page(vm_page *p)
+{
+	assert(!p->flag_have_make);
 
-    if(p->flag_have_curr)
-    {
-        page_touch_history(p);
-        p->make_page = p->curr_page;
-        p->flag_have_curr = 0;
-        p->flag_have_make = 1;
-        return;
-    }
+	if (p->flag_have_curr) {
+		page_touch_history(p);
+		p->make_page = p->curr_page;
+		p->flag_have_curr = 0;
+		p->flag_have_make = 1;
+		return;
+	}
 
-    if(p->flag_have_prev)
-    {
-        page_touch_history(p);
-        p->make_page = p->prev_page;
-        p->flag_have_prev = 0;
-        p->flag_have_make = 1;
-        return;
-    }
+	if (p->flag_have_prev) {
+		page_touch_history(p);
+		p->make_page = p->prev_page;
+		p->flag_have_prev = 0;
+		p->flag_have_make = 1;
+		return;
+	}
 
-    page_touch_history(p);
+	page_touch_history(p);
 
-    // either empty or nonexistent. How can we distinguish?
-    p->make_page = 0; // NB! means page is not to be written or can be written as zeros
-    p->flag_have_make = 1;
+	// either empty or nonexistent. How can we distinguish?
+	p->make_page = 0;  // NB! means page is not to be written or can be written as zeros
+	p->flag_have_make = 1;
 }
 
 
@@ -799,398 +767,385 @@ static inline void select_make_page(vm_page *p) {
 //       Page Fault
 //---------------------------------------------------------------------------
 
-void snapper_COW_callback( pager_io_request *req, int  write );
+void snapper_COW_callback(pager_io_request *req, int write);
 
 // this code will do fault-time snapshot work
 // returns 1 if caller must return now
-static int
-page_fault_snap_aid( vm_page *p, int  is_writing  )
+static int page_fault_snap_aid(vm_page *p, int is_writing)
 {
-    // 1. We are called only for user's write access attempt!
-    assert(is_writing);
+	// 1. We are called only for user's write access attempt!
+	assert(is_writing);
 
-    // Is it OK?
-    if(p->flag_have_make)
-        return 0; // No special snap treatment needed, or, maybe, already done
+	// Is it OK?
+	if (p->flag_have_make)
+		return 0;  // No special snap treatment needed, or, maybe, already done
 
-    // Either not backed or clean, i.e. we have actual copy on disk, skip COW
-    if(!p->flag_phys_mem || !p->flag_phys_dirty) {
-        select_make_page(p);
-        return 0; // Do standard write fault processing
-    }
+	// Either not backed or clean, i.e. we have actual copy on disk, skip COW
+	if (!p->flag_phys_mem || !p->flag_phys_dirty) {
+		select_make_page(p);
+		return 0;  // Do standard write fault processing
+	}
 
-    // we're in RAM, but still need one more RAM page
+	// we're in RAM, but still need one more RAM page
 
-    /* TODO: We can start pageout even if no new RAM page is available */
+	/* TODO: We can start pageout even if no new RAM page is available */
 
-    if(COW_DEBUG||SNAP_DEBUG) hal_printf("snapaid COW 0x%X\n", p->virt_addr );
+	if (COW_DEBUG || SNAP_DEBUG)
+		hal_printf("snapaid COW 0x%X\n", p->virt_addr);
 
-    physaddr_t  new_phys;
-    if( hal_alloc_phys_page(&new_phys) )
-        panic("out of phys mem, no deferred alloc");
+	physaddr_t new_phys;
+	if (hal_alloc_phys_page(&new_phys))
+		panic("out of phys mem, no deferred alloc");
 
-    hal_copy_page_v2p( new_phys, p->virt_addr );
+	hal_copy_page_v2p(new_phys, p->virt_addr);
 
-    assert(!p->flag_pager_io_busy);
+	assert(!p->flag_pager_io_busy);
 
-    p->flag_pager_io_busy = 1;
+	p->flag_pager_io_busy = 1;
 
-    // pass new page to pager
-    p->pager_io.phys_page = new_phys;
-    p->pager_io.pager_callback = snapper_COW_callback;
+	// pass new page to pager
+	p->pager_io.phys_page = new_phys;
+	p->pager_io.pager_callback = snapper_COW_callback;
 
-    // current disk page will come to snap - activate swapout now
+	// current disk page will come to snap - activate swapout now
 
-    if( p->flag_have_curr )
-    {
-        page_touch_history(p);
-        p->make_page = p->curr_page;
-        p->flag_have_curr = 0;
-        p->flag_have_make = 1;
-    }
-    else
-    {
-        if( !pager_alloc_page_locked(&(p->make_page)) )
-            panic("can't alloc disk page in req pageout");
-        p->flag_have_make = 1;
-        page_touch_history(p);
-    }
+	if (p->flag_have_curr) {
+		page_touch_history(p);
+		p->make_page = p->curr_page;
+		p->flag_have_curr = 0;
+		p->flag_have_make = 1;
+	} else {
+		if (!pager_alloc_page_locked(&(p->make_page)))
+			panic("can't alloc disk page in req pageout");
+		p->flag_have_make = 1;
+		page_touch_history(p);
+	}
 
-    // start pageout
-    if(SNAP_DEBUG) hal_printf("req pageout fast");
-    p->pager_io.disk_page = p->make_page;
+	// start pageout
+	if (SNAP_DEBUG)
+		hal_printf("req pageout fast");
+	p->pager_io.disk_page = p->make_page;
 
-    hal_page_control(p->phys_addr, p->virt_addr, page_map, page_rw );
-    p->flag_phys_protect = 0;
+	hal_page_control(p->phys_addr, p->virt_addr, page_map, page_rw);
+	p->flag_phys_protect = 0;
 
-    p->access_count++;
-    assert(p->flag_phys_dirty);
-    p->flag_phys_dirty = 1; // we'll be dirty after return from trap
-    page_touch_history(p);
+	p->access_count++;
+	assert(p->flag_phys_dirty);
+	p->flag_phys_dirty = 1;  // we'll be dirty after return from trap
+	page_touch_history(p);
 
-    // release page_fault_write as we've made separate page copy for IO
-    hal_cond_broadcast(&p->done);
+	// release page_fault_write as we've made separate page copy for IO
+	hal_cond_broadcast(&p->done);
 
-    hal_mutex_unlock(&p->lock);
-    pager_enqueue_for_pageout(&p->pager_io);
-    hal_mutex_lock(&p->lock);
+	hal_mutex_unlock(&p->lock);
+	pager_enqueue_for_pageout(&p->pager_io);
+	hal_mutex_lock(&p->lock);
 
-    return 1; // Don't do standard write fault processing
+	return 1;  // Don't do standard write fault processing
 }
 
 
-
-
-
-void snapper_COW_callback( pager_io_request *req, int  write )
+void snapper_COW_callback(pager_io_request *req, int write)
 {
-    // Called after we copied write-attempted page to side-allocated
-    // storage and kicked it to be paged out to a snapshot.
+	// Called after we copied write-attempted page to side-allocated
+	// storage and kicked it to be paged out to a snapshot.
 
-    assert(write);
+	assert(write);
 
-    if(req->rc) panic("pager COW write error, disk page %d", req->disk_page );
+	if (req->rc)
+		panic("pager COW write error, disk page %d", req->disk_page);
 
-    vm_page *vmp = (vm_page *)req;
-    hal_mutex_lock(&vmp->lock);
-    if(COW_DEBUG||SNAP_DEBUG) hal_printf("COW callback 0x%X\n", vmp->virt_addr );
+	vm_page *vmp = (vm_page *)req;
+	hal_mutex_lock(&vmp->lock);
+	if (COW_DEBUG || SNAP_DEBUG)
+		hal_printf("COW callback 0x%X\n", vmp->virt_addr);
 
-    assert(vmp->flag_pager_io_busy);
-    req->pager_callback = 0;
+	assert(vmp->flag_pager_io_busy);
+	req->pager_callback = 0;
 
-    // release memory used to hold page.
+	// release memory used to hold page.
 
-    hal_free_phys_page(req->phys_page);
+	hal_free_phys_page(req->phys_page);
 
-    page_touch_history(vmp);
-    vmp->flag_pager_io_busy = 0;
-    hal_cond_broadcast(&vmp->done);
-    hal_mutex_unlock(&vmp->lock);
+	page_touch_history(vmp);
+	vmp->flag_pager_io_busy = 0;
+	hal_cond_broadcast(&vmp->done);
+	hal_mutex_unlock(&vmp->lock);
 }
 
 
-
-
-
-
-
-static void
-pagein_callback( pager_io_request *p, int  pageout )
+static void pagein_callback(pager_io_request *p, int pageout)
 {
-    vm_page *vmp = (vm_page *)p;
+	vm_page *vmp = (vm_page *)p;
 
-    if(p->rc) panic("pager read error, disk page %d", p->disk_page );
+	if (p->rc)
+		panic("pager read error, disk page %d", p->disk_page);
 
-    hal_mutex_lock(&vmp->lock);
-    if(PAGING_DEBUG) hal_printf("pagein callback 0x%X\n", vmp->virt_addr );
+	hal_mutex_lock(&vmp->lock);
+	if (PAGING_DEBUG)
+		hal_printf("pagein callback 0x%X\n", vmp->virt_addr);
 
-    assert(vmp->flag_pager_io_busy);
-    assert(!pageout);
+	assert(vmp->flag_pager_io_busy);
+	assert(!pageout);
 
-    p->pager_callback = 0;
+	p->pager_callback = 0;
 
-    hal_page_control( vmp->phys_addr, vmp->virt_addr, page_map,
-           vmp->flag_phys_protect ? page_ro : page_rw);
+	hal_page_control(vmp->phys_addr,
+					 vmp->virt_addr,
+					 page_map,
+					 vmp->flag_phys_protect ? page_ro : page_rw);
 
-    page_touch_history(vmp);
-    vmp->flag_phys_dirty = 0;
-    put_on_clean_q(vmp);
-    vmp->flag_pager_io_busy = 0;
-    hal_cond_broadcast(&vmp->done); // wakeup threads waiting for page
-    hal_mutex_unlock(&vmp->lock);
+	page_touch_history(vmp);
+	vmp->flag_phys_dirty = 0;
+	put_on_clean_q(vmp);
+	vmp->flag_pager_io_busy = 0;
+	hal_cond_broadcast(&vmp->done);  // wakeup threads waiting for page
+	hal_mutex_unlock(&vmp->lock);
 }
-
 
 
 // Mutex is taken!
 // Process for memory read faults
-static void
-page_fault_read( vm_page *p )
+static void page_fault_read(vm_page *p)
 {
-    page_touch_history(p);
-    while (p->flag_pager_io_busy)
-    {
-        hal_cond_wait(&p->done, &p->lock);
-    }
+	page_touch_history(p);
+	while (p->flag_pager_io_busy) {
+		hal_cond_wait(&p->done, &p->lock);
+	}
 
-    if (p->flag_phys_mem)
-    {
-        page_touch_history(p);
-        return;
-    }
+	if (p->flag_phys_mem) {
+		page_touch_history(p);
+		return;
+	}
 
-    // read from unmapped page occured
-    // it is the same for snapshot and normal operation mode
+	// read from unmapped page occured
+	// it is the same for snapshot and normal operation mode
 
-    if(FAULT_DEBUG) hal_printf("unmapped read 0x%X\n", p->virt_addr );
-    // counter strike :)
-    p->access_count++; // well, we shouldnt, but what the hell...
+	if (FAULT_DEBUG)
+		hal_printf("unmapped read 0x%X\n", p->virt_addr);
+	// counter strike :)
+	p->access_count++;  // well, we shouldnt, but what the hell...
 
-    // Allocate phys mem
-    {
-        physaddr_t newp;
+	// Allocate phys mem
+	{
+		physaddr_t newp;
 
-        // TODO: on alloc fail just wake up pageout thread and sleep on
-        // some 'mem avail' event, then retry.
-        while(hal_alloc_phys_page(&newp))
-        {
+		// TODO: on alloc fail just wake up pageout thread and sleep on
+		// some 'mem avail' event, then retry.
+		while (hal_alloc_phys_page(&newp)) {
 
-            panic("deferred alloc not implemented!");
-            // TODO request some pageout works, etc
-            //request_more_ram = 1;
-            //hal_cond_wait(&ramSleepStone,&vm_map_mutex);
-        }
+			panic("deferred alloc not implemented!");
+			// TODO request some pageout works, etc
+			// request_more_ram = 1;
+			// hal_cond_wait(&ramSleepStone,&vm_map_mutex);
+		}
 
-        p->phys_addr = newp;
-        p->flag_phys_mem = 1;
-        p->flag_phys_dirty = 0;
-        p->flag_phys_protect = 1; // read access.
-    }
+		p->phys_addr = newp;
+		p->flag_phys_mem = 1;
+		p->flag_phys_dirty = 0;
+		p->flag_phys_protect = 1;  // read access.
+	}
 
-    // Allright, decide where to read from
-    // if we have current and want just read, we are paging it in
-    // in any state
-    if     ( p->flag_have_curr )    p->pager_io.disk_page   = p->curr_page;
-    else if( p->flag_have_make )    p->pager_io.disk_page   = p->make_page;
-    else if( p->flag_have_prev )    p->pager_io.disk_page   = p->prev_page;
-    else                            p->pager_io.disk_page   = 0;
+	// Allright, decide where to read from
+	// if we have current and want just read, we are paging it in
+	// in any state
+	if (p->flag_have_curr)
+		p->pager_io.disk_page = p->curr_page;
+	else if (p->flag_have_make)
+		p->pager_io.disk_page = p->make_page;
+	else if (p->flag_have_prev)
+		p->pager_io.disk_page = p->prev_page;
+	else
+		p->pager_io.disk_page = 0;
 
-    if (p->pager_io.disk_page == 0)
-    {
-        page_touch_history(p);
-        // They're trying to read from unallocated page.
-        // BUG! In fact, we are better send them an exception
-        // because it looks like an error. But for now we'll just give
-        // 'em an empty page.
+	if (p->pager_io.disk_page == 0) {
+		page_touch_history(p);
+		// They're trying to read from unallocated page.
+		// BUG! In fact, we are better send them an exception
+		// because it looks like an error. But for now we'll just give
+		// 'em an empty page.
 
-        page_clear_engine_clear_page(p->phys_addr);
-        p->flag_phys_dirty = 0;
-        put_on_clean_q(p);
-        p->flag_phys_protect = 1; // read access - see below.
+		page_clear_engine_clear_page(p->phys_addr);
+		p->flag_phys_dirty = 0;
+		put_on_clean_q(p);
+		p->flag_phys_protect = 1;  // read access - see below.
 
-        hal_page_control( p->phys_addr, p->virt_addr, page_map, page_ro );
-        return;
-    }
+		hal_page_control(p->phys_addr, p->virt_addr, page_map, page_ro);
+		return;
+	}
 
-    assert(!p->flag_pager_io_busy);
-    if(FAULT_DEBUG) hal_printf("start pagein 0x%X\n", p->virt_addr );
+	assert(!p->flag_pager_io_busy);
+	if (FAULT_DEBUG)
+		hal_printf("start pagein 0x%X\n", p->virt_addr);
 
-    p->flag_pager_io_busy = 1;
-    p->pager_io.phys_page = p->phys_addr;
-    p->pager_io.pager_callback = pagein_callback;
-    page_touch_history(p);
+	p->flag_pager_io_busy = 1;
+	p->pager_io.phys_page = p->phys_addr;
+	p->pager_io.pager_callback = pagein_callback;
+	page_touch_history(p);
 
-    hal_mutex_unlock(&p->lock);
-    pager_enqueue_for_pagein(&p->pager_io);
-    pager_raise_request_priority(&p->pager_io);
-    hal_mutex_lock(&p->lock);
+	hal_mutex_unlock(&p->lock);
+	pager_enqueue_for_pagein(&p->pager_io);
+	pager_raise_request_priority(&p->pager_io);
+	hal_mutex_lock(&p->lock);
 
-    while (p->flag_pager_io_busy)
-    {
-        hal_cond_wait(&p->done, &p->lock);
-    }
-    page_touch_history(p);
+	while (p->flag_pager_io_busy) {
+		hal_cond_wait(&p->done, &p->lock);
+	}
+	page_touch_history(p);
 }
-
-
-
-
 
 
 // Mutex is taken!
 // Process for memory write faults
-static void
-page_fault_write( vm_page *p )
+static void page_fault_write(vm_page *p)
 {
-    page_touch_history(p);
-    if(FAULT_DEBUG) hal_printf("write 0x%X\n", p->virt_addr );
-    // we're here if it was write (and, possibly, page is not mapped)
+	page_touch_history(p);
+	if (FAULT_DEBUG)
+		hal_printf("write 0x%X\n", p->virt_addr);
+	// we're here if it was write (and, possibly, page is not mapped)
 
-    // don't change page data if it's under IO
-    while (p->flag_pager_io_busy && p->pager_io.phys_page == p->phys_addr)
-    {
-        // if it's snapshot time and this IO is pageout
-        // try to dequeue it and reprocess through snap_aid
-        if (is_in_snapshot_process && !p->flag_have_make &&
-                pager_dequeue_from_pageout(&p->pager_io))
-        {
-            p->flag_phys_dirty ? put_on_dirty_q(p) : put_on_clean_q(p);
-            page_touch_history(p);
-            if(FAULT_DEBUG) hal_printf("dequeued 0x%X\n", p->virt_addr );
-            p->flag_pager_io_busy = 0;
-            break;
-        }
-        // failed to dequeue, at least try to raise its priority
-        pager_raise_request_priority(&p->pager_io);
+	// don't change page data if it's under IO
+	while (p->flag_pager_io_busy && p->pager_io.phys_page == p->phys_addr) {
+		// if it's snapshot time and this IO is pageout
+		// try to dequeue it and reprocess through snap_aid
+		if (is_in_snapshot_process && !p->flag_have_make &&
+			pager_dequeue_from_pageout(&p->pager_io)) {
+			p->flag_phys_dirty ? put_on_dirty_q(p) : put_on_clean_q(p);
+			page_touch_history(p);
+			if (FAULT_DEBUG)
+				hal_printf("dequeued 0x%X\n", p->virt_addr);
+			p->flag_pager_io_busy = 0;
+			break;
+		}
+		// failed to dequeue, at least try to raise its priority
+		pager_raise_request_priority(&p->pager_io);
 
-        if(FAULT_DEBUG) hal_printf("waiting for pager io 0x%X\n", p->virt_addr );
-        hal_cond_wait(&p->done, &p->lock);
-    }
+		if (FAULT_DEBUG)
+			hal_printf("waiting for pager io 0x%X\n", p->virt_addr);
+		hal_cond_wait(&p->done, &p->lock);
+	}
 
-    if (p->flag_phys_mem && !p->flag_phys_protect)
-    {
-        page_touch_history(p);
-        if(FAULT_DEBUG) hal_printf("solved meanwhile 0x%X\n", p->virt_addr );
-        if (!p->flag_phys_dirty)
-        {
-            page_touch_history(p);
-            move_to_dirty_q(p);
-            p->flag_phys_dirty = 1; // we'll be dirty after return from trap
-        }
-        return;
-    }
+	if (p->flag_phys_mem && !p->flag_phys_protect) {
+		page_touch_history(p);
+		if (FAULT_DEBUG)
+			hal_printf("solved meanwhile 0x%X\n", p->virt_addr);
+		if (!p->flag_phys_dirty) {
+			page_touch_history(p);
+			move_to_dirty_q(p);
+			p->flag_phys_dirty = 1;  // we'll be dirty after return from trap
+		}
+		return;
+	}
 
-    // we have to aid snapping of this page
-    if( is_in_snapshot_process && !p->flag_have_make)
-    {
-        page_touch_history(p);
-        if(FAULT_DEBUG) hal_printf("aiding snap 0x%X\n", p->virt_addr );
-        if( page_fault_snap_aid(p, 1) )
-        {
-            if(FAULT_DEBUG) hal_printf("done 0x%X\n", p->virt_addr );
-            return;
-        }
-    }
+	// we have to aid snapping of this page
+	if (is_in_snapshot_process && !p->flag_have_make) {
+		page_touch_history(p);
+		if (FAULT_DEBUG)
+			hal_printf("aiding snap 0x%X\n", p->virt_addr);
+		if (page_fault_snap_aid(p, 1)) {
+			if (FAULT_DEBUG)
+				hal_printf("done 0x%X\n", p->virt_addr);
+			return;
+		}
+	}
 
-    if(FAULT_DEBUG) hal_printf("get page to write 0x%X\n", p->virt_addr );
+	if (FAULT_DEBUG)
+		hal_printf("get page to write 0x%X\n", p->virt_addr);
 
-    // we are not snapping or already did all we need for snap.
-    // Now get us a page to write to if we still have no!
+	// we are not snapping or already did all we need for snap.
+	// Now get us a page to write to if we still have no!
 
-    if(p->flag_phys_mem)
-    {
-        page_touch_history(p);
-        if(FAULT_DEBUG) hal_printf("have physmem 0x%X\n", p->virt_addr );
-        assert(p->flag_phys_protect);
-        
-        page_touch_history(p);
-        hal_page_control( p->phys_addr, p->virt_addr, page_map, page_rw );
-        p->flag_phys_protect = 0;
-        p->access_count++;
-        p->flag_phys_dirty = 1; // we'll be dirty after return from trap
-        move_to_dirty_q(p);
-        if(FAULT_DEBUG) hal_printf("unprotect to write 0x%X\n", p->virt_addr );
-        return;
-    }
+	if (p->flag_phys_mem) {
+		page_touch_history(p);
+		if (FAULT_DEBUG)
+			hal_printf("have physmem 0x%X\n", p->virt_addr);
+		assert(p->flag_phys_protect);
 
-    // Get us some phys mem
+		page_touch_history(p);
+		hal_page_control(p->phys_addr, p->virt_addr, page_map, page_rw);
+		p->flag_phys_protect = 0;
+		p->access_count++;
+		p->flag_phys_dirty = 1;  // we'll be dirty after return from trap
+		move_to_dirty_q(p);
+		if (FAULT_DEBUG)
+			hal_printf("unprotect to write 0x%X\n", p->virt_addr);
+		return;
+	}
 
-    if(FAULT_DEBUG) hal_printf("get physmem 0x%X\n", p->virt_addr );
+	// Get us some phys mem
 
-    // try to alloc phys page. if cant - kick allocator to find free space
-    // (this will result in swapout, usually), then schedule dpc and put
-    // thread to sleep
-    physaddr_t newp;
+	if (FAULT_DEBUG)
+		hal_printf("get physmem 0x%X\n", p->virt_addr);
 
-    while(hal_alloc_phys_page(&newp))
-    {
+	// try to alloc phys page. if cant - kick allocator to find free space
+	// (this will result in swapout, usually), then schedule dpc and put
+	// thread to sleep
+	physaddr_t newp;
 
-        panic("deferred alloc not implemented!");
-        // TODO request some pageout works, etc
-        //request_more_ram = 1;
+	while (hal_alloc_phys_page(&newp)) {
 
-        //hal_cond_wait(&ramSleepStone,&vm_map_mutex); // NB! Mutex must be locked!
+		panic("deferred alloc not implemented!");
+		// TODO request some pageout works, etc
+		// request_more_ram = 1;
 
-    }
+		// hal_cond_wait(&ramSleepStone,&vm_map_mutex); // NB! Mutex must be locked!
+	}
 
-    // got some - now pagein.
+	// got some - now pagein.
 
-    p->phys_addr = newp;
-    p->flag_phys_mem = 1;
-    p->flag_phys_dirty = 0; // or set it after pagein?
-    p->flag_phys_protect = 0; // pager has to write there - or can it anyway?
+	p->phys_addr = newp;
+	p->flag_phys_mem = 1;
+	p->flag_phys_dirty = 0;    // or set it after pagein?
+	p->flag_phys_protect = 0;  // pager has to write there - or can it anyway?
 
-    if     ( p->flag_have_curr ) p->pager_io.disk_page = p->curr_page;
-    else if( p->flag_have_make ) p->pager_io.disk_page = p->make_page;
-    else if( p->flag_have_prev ) p->pager_io.disk_page = p->prev_page;
-    else                         p->pager_io.disk_page = 0;
+	if (p->flag_have_curr)
+		p->pager_io.disk_page = p->curr_page;
+	else if (p->flag_have_make)
+		p->pager_io.disk_page = p->make_page;
+	else if (p->flag_have_prev)
+		p->pager_io.disk_page = p->prev_page;
+	else
+		p->pager_io.disk_page = 0;
 
-    if (p->pager_io.disk_page == 0)
-    {
-        page_touch_history(p);
-        if(FAULT_DEBUG) hal_printf("zero page 0x%X\n", p->virt_addr );
-        // Just clear page here as it is new
-        page_clear_engine_clear_page(p->phys_addr);
-        hal_page_control( p->phys_addr, p->virt_addr, page_map, page_rw );
-        if(FAULT_DEBUG) hal_printf("!!!! : 1\n");
-        p->flag_phys_dirty = 1;
-        put_on_dirty_q(p);
-        if(FAULT_DEBUG) hal_printf("!!!! : 2\n");
-        return;
-    }
+	if (p->pager_io.disk_page == 0) {
+		page_touch_history(p);
+		if (FAULT_DEBUG)
+			hal_printf("zero page 0x%X\n", p->virt_addr);
+		// Just clear page here as it is new
+		page_clear_engine_clear_page(p->phys_addr);
+		hal_page_control(p->phys_addr, p->virt_addr, page_map, page_rw);
+		if (FAULT_DEBUG)
+			hal_printf("!!!! : 1\n");
+		p->flag_phys_dirty = 1;
+		put_on_dirty_q(p);
+		if (FAULT_DEBUG)
+			hal_printf("!!!! : 2\n");
+		return;
+	}
 
-    assert(!p->flag_pager_io_busy);
-    if(FAULT_DEBUG) hal_printf("req pagein 0x%X\n", p->virt_addr );
+	assert(!p->flag_pager_io_busy);
+	if (FAULT_DEBUG)
+		hal_printf("req pagein 0x%X\n", p->virt_addr);
 
-    p->flag_pager_io_busy = 1;
-    p->pager_io.phys_page = p->phys_addr;
-    p->pager_io.pager_callback = pagein_callback;
+	p->flag_pager_io_busy = 1;
+	p->pager_io.phys_page = p->phys_addr;
+	p->pager_io.pager_callback = pagein_callback;
 
-    page_touch_history(p);
-    hal_mutex_unlock(&p->lock);
-    pager_enqueue_for_pagein(&p->pager_io);
-    pager_raise_request_priority(&p->pager_io);
-    hal_mutex_lock(&p->lock);
+	page_touch_history(p);
+	hal_mutex_unlock(&p->lock);
+	pager_enqueue_for_pagein(&p->pager_io);
+	pager_raise_request_priority(&p->pager_io);
+	hal_mutex_lock(&p->lock);
 
-    while (p->flag_pager_io_busy)
-    {
-        hal_cond_wait(&p->done, &p->lock);
-    }
-    page_touch_history(p);
-    if (p->flag_phys_mem)
-    {
-        p->flag_phys_dirty = 1;
-        move_to_dirty_q(p);
-    }
+	while (p->flag_pager_io_busy) {
+		hal_cond_wait(&p->done, &p->lock);
+	}
+	page_touch_history(p);
+	if (p->flag_phys_mem) {
+		p->flag_phys_dirty = 1;
+		move_to_dirty_q(p);
+	}
 }
-
-
-
-
-
-
-
-
 
 
 #define LATENCY_DEBUG 0
@@ -1199,24 +1154,26 @@ page_fault_write( vm_page *p )
 //
 // We will possibly reenable with sti(), or maybe not.
 // Caller must enable ints himself. (Or, for USA readers, herself.)
-void
-page_fault( vm_page *p, int  is_writing )
+void page_fault(vm_page *p, int is_writing)
 {
 #if LATENCY_DEBUG
-    bigtime_t start = hal_system_time();
+	bigtime_t start = hal_system_time();
 #endif
-    if( is_writing )    page_fault_write( p );
-    else                page_fault_read( p );
+	if (is_writing)
+		page_fault_write(p);
+	else
+		page_fault_read(p);
 #if LATENCY_DEBUG
-    bigtime_t end = hal_system_time();
+	bigtime_t end = hal_system_time();
 
-    if (end - start > p->max_latency)
-    {
-        p->max_latency = (int)(end - start);
-        if (p->max_latency > 100000)
-            ph_printf("page va %p, max latency: %d, %s\n",
-                    p->virt_addr, p->max_latency, is_writing ? "w" : "r");
-    }
+	if (end - start > p->max_latency) {
+		p->max_latency = (int)(end - start);
+		if (p->max_latency > 100000)
+			ph_printf("page va %p, max latency: %d, %s\n",
+					  p->virt_addr,
+					  p->max_latency,
+					  is_writing ? "w" : "r");
+	}
 #endif
 }
 
@@ -1224,37 +1181,32 @@ page_fault( vm_page *p, int  is_writing )
 // Used to show progress
 int vm_map_do_for_percentage = 0;
 
-static void
-vm_map_do_for_all( vmem_page_func_t func, int lock )
+static void vm_map_do_for_all(vmem_page_func_t func, int lock)
 {
-    size_t total = vm_map_map_end-vm_map_map;
-    vm_page *i;
-    for( i = vm_map_map; i < vm_map_map_end; i++ )
-    {
-        if (lock)
-            hal_mutex_lock(&i->lock);
-        else
-            assert(!hal_mutex_is_locked(&i->lock));
-        func( i );
-        if (lock)
-            hal_mutex_unlock(&i->lock);
-        vm_map_do_for_percentage = (100L*(i-vm_map_map))/total;
-    }
-    vm_map_do_for_percentage = 100;
+	size_t total = vm_map_map_end - vm_map_map;
+	vm_page *i;
+	for (i = vm_map_map; i < vm_map_map_end; i++) {
+		if (lock)
+			hal_mutex_lock(&i->lock);
+		else
+			assert(!hal_mutex_is_locked(&i->lock));
+		func(i);
+		if (lock)
+			hal_mutex_unlock(&i->lock);
+		vm_map_do_for_percentage = (100L * (i - vm_map_map)) / total;
+	}
+	vm_map_do_for_percentage = 100;
 }
 
-static void
-vm_map_for_all( vmem_page_func_t func )
+static void vm_map_for_all(vmem_page_func_t func)
 {
-    vm_map_do_for_all(func, 1);
+	vm_map_do_for_all(func, 1);
 }
 
-static void
-vm_map_for_all_locked( vmem_page_func_t func )
+static void vm_map_for_all_locked(vmem_page_func_t func)
 {
-    vm_map_do_for_all(func, 0);
+	vm_map_do_for_all(func, 0);
 }
-
 
 
 //---------------------------------------------------------------------------
@@ -1271,424 +1223,447 @@ vm_map_for_all_locked( vmem_page_func_t func )
 //
 static void mark_for_snap(vm_page *p)
 {
-    page_touch_history(p);
-    if(p->flag_have_make)       panic("mark_for_snap got flag_have_make set");
+	page_touch_history(p);
+	if (p->flag_have_make)
+		panic("mark_for_snap got flag_have_make set");
 
-    if(DEBUG_MARK) hal_printf("mark4snap 0x%x: ", p->virt_addr );
+	if (DEBUG_MARK)
+		hal_printf("mark4snap 0x%x: ", p->virt_addr);
 
-    if( !p->flag_phys_mem )
-    {
-        page_touch_history(p);
-        // since we're not backed, nothing to do - everything will either
-        // be done during next page fault or in regular snapshot code
-        if(DEBUG_MARK) hal_printf("!phys\n");
-        return;
-    }
+	if (!p->flag_phys_mem) {
+		page_touch_history(p);
+		// since we're not backed, nothing to do - everything will either
+		// be done during next page fault or in regular snapshot code
+		if (DEBUG_MARK)
+			hal_printf("!phys\n");
+		return;
+	}
 
-    if( p->flag_phys_protect )
-    {
-        page_touch_history(p);
-        // just the same - page is already protected
-        if(DEBUG_MARK) hal_printf("already ro\n");
-        return;
-    }
+	if (p->flag_phys_protect) {
+		page_touch_history(p);
+		// just the same - page is already protected
+		if (DEBUG_MARK)
+			hal_printf("already ro\n");
+		return;
+	}
 
-    if(DEBUG_MARK) hal_printf("set to ro\n");
-    // ok, page is mapped, writeable: the real case.
-    hal_page_control( p->phys_addr, p->virt_addr, page_map, page_ro );
-    p->flag_phys_protect = 1;
+	if (DEBUG_MARK)
+		hal_printf("set to ro\n");
+	// ok, page is mapped, writeable: the real case.
+	hal_page_control(p->phys_addr, p->virt_addr, page_map, page_ro);
+	p->flag_phys_protect = 1;
 }
 
-//#define KICK_AT_ONCE 16
-//static int kick_pageout_sleep_count = 0;
+// #define KICK_AT_ONCE 16
+// static int kick_pageout_sleep_count = 0;
 static void kick_pageout(vm_page *p)
 {
-    page_touch_history(p);
-    static int cnt = 0;
-    if(p->flag_phys_dirty && !p->flag_have_make)
-    {
-        //if(SNAP_DEBUG) hal_printf("V");
-        vm_page_req_pageout(p);
-        cnt++;
-    }
-    if(SNAP_DEBUG && 0 == (0xFFFFF & (addr_t)p->virt_addr) )
-    {
-        hal_printf("0x%X (%d)\n", p->virt_addr, cnt );
-        cnt = 0;
-    }
+	page_touch_history(p);
+	static int cnt = 0;
+	if (p->flag_phys_dirty && !p->flag_have_make) {
+		// if(SNAP_DEBUG) hal_printf("V");
+		vm_page_req_pageout(p);
+		cnt++;
+	}
+	if (SNAP_DEBUG && 0 == (0xFFFFF & (addr_t)p->virt_addr)) {
+		hal_printf("0x%X (%d)\n", p->virt_addr, cnt);
+		cnt = 0;
+	}
 }
 
 // NB! Call with vm_map_mutex taken
 static void finalize_snap(vm_page *p)
 {
-    page_touch_history(p);
-    if(SNAP_DEBUG) hal_printf("finalize_snap 0x%X: ", p->virt_addr );
+	page_touch_history(p);
+	if (SNAP_DEBUG)
+		hal_printf("finalize_snap 0x%X: ", p->virt_addr);
 
-    if(p->flag_have_make)
-    {
-        page_touch_history(p);
-        if(SNAP_DEBUG) hal_printf("has make 1\n" );
-        return;
-    }
+	if (p->flag_have_make) {
+		page_touch_history(p);
+		if (SNAP_DEBUG)
+			hal_printf("has make 1\n");
+		return;
+	}
 
-    while (p->flag_pager_io_busy)
-    {
-        if(SNAP_DEBUG) hal_printf("waiting for pager io\n" );
-        hal_cond_wait(&p->done, &p->lock);
-    }
+	while (p->flag_pager_io_busy) {
+		if (SNAP_DEBUG)
+			hal_printf("waiting for pager io\n");
+		hal_cond_wait(&p->done, &p->lock);
+	}
 
-    if(p->flag_have_make)
-    {
-        page_touch_history(p);
-        if(SNAP_DEBUG) hal_printf("has make 2\n" );
-        return;
-    }
+	if (p->flag_have_make) {
+		page_touch_history(p);
+		if (SNAP_DEBUG)
+			hal_printf("has make 2\n");
+		return;
+	}
 
-    assert(!p->flag_phys_dirty);
+	assert(!p->flag_phys_dirty);
 
-    select_make_page(p);
+	select_make_page(p);
 
-    if(SNAP_DEBUG) hal_printf(" done, " );
+	if (SNAP_DEBUG)
+		hal_printf(" done, ");
 }
 
 pagelist *snap_saver = 0;
 
 static void save_snap(vm_page *p)
 {
-    page_touch_history(p);
-    // TODO added for safety - remove or do in a more smart way?
-    // HACK! We set have make and make_page = 0 on unused page
+	page_touch_history(p);
+	// TODO added for safety - remove or do in a more smart way?
+	// HACK! We set have make and make_page = 0 on unused page
 
-    // What is the purpose of this? no idea, so removed it
-    // if(! (p->flag_have_make && p->make_page == 0 && !p->flag_have_curr && !p->flag_have_prev) )
-    // {
-    //     page_touch_history(p);
-    //     vm_page_req_pageout(p);
-    // }
+	// What is the purpose of this? no idea, so removed it
+	// if(! (p->flag_have_make && p->make_page == 0 && !p->flag_have_curr &&
+	// !p->flag_have_prev) )
+	// {
+	//     page_touch_history(p);
+	//     vm_page_req_pageout(p);
+	// }
 
-    assert(p->flag_have_make);
+	assert(p->flag_have_make);
 
-    hal_mutex_unlock(&p->lock);
-    if(SNAP_LISTS_DEBUG) hal_printf("pg0 %d, ", p->make_page);
-    pagelist_write_seq( snap_saver, p->make_page);
-    if(SNAP_LISTS_DEBUG) hal_printf("pg1 %d, ", p->make_page);
-    hal_mutex_lock(&p->lock);
+	hal_mutex_unlock(&p->lock);
+	if (SNAP_LISTS_DEBUG)
+		hal_printf("pg0 %d, ", p->make_page);
+	pagelist_write_seq(snap_saver, p->make_page);
+	if (SNAP_LISTS_DEBUG)
+		hal_printf("pg1 %d, ", p->make_page);
+	hal_mutex_lock(&p->lock);
 
-    page_touch_history(p);
-    p->prev_page = p->make_page;
-    p->flag_have_make = 0;
-    p->flag_have_prev = 1;
+	page_touch_history(p);
+	p->prev_page = p->make_page;
+	p->flag_have_make = 0;
+	p->flag_have_prev = 1;
 }
 
 
-#if ! LEGACY_SNAP
+#if !LEGACY_SNAP
 static void snapper_batch_snapshot(void)
 {
-    struct Snapper_result res = snapper_init_snapshot();
-    snapper_handle_result(&res);
+	struct Snapper_result res = snapper_init_snapshot();
+	snapper_handle_result(&res);
 
-    /* INFO
-       Group the persistent memory into chunks with size
-       pages_per_snapshot_file * ARCH_PAGE_SIZE.
-     */
-    size_t chunk_size = pages_per_snapshot_file * ARCH_PAGE_SIZE;
-    size_t remaining_size = vm_map_vm_page_count * ARCH_PAGE_SIZE;
+	/* INFO
+	   Group the persistent memory into chunks with size
+	   pages_per_snapshot_file * ARCH_PAGE_SIZE.
+	 */
+	size_t chunk_size = pages_per_snapshot_file * ARCH_PAGE_SIZE;
+	size_t remaining_size = vm_map_vm_page_count * ARCH_PAGE_SIZE;
 
-    ph_syslog(0, "snap: started");
+	ph_syslog(0, "snap: started");
 
-    void *chunk_buffer = ph_malloc(chunk_size);
+	void *chunk_buffer = ph_malloc(chunk_size);
 
-    int snapper_id = 0;
+	int snapper_id = 0;
 
-    vm_page *p;
-    u_int64_t i = 0;
-    for (p = vm_map_map; p < vm_map_map_end; p++) {
-      page_touch_history(p);
-      assert(p->flag_have_make);
+	vm_page *p;
+	u_int64_t i = 0;
+	for (p = vm_map_map; p < vm_map_map_end; p++) {
+		page_touch_history(p);
+		assert(p->flag_have_make);
 
-      /* INFO
-         Need to explicitly page fault the current page,
-         otherwise the memcpy operations hangs occasionally.
-       */
-#if ! PHANTOM_LINUX
-    page_fault_read(p);
-#endif // PHANTOM_LINUX
-      
-      ph_memcpy(chunk_buffer + (i * ARCH_PAGE_SIZE), p->virt_addr, ARCH_PAGE_SIZE);
+		/* INFO
+		   Need to explicitly page fault the current page,
+		   otherwise the memcpy operations hangs occasionally.
+		 */
+#if !PHANTOM_LINUX
+		page_fault_read(p);
+#endif  // PHANTOM_LINUX
 
-      page_touch_history(p);
-      p->prev_page = p->make_page;
-      p->flag_have_make = 0;
-      p->flag_have_prev = 1;
-      
-      i = (i + 1) % pages_per_snapshot_file;
+		ph_memcpy(chunk_buffer + (i * ARCH_PAGE_SIZE), p->virt_addr, ARCH_PAGE_SIZE);
 
-      if (i == 0) {
-        struct Snapper_result res =
-          snapper_take_snapshot(chunk_buffer, chunk_size, snapper_id++);
+		page_touch_history(p);
+		p->prev_page = p->make_page;
+		p->flag_have_make = 0;
+		p->flag_have_prev = 1;
 
-        snapper_handle_result(&res);
+		i = (i + 1) % pages_per_snapshot_file;
 
-        remaining_size -= chunk_size;
-      }
-    }
+		if (i == 0) {
+			struct Snapper_result res =
+				snapper_take_snapshot(chunk_buffer, chunk_size, snapper_id++);
 
-    /*
-      Handle leftover pages (handled separately because the number of
-      pages may not be aligned with `pages_per_snapshot_file').
-    */
-    res = snapper_take_snapshot(
-        chunk_buffer, remaining_size, snapper_id++);
+			snapper_handle_result(&res);
 
-    snapper_handle_result(&res);
+			remaining_size -= chunk_size;
+		}
+	}
 
-    ph_free(chunk_buffer);
-    chunk_buffer = NULL;
+	/*
+	  Handle leftover pages (handled separately because the number of
+	  pages may not be aligned with `pages_per_snapshot_file').
+	*/
+	res = snapper_take_snapshot(chunk_buffer, remaining_size, snapper_id++);
 
-    res = snapper_commit_snapshot();
-    snapper_handle_result(&res);
+	snapper_handle_result(&res);
+
+	ph_free(chunk_buffer);
+	chunk_buffer = NULL;
+
+	res = snapper_commit_snapshot();
+	snapper_handle_result(&res);
 }
-#endif // ! LEGACY_SNAP
+#endif  // ! LEGACY_SNAP
 
 
 static void wait_commit_snap(vm_page *p)
 {
-    if (p->flag_pager_io_busy && p->flag_have_curr && p->pager_io.disk_page == p->curr_page)
-        return;
+	if (p->flag_pager_io_busy && p->flag_have_curr &&
+		p->pager_io.disk_page == p->curr_page)
+		return;
 
-    while (p->flag_pager_io_busy)
-    {
-        hal_cond_wait(&p->done, &p->lock);
-    }
+	while (p->flag_pager_io_busy) {
+		hal_cond_wait(&p->done, &p->lock);
+	}
 }
 
-// TODO if we page out page, which is unchanged since THE SNAP and page fault comes (somebody wants to write to that
-// page) we need to do COW too! (but why?)
+// TODO if we page out page, which is unchanged since THE SNAP and page fault comes
+// (somebody wants to write to that page) we need to do COW too! (but why?)
 
 void do_snapshot(void)
 {
-    int			  enabled; // interrupts
+	int enabled;  // interrupts
 
-    ph_syslog( 0, "snap: started");
-    // prerequisites
-    //
-    // - no pages with flag_have_make can exist! check that?
-    //
+	ph_syslog(0, "snap: started");
+	// prerequisites
+	//
+	// - no pages with flag_have_make can exist! check that?
+	//
 
-    // This pageout request is not nesessary, but makes snap to catch a more later state.
-    // If we skip this pageout, a lot of pages will go to 'after snap' state.
-    // TODO try to find some heuristic to pageout just pages modified long ago?
+	// This pageout request is not nesessary, but makes snap to catch a more later state.
+	// If we skip this pageout, a lot of pages will go to 'after snap' state.
+	// TODO try to find some heuristic to pageout just pages modified long ago?
 
-    // Do it in lowest prio (but not IDLE) or else massive IO will kill world
-    int prio;
-    t_current_get_priority(&prio);
-    t_current_set_priority( THREAD_PRIO_LOWEST );
+	// Do it in lowest prio (but not IDLE) or else massive IO will kill world
+	int prio;
+	t_current_get_priority(&prio);
+	t_current_set_priority(THREAD_PRIO_LOWEST);
 
-    vm_map_for_all( kick_pageout ); // Try to pageout all of them - NOT IN LOCK!
-    
-    if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: wait 4 pgout to settle");
+	vm_map_for_all(kick_pageout);  // Try to pageout all of them - NOT IN LOCK!
 
-    // Back to orig prio
-    t_current_set_priority( prio );
+	if (SNAP_STEPS_DEBUG)
+		ph_syslog(0, "snap: wait 4 pgout to settle");
 
-    // commented out to stress the pager
-    //hal_sleep_msec(30000); // sleep for 10 sec - why 10?
+	// Back to orig prio
+	t_current_set_priority(prio);
 
-    if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: stop world");
+	// commented out to stress the pager
+	// hal_sleep_msec(30000); // sleep for 10 sec - why 10?
 
-    // MUST BE BEFORE hal_mutex_lock!
-    phantom_snapper_wait_4_threads();
+	if (SNAP_STEPS_DEBUG)
+		ph_syslog(0, "snap: stop world");
 
-    if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: threads stopped");
+	// MUST BE BEFORE hal_mutex_lock!
+	phantom_snapper_wait_4_threads();
 
-    enabled = hal_save_cli();
+	if (SNAP_STEPS_DEBUG)
+		ph_syslog(0, "snap: threads stopped");
 
-    vm_verify_vm();
+	enabled = hal_save_cli();
 
-    // START!
-    is_in_snapshot_process = 1;
+	vm_verify_vm();
 
-    // Terrible and mighty step - ALL the pages will be marked
-    // as not snapped and access to them will be locked here, so
-    // that page faults will bring them to us on write attempts and we'll
-    // make a copies (COW).
+	// START!
+	is_in_snapshot_process = 1;
 
-    // !!!! SnapShot !!!!
+	// Terrible and mighty step - ALL the pages will be marked
+	// as not snapped and access to them will be locked here, so
+	// that page faults will bring them to us on write attempts and we'll
+	// make a copies (COW).
 
-    ph_syslog( 0, "snap: hold still, say 'cheese!'...");
+	// !!!! SnapShot !!!!
 
-    // TODO: we have top do more. such as stop oher CPUS, force VMs into the
-    // special snap-friendly state, etc
-    //t_smp_enable(0); // make sure other CPUs don't mess here
-    t_migrate_to_boot_CPU();
-    vm_map_for_all_locked( mark_for_snap );
-    t_smp_enable(1);
+	ph_syslog(0, "snap: hold still, say 'cheese!'...");
 
-    ph_syslog( 0, "snap: thank you ladies");
+	// TODO: we have top do more. such as stop oher CPUS, force VMs into the
+	// special snap-friendly state, etc
+	// t_smp_enable(0); // make sure other CPUs don't mess here
+	t_migrate_to_boot_CPU();
+	vm_map_for_all_locked(mark_for_snap);
+	t_smp_enable(1);
 
-    if(enabled) hal_sti();
+	ph_syslog(0, "snap: thank you ladies");
 
-    phantom_snapper_reenable_threads();
+	if (enabled)
+		hal_sti();
+
+	phantom_snapper_reenable_threads();
 #if USE_SNAP_WAIT
-    signal_snap_snap_passed(); // or before enabling threads?
+	signal_snap_snap_passed();  // or before enabling threads?
 #endif
 
-    // YES, YES, YES, Snap is nearly done.
+	// YES, YES, YES, Snap is nearly done.
 
-    // Here we have to wait a little and start processing pages manually
-    // because no one can be sure that all the pages will be accessed for
-    // write in a short time.
+	// Here we have to wait a little and start processing pages manually
+	// because no one can be sure that all the pages will be accessed for
+	// write in a short time.
 
-    // This pageout request is needed - if I skip it, snaps are incomplete
-    if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: pgout");
-    vm_map_for_all( kick_pageout ); // Try to pageout all of them - NOT IN LOCK!
-    
-    ph_syslog( 0, "snap: will finalize_snap");
-    // scan nonsnapped pages, snap them manually (or just access to cause
-    // page fault?)
-    vm_map_for_all(finalize_snap);
-    
-    // now all pages must have make_page.
-    // will save them now and move make_page -> prev_page,
-    // don't want page_fault_write to create them another make_page as we do this.
-    is_in_snapshot_process = 0;
+	// This pageout request is needed - if I skip it, snaps are incomplete
+	if (SNAP_STEPS_DEBUG)
+		ph_syslog(0, "snap: pgout");
+	vm_map_for_all(kick_pageout);  // Try to pageout all of them - NOT IN LOCK!
+
+	ph_syslog(0, "snap: will finalize_snap");
+	// scan nonsnapped pages, snap them manually (or just access to cause
+	// page fault?)
+	vm_map_for_all(finalize_snap);
+
+	// now all pages must have make_page.
+	// will save them now and move make_page -> prev_page,
+	// don't want page_fault_write to create them another make_page as we do this.
+	is_in_snapshot_process = 0;
 
 #if LEGACY_SNAP
-    // now all the pages for snapshot are done. Now create
-    // the disk data structure for them
+	// now all the pages for snapshot are done. Now create
+	// the disk data structure for them
 
-    // TODO - free prev snap first! -- (why?)
+	// TODO - free prev snap first! -- (why?)
 
-    bigtime_t snap_start = hal_system_time();
-      
-    disk_page_no_t new_snap_head = 0;
+	bigtime_t snap_start = hal_system_time();
 
-
-    if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: creating primary pagelist root");
-    if( !pager_alloc_page_locked(&new_snap_head) ) panic("out of disk!");
+	disk_page_no_t new_snap_head = 0;
 
 
-    if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: creating pagelist 0...");
+	if (SNAP_STEPS_DEBUG)
+		ph_syslog(0, "snap: creating primary pagelist root");
+	if (!pager_alloc_page_locked(&new_snap_head))
+		panic("out of disk!");
 
-    {
-        pagelist saver;
-        pagelist_init( &saver, new_snap_head, 1, DISK_STRUCT_MAGIC_SNAP_LIST );
 
-        if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: creating pagelist 1...");
-        pagelist_clear(&saver);
-        if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: creating pagelist 2...");
-        snap_saver = &saver;
-        vm_map_for_all( save_snap );
-        if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: creating pagelist 3...");
-        snap_saver = 0;
-        pagelist_flush(&saver);
-        if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: creating pagelist 4...");
-        pagelist_finish(&saver);
-        if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: creating pagelist 5 (fin)...");
-    }
+	if (SNAP_STEPS_DEBUG)
+		ph_syslog(0, "snap: creating pagelist 0...");
 
-    if(SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: waiting for all pages to be flushed...");
-    // make sure page data has been written
-    vm_map_for_all( wait_commit_snap );
+	{
+		pagelist saver;
+		pagelist_init(&saver, new_snap_head, 1, DISK_STRUCT_MAGIC_SNAP_LIST);
 
-    // XXX : Takes a lot of time
-    // TODO : Optimize if possible
-    // vm_verify_snap(new_snap_head);
+		if (SNAP_STEPS_DEBUG)
+			ph_syslog(0, "snap: creating pagelist 1...");
+		pagelist_clear(&saver);
+		if (SNAP_STEPS_DEBUG)
+			ph_syslog(0, "snap: creating pagelist 2...");
+		snap_saver = &saver;
+		vm_map_for_all(save_snap);
+		if (SNAP_STEPS_DEBUG)
+			ph_syslog(0, "snap: creating pagelist 3...");
+		snap_saver = 0;
+		pagelist_flush(&saver);
+		if (SNAP_STEPS_DEBUG)
+			ph_syslog(0, "snap: creating pagelist 4...");
+		pagelist_finish(&saver);
+		if (SNAP_STEPS_DEBUG)
+			ph_syslog(0, "snap: creating pagelist 5 (fin)...");
+	}
 
-    // ok, now we have current snap and previous one. come fix the superblock
-    pager_superblock_ptr()->snap_to_free = pager_superblock_ptr()->prev_snap;
-    pager_superblock_ptr()->prev_snap = pager_superblock_ptr()->last_snap;
-    pager_superblock_ptr()->last_snap = new_snap_head;
-    pager_commit_active_free_list();
-    pager_update_superblock();
-    
-    pager_free_blocklist_pages();
-    // these two are probably unnecessary, but they should slightly reduce disk leak
-    pager_commit_active_free_list();
-    pager_update_superblock();
+	if (SNAP_STEPS_DEBUG)
+		ph_syslog(0, "snap: waiting for all pages to be flushed...");
+	// make sure page data has been written
+	vm_map_for_all(wait_commit_snap);
 
-    // #error not impl
-    //  free journal part, which was created before this snap
-    //  was started
+	// XXX : Takes a lot of time
+	// TODO : Optimize if possible
+	// vm_verify_snap(new_snap_head);
 
-    bigtime_t snap_fin = hal_system_time();
+	// ok, now we have current snap and previous one. come fix the superblock
+	pager_superblock_ptr()->snap_to_free = pager_superblock_ptr()->prev_snap;
+	pager_superblock_ptr()->prev_snap = pager_superblock_ptr()->last_snap;
+	pager_superblock_ptr()->last_snap = new_snap_head;
+	pager_commit_active_free_list();
+	pager_update_superblock();
 
-    hal_printf("snapshot took: %u us\n", snap_fin - snap_start);
+	pager_free_blocklist_pages();
+	// these two are probably unnecessary, but they should slightly reduce disk leak
+	pager_commit_active_free_list();
+	pager_update_superblock();
 
-#else // LEGACY_SNAP
-    snapper_batch_snapshot();
-#endif // LEGACY_SNAP
+	// #error not impl
+	//  free journal part, which was created before this snap
+	//  was started
 
-    // DONE!
-    ph_syslog( 0, "Snapshot done!");
+	bigtime_t snap_fin = hal_system_time();
 
-    STAT_INC_CNT(STAT_CNT_SNAPSHOT);
+	hal_printf("snapshot took: %u us\n", snap_fin - snap_start);
+
+#else   // LEGACY_SNAP
+	snapper_batch_snapshot();
+#endif  // LEGACY_SNAP
+
+	// DONE!
+	ph_syslog(0, "Snapshot done!");
+
+	STAT_INC_CNT(STAT_CNT_SNAPSHOT);
 
 #if USE_SNAP_WAIT
-    signal_snap_done_passed();
+	signal_snap_done_passed();
 #endif
 
-    // for tracking disk leak, remove once it is resolved
-    pager_calculate_free_block_count();
+	// for tracking disk leak, remove once it is resolved
+	pager_calculate_free_block_count();
 }
 
-void recover_snapshot(void) 
+void recover_snapshot(void)
 {
-  int prio = 0, enabled = 0;
-  t_current_get_priority(&prio);
-  t_current_set_priority( THREAD_PRIO_HIGHEST );
+	int prio = 0, enabled = 0;
+	t_current_get_priority(&prio);
+	t_current_set_priority(THREAD_PRIO_HIGHEST);
 
-  if(SNAP_STEPS_DEBUG) ph_syslog( 0, "recovery: stop world");
-  phantom_snapper_wait_4_threads();
-  if(SNAP_STEPS_DEBUG) ph_syslog( 0, "recovery: threads stopped");
+	if (SNAP_STEPS_DEBUG)
+		ph_syslog(0, "recovery: stop world");
+	phantom_snapper_wait_4_threads();
+	if (SNAP_STEPS_DEBUG)
+		ph_syslog(0, "recovery: threads stopped");
 
-  t_smp_enable(0); // make sure other CPUs don't mess here
-  enabled = hal_save_cli();
-  t_migrate_to_boot_CPU();
-  if(enabled) hal_sti();
+	t_smp_enable(0);  // make sure other CPUs don't mess here
+	enabled = hal_save_cli();
+	t_migrate_to_boot_CPU();
+	if (enabled)
+		hal_sti();
 
-  ph_syslog( 0, "recovery: try to recover previous state");
-  struct Snapper_result res = snapper_open_generation("");
-  if (snapper_handle_result(&res) == 0) {
-    char *payload_buffer = ph_malloc(ARCH_PAGE_SIZE * pages_per_snapshot_file);
-    int buf_idx = 0;
-    int snapper_id = 0;
+	ph_syslog(0, "recovery: try to recover previous state");
+	struct Snapper_result res = snapper_open_generation("");
+	if (snapper_handle_result(&res) == 0) {
+		char *payload_buffer = ph_malloc(ARCH_PAGE_SIZE * pages_per_snapshot_file);
+		int buf_idx = 0;
+		int snapper_id = 0;
 
-    const size_t chunk_size = pages_per_snapshot_file * ARCH_PAGE_SIZE;
-    const size_t total_size = vm_map_vm_page_count * ARCH_PAGE_SIZE;
-    size_t remaining        = total_size;
+		const size_t chunk_size = pages_per_snapshot_file * ARCH_PAGE_SIZE;
+		const size_t total_size = vm_map_vm_page_count * ARCH_PAGE_SIZE;
+		size_t remaining = total_size;
 
-    vm_page *i;
-    for( i = vm_map_map; i < vm_map_map_end; i++ )
-    {
-      if (buf_idx == 0) {
-        size_t restore_size = (chunk_size < remaining) ? chunk_size : remaining;
-        struct Snapper_result res =
-          snapper_restore(payload_buffer, restore_size, snapper_id++);
+		vm_page *i;
+		for (i = vm_map_map; i < vm_map_map_end; i++) {
+			if (buf_idx == 0) {
+				size_t restore_size = (chunk_size < remaining) ? chunk_size : remaining;
+				struct Snapper_result res =
+					snapper_restore(payload_buffer, restore_size, snapper_id++);
 
-        snapper_handle_result(&res);
+				snapper_handle_result(&res);
 
-        remaining -= restore_size;
-      }
+				remaining -= restore_size;
+			}
 
-      ph_memcpy(i->virt_addr, payload_buffer + (buf_idx * ARCH_PAGE_SIZE),  ARCH_PAGE_SIZE);
-      buf_idx = (buf_idx + 1) % pages_per_snapshot_file;
-    }
+			ph_memcpy(i->virt_addr,
+					  payload_buffer + (buf_idx * ARCH_PAGE_SIZE),
+					  ARCH_PAGE_SIZE);
+			buf_idx = (buf_idx + 1) % pages_per_snapshot_file;
+		}
 
-    ph_free(payload_buffer);
-    payload_buffer = NULL;
+		ph_free(payload_buffer);
+		payload_buffer = NULL;
 
-    assert(remaining == 0);
-  }
+		assert(remaining == 0);
+	}
 
-  res = snapper_close_generation();
-  snapper_handle_result(&res);
+	res = snapper_close_generation();
+	snapper_handle_result(&res);
 
-  t_smp_enable(1);
-  phantom_snapper_reenable_threads();
-  t_current_set_priority(prio);
+	t_smp_enable(1);
+	phantom_snapper_reenable_threads();
+	t_current_set_priority(prio);
 
-  ph_syslog(0, "recovery complete!");
+	ph_syslog(0, "recovery complete!");
 }
 
 
@@ -1700,221 +1675,218 @@ void recover_snapshot(void)
 
 static int vm_regular_snaps_enabled = 0;
 
-void vm_enable_regular_snaps() { SHOW_FLOW0( 1, "Enabled"); vm_regular_snaps_enabled = 1; }
+void vm_enable_regular_snaps()
+{
+	SHOW_FLOW0(1, "Enabled");
+	vm_regular_snaps_enabled = 1;
+}
 
 #if MEM_RECLAIM
 
 void physmem_try_to_reclaim_page(void)
 {
-    vm_page *p = NULL;
+	vm_page *p = NULL;
 
-    hal_mutex_lock(&clean_q_mutex);
-    while (!clean_q_size)
-        hal_cond_wait(&clean_q_nonempty, &clean_q_mutex);
-    p = (vm_page*)queue_last(&clean_q);
-    hal_mutex_unlock(&clean_q_mutex);
-    if (p)
-    {
-        hal_mutex_lock(&p->lock);
-        if (p->flag_phys_mem && !p->flag_phys_dirty && is_on_reclaim_q(p) && !(p->wired_count))
-        {
-            page_touch_history(p);
-            remove_from_clean_q(p);
-            p->flag_phys_mem = 0; // Take it
-            physaddr_t paddr = p->phys_addr;
-            hal_page_control(paddr, p->virt_addr, page_unmap, page_noaccess);
-            hal_free_phys_page(paddr);
-        }
-        hal_mutex_unlock(&p->lock);
-    }
+	hal_mutex_lock(&clean_q_mutex);
+	while (!clean_q_size)
+		hal_cond_wait(&clean_q_nonempty, &clean_q_mutex);
+	p = (vm_page *)queue_last(&clean_q);
+	hal_mutex_unlock(&clean_q_mutex);
+	if (p) {
+		hal_mutex_lock(&p->lock);
+		if (p->flag_phys_mem && !p->flag_phys_dirty && is_on_reclaim_q(p) &&
+			!(p->wired_count)) {
+			page_touch_history(p);
+			remove_from_clean_q(p);
+			p->flag_phys_mem = 0;  // Take it
+			physaddr_t paddr = p->phys_addr;
+			hal_page_control(paddr, p->virt_addr, page_unmap, page_noaccess);
+			hal_free_phys_page(paddr);
+		}
+		hal_mutex_unlock(&p->lock);
+	}
 }
 
 static inline int need_pageout(size_t dirty, size_t clean)
 {
-    if (!dirty)
-        return 0;
-    /* play with numbers */
-    if (clean < 8)
-        return dirty >= clean;
-    if (clean < 32)
-        return dirty > clean * 16;
-    return dirty > clean * 4096;
+	if (!dirty)
+		return 0;
+	/* play with numbers */
+	if (clean < 8)
+		return dirty >= clean;
+	if (clean < 32)
+		return dirty > clean * 16;
+	return dirty > clean * 4096;
 }
 
 static void balance_clean_dirty(void)
 {
-    size_t clean;
-    size_t dirty;
-    do
-    {
-        vm_page *p;
+	size_t clean;
+	size_t dirty;
+	do {
+		vm_page *p;
 
-        hal_mutex_lock(&clean_q_mutex);
-        clean = clean_q_size;
-        hal_mutex_unlock(&clean_q_mutex);
-        hal_mutex_lock(&dirty_q_mutex);
-        dirty = dirty_q_size;
-        p = (vm_page*)queue_last(&dirty_q);
-        hal_mutex_unlock(&dirty_q_mutex);
-        if (need_pageout(dirty, clean))
-        {
-            hal_mutex_lock(&p->lock);
-            if (p->flag_phys_mem && p->flag_phys_dirty)
-            {
-                page_touch_history(p);
-                vm_page_req_pageout(p);
-                --dirty;
-            }
-            hal_mutex_unlock(&p->lock);
-        }
-    } while (need_pageout(dirty, clean));
+		hal_mutex_lock(&clean_q_mutex);
+		clean = clean_q_size;
+		hal_mutex_unlock(&clean_q_mutex);
+		hal_mutex_lock(&dirty_q_mutex);
+		dirty = dirty_q_size;
+		p = (vm_page *)queue_last(&dirty_q);
+		hal_mutex_unlock(&dirty_q_mutex);
+		if (need_pageout(dirty, clean)) {
+			hal_mutex_lock(&p->lock);
+			if (p->flag_phys_mem && p->flag_phys_dirty) {
+				page_touch_history(p);
+				vm_page_req_pageout(p);
+				--dirty;
+			}
+			hal_mutex_unlock(&p->lock);
+		}
+	} while (need_pageout(dirty, clean));
 }
 
 #else
 
-static inline void balance_clean_dirty(void)
-{
-}
+static inline void balance_clean_dirty(void) {}
 
 #endif
 
 static void vm_map_lazy_pageout_thread(void)
 {
-    SHOW_FLOW0( 1, "Ready");
-    t_current_set_name("LazyPageout");
+	SHOW_FLOW0(1, "Ready");
+	t_current_set_name("LazyPageout");
 
-    while(1)
-    {
-        if( stop_lazy_pageout_thread )
-            hal_exit_kernel_thread();
+	while (1) {
+		if (stop_lazy_pageout_thread)
+			hal_exit_kernel_thread();
 
-        hal_sleep_msec( 100 ); // TODO: cond_wait?
+		hal_sleep_msec(100);  // TODO: cond_wait?
 
-        balance_clean_dirty();
-    }
+		balance_clean_dirty();
+	}
 }
 
 static int request_snap_flag = 0;
 static int seconds_between_snaps = 5;
 
-static void free_old_snapshot() {
-    if (pager_superblock_ptr()->snap_to_free == 0) return;
+static void free_old_snapshot()
+{
+	if (pager_superblock_ptr()->snap_to_free == 0)
+		return;
 
-    disk_page_no_t to_free = pager_superblock_ptr()->snap_to_free;
-    disk_page_no_t actual1 = pager_superblock_ptr()->prev_snap;
-    disk_page_no_t actual2 = pager_superblock_ptr()->last_snap;
+	disk_page_no_t to_free = pager_superblock_ptr()->snap_to_free;
+	disk_page_no_t actual1 = pager_superblock_ptr()->prev_snap;
+	disk_page_no_t actual2 = pager_superblock_ptr()->last_snap;
 
-    phantom_free_snap( to_free, actual1, actual2 );
-    pager_superblock_ptr()->snap_to_free = 0;
+	phantom_free_snap(to_free, actual1, actual2);
+	pager_superblock_ptr()->snap_to_free = 0;
 
-    // Force all io to complete BEFORE updating superblock
-    pager_fence();
+	// Force all io to complete BEFORE updating superblock
+	pager_fence();
 
-    pager_update_superblock();
+	pager_update_superblock();
 
-    pager_free_blocklist_pages();
-    pager_commit_active_free_list();
-    pager_update_superblock();
+	pager_free_blocklist_pages();
+	pager_commit_active_free_list();
+	pager_update_superblock();
 }
 
 static void vm_map_snapshot_thread(void)
 {
-    t_current_set_name("SnapShot");
-    t_set_snapper_flag(); // Tell 'em IM THE SNAPPER, don't you ever try to stop me :)
+	t_current_set_name("SnapShot");
+	t_set_snapper_flag();  // Tell 'em IM THE SNAPPER, don't you ever try to stop me :)
 
-    int snapshots = 0;
+	int snapshots = 0;
 
-    while(1)
-    {
-        SHOW_FLOW0( 1, "Snapshot loop");
-        SHOW_FLOW(0, "%d %d %d", stop_lazy_pageout_thread, vm_regular_snaps_enabled, request_snap_flag);
-        
-        free_old_snapshot();
+	while (1) {
+		SHOW_FLOW0(1, "Snapshot loop");
+		SHOW_FLOW(0,
+				  "%d %d %d",
+				  stop_lazy_pageout_thread,
+				  vm_regular_snaps_enabled,
+				  request_snap_flag);
 
-        if( stop_lazy_pageout_thread )
-        {
+		free_old_snapshot();
 
-            do_snapshot();
+		if (stop_lazy_pageout_thread) {
 
-            stop_deferred_disk_alloc_thread = 1;
+			do_snapshot();
 
-            hal_cond_broadcast( &deferred_alloc_thread_sleep );
-            // so that it will see the stop flag
+			stop_deferred_disk_alloc_thread = 1;
 
-            hal_exit_kernel_thread();
-        }
+			hal_cond_broadcast(&deferred_alloc_thread_sleep);
+			// so that it will see the stop flag
 
-        if(!vm_regular_snaps_enabled)
-        {
-            hal_sleep_msec( 100 );
-            continue;
-        }
+			hal_exit_kernel_thread();
+		}
 
-        int i = 0;
-        while( (!request_snap_flag) && (i++ < seconds_between_snaps) )
-        {
-            SHOW_FLOW(0, "waiting before snap %d %d", request_snap_flag, seconds_between_snaps);
-            // TODO : Check if it hangs here
-            hal_sleep_msec( 1000 );
-        }
+		if (!vm_regular_snaps_enabled) {
+			hal_sleep_msec(100);
+			continue;
+		}
 
-        if( vm_regular_snaps_enabled || request_snap_flag ){
-            SHOW_FLOW0(0, "about to snap");
+		int i = 0;
+		while ((!request_snap_flag) && (i++ < seconds_between_snaps)) {
+			SHOW_FLOW(
+				0, "waiting before snap %d %d", request_snap_flag, seconds_between_snaps);
+			// TODO : Check if it hangs here
+			hal_sleep_msec(1000);
+		}
 
-            do_snapshot();
-            snapshots++;
-        }
+		if (vm_regular_snaps_enabled || request_snap_flag) {
+			SHOW_FLOW0(0, "about to snap");
 
-        if (snapshots % 2 == 0) {
-          struct Snapper_result res = snapper_purge("");
-          snapper_handle_result(&res);
-        }
+			do_snapshot();
+			snapshots++;
+		}
 
-        request_snap_flag = 0;
-    }
+		if (snapshots % 2 == 0) {
+			struct Snapper_result res = snapper_purge("");
+			snapper_handle_result(&res);
+		}
+
+		request_snap_flag = 0;
+	}
 }
 
 void request_snap(void)
 {
-    request_snap_flag++;
+	request_snap_flag++;
 }
 
-void set_snap_interval( int interval_sec )
+void set_snap_interval(int interval_sec)
 {
-    seconds_between_snaps = interval_sec;
+	seconds_between_snaps = interval_sec;
 }
 
 static void vm_map_deferred_disk_alloc_thread(void)
 {
-    SHOW_FLOW0( 1, "Ready");
+	SHOW_FLOW0(1, "Ready");
 
-    t_current_set_name("DeferAlloc");
+	t_current_set_name("DeferAlloc");
 
-    while(1)
-    {
-        //hal_sleep( &deferred_disk_allocations );
-        hal_mutex_lock(&vm_map_mutex); // TODO: this is for cond_wait to have something to unlock only
-        hal_cond_wait( &deferred_alloc_thread_sleep, &vm_map_mutex );
-        hal_mutex_unlock(&vm_map_mutex);
+	while (1) {
+		// hal_sleep( &deferred_disk_allocations );
+		hal_mutex_lock(&vm_map_mutex);  // TODO: this is for cond_wait to have something
+										// to unlock only
+		hal_cond_wait(&deferred_alloc_thread_sleep, &vm_map_mutex);
+		hal_mutex_unlock(&vm_map_mutex);
 
-        // see lazy pageout shutdown
-        if(stop_deferred_disk_alloc_thread)
-        {
-            last_snap_is_done = 1;
-            hal_exit_kernel_thread();
-        }
+		// see lazy pageout shutdown
+		if (stop_deferred_disk_alloc_thread) {
+			last_snap_is_done = 1;
+			hal_exit_kernel_thread();
+		}
 
-        SHOW_FLOW0( 1, "Active");
+		SHOW_FLOW0(1, "Active");
 
-        //hal_sleep_msec( 100 );
-        // sleep is to check for situation where disk mem is not available for a long time
+		// hal_sleep_msec( 100 );
+		//  sleep is to check for situation where disk mem is not available for a long
+		//  time
 
-        pager_refill_free();
-    }
+		pager_refill_free();
+	}
 }
-
-
-
 
 
 //---------------------------------------------------------------------------
@@ -1922,23 +1894,23 @@ static void vm_map_deferred_disk_alloc_thread(void)
 //---------------------------------------------------------------------------
 
 
-
 // XXX : Not used
 // static void * 		page_clear_vaddr; // Place in address space to map page to clear
-static hal_spinlock_t	page_clear_lock;
+static hal_spinlock_t page_clear_lock;
 
 // TODO idle time pre-clear to some queue
 static void page_clear_engine_init(void)
 {
-    int ie = hal_save_cli();
-    hal_spin_init(&page_clear_lock);
-    hal_spin_lock(&page_clear_lock);
+	int ie = hal_save_cli();
+	hal_spin_init(&page_clear_lock);
+	hal_spin_lock(&page_clear_lock);
 
-    // if( hal_alloc_vaddress( &page_clear_vaddr, 1 ) )
-    //     panic("page_clear_vaddr alloc failed");
+	// if( hal_alloc_vaddress( &page_clear_vaddr, 1 ) )
+	//     panic("page_clear_vaddr alloc failed");
 
-    hal_spin_unlock(&page_clear_lock);
-    if(ie) hal_sti();
+	hal_spin_unlock(&page_clear_lock);
+	if (ie)
+		hal_sti();
 }
 
 
@@ -1946,44 +1918,45 @@ static void page_clear_engine_init(void)
 // TODO perCPU vaddress and no spinlock?
 static void page_clear_engine_clear_page(physaddr_t p)
 {
-    int enabled = hal_save_cli();
-    hal_spin_lock(&page_clear_lock);
+	int enabled = hal_save_cli();
+	hal_spin_lock(&page_clear_lock);
 
-    static char static_clear_page[ARCH_PAGE_SIZE] = {0};
+	static char static_clear_page[ARCH_PAGE_SIZE] = {0};
 
-    if(FAULT_DEBUG)
-        hal_printf("page_clear_engine_clear_page( 0x%X )\n", p );
+	if (FAULT_DEBUG)
+		hal_printf("page_clear_engine_clear_page( 0x%X )\n", p);
 
-    // XXX : Inefficient!
-    memcpy_v2p(p, static_clear_page, ARCH_PAGE_SIZE);
+	// XXX : Inefficient!
+	memcpy_v2p(p, static_clear_page, ARCH_PAGE_SIZE);
 
-    // hal_page_control( p, page_clear_vaddr, page_map, page_rw );
+	// hal_page_control( p, page_clear_vaddr, page_map, page_rw );
 
-    // TODO use MMX clear code
-    //ph_memset( page_clear_vaddr, '#', __MEM_PAGE );
-    // ph_memset( page_clear_vaddr, 0, __MEM_PAGE );
+	// TODO use MMX clear code
+	// ph_memset( page_clear_vaddr, '#', __MEM_PAGE );
+	// ph_memset( page_clear_vaddr, 0, __MEM_PAGE );
 
-    // TODO Broken!
-    //fast_clear_page( page_clear_vaddr );
+	// TODO Broken!
+	// fast_clear_page( page_clear_vaddr );
 
-    // hal_page_control( p, page_clear_vaddr, page_unmap, page_ro );
+	// hal_page_control( p, page_clear_vaddr, page_unmap, page_ro );
 
-    hal_spin_unlock(&page_clear_lock);
-    if (enabled) hal_sti();
+	hal_spin_unlock(&page_clear_lock);
+	if (enabled)
+		hal_sti();
 }
 
 #if VERIFY_SNAP || VERIFY_VM_SNAP
 
-#include <vm/object.h>
 #include <vm/alloc.h>
+#include <vm/object.h>
 
 static size_t vm_verify_object(void *p)
 {
-    struct pvm_object_storage *curr = p;
-    assert(curr->_ah.object_start_marker == PVM_OBJECT_START_MARKER);
-    if (pvm_object_is_allocated_light(p))
-        pvm_object_is_allocated_assert(p);
-    return curr->_ah.exact_size;
+	struct pvm_object_storage *curr = p;
+	assert(curr->_ah.object_start_marker == PVM_OBJECT_START_MARKER);
+	if (pvm_object_is_allocated_light(p))
+		pvm_object_is_allocated_assert(p);
+	return curr->_ah.exact_size;
 }
 
 /**
@@ -1994,7 +1967,8 @@ static size_t vm_verify_object(void *p)
  *
  * @param data: page data
  * @param page_offset: relative to the vm_map_start_of_virtual_address_space
- * @param current: current object offset relative to the vm_map_start_of_virtual_address_space
+ * @param current: current object offset relative to the
+ * vm_map_start_of_virtual_address_space
  * @param sz: size of VM, limit for the current
  *
  * @return offset of the object out of the current page, unless current object's
@@ -2002,28 +1976,27 @@ static size_t vm_verify_object(void *p)
  */
 static size_t vm_verify_page(void *data, size_t page_offset, size_t current, size_t sz)
 {
-    static struct pvm_object_storage hdr;
+	static struct pvm_object_storage hdr;
 
-    if (current < page_offset && page_offset - current < sizeof(hdr))
-    {
-        ph_memcpy(((void*)&hdr) + (page_offset - current), data,
-                sizeof(hdr) - (page_offset - current));
-        // SHOW_FLOW(0, "verifying object (case 0) at %p", (void*)(current));
-        current += vm_verify_object(&hdr);
-    }
-    while (current < sz && current - page_offset < ARCH_PAGE_SIZE)
-    {
-        if (current + sizeof(hdr) - page_offset <= ARCH_PAGE_SIZE){
-            // SHOW_FLOW(0, "verifying object (case 1) at %p", (void*)(current));
-            current += vm_verify_object(data + (current - page_offset));
-        }
-        else
-        {
-            ph_memcpy(&hdr, data + (current - page_offset), ARCH_PAGE_SIZE - (current - page_offset));
-            break;
-        }
-    }
-    return current;
+	if (current < page_offset && page_offset - current < sizeof(hdr)) {
+		ph_memcpy(((void *)&hdr) + (page_offset - current),
+				  data,
+				  sizeof(hdr) - (page_offset - current));
+		// SHOW_FLOW(0, "verifying object (case 0) at %p", (void*)(current));
+		current += vm_verify_object(&hdr);
+	}
+	while (current < sz && current - page_offset < ARCH_PAGE_SIZE) {
+		if (current + sizeof(hdr) - page_offset <= ARCH_PAGE_SIZE) {
+			// SHOW_FLOW(0, "verifying object (case 1) at %p", (void*)(current));
+			current += vm_verify_object(data + (current - page_offset));
+		} else {
+			ph_memcpy(&hdr,
+					  data + (current - page_offset),
+					  ARCH_PAGE_SIZE - (current - page_offset));
+			break;
+		}
+	}
+	return current;
 }
 
 #endif
@@ -2032,24 +2005,25 @@ static size_t vm_verify_page(void *data, size_t page_offset, size_t current, siz
 
 static void vm_verify_vm(void)
 {
-    size_t current = 0;
-    int np;
+	size_t current = 0;
+	int np;
 
-    if(SNAP_STEPS_DEBUG) hal_printf("Verifying VM before snapshot...\n");
-    for (np = 0; np < vm_map_map_end - vm_map_map; np++)
-    {
-        size_t page_offset = np * PAGE_SIZE;
-        current = vm_verify_page(vm_map_start_of_virtual_address_space + page_offset,
-                page_offset, current, hal.object_vsize);
-    }
-    if(SNAP_STEPS_DEBUG) hal_printf("VM verification icomplete\n");
+	if (SNAP_STEPS_DEBUG)
+		hal_printf("Verifying VM before snapshot...\n");
+	for (np = 0; np < vm_map_map_end - vm_map_map; np++) {
+		size_t page_offset = np * PAGE_SIZE;
+		current = vm_verify_page(vm_map_start_of_virtual_address_space + page_offset,
+								 page_offset,
+								 current,
+								 hal.object_vsize);
+	}
+	if (SNAP_STEPS_DEBUG)
+		hal_printf("VM verification icomplete\n");
 }
 
 #else
 
-static void vm_verify_vm(void)
-{
-}
+static void vm_verify_vm(void) {}
 
 #endif
 
@@ -2059,91 +2033,88 @@ static void vm_verify_vm(void)
 
 static void vm_verify_snap(disk_page_no_t head)
 {
-    int progress = 0;
-    int np;
-    pagelist loader;
-    size_t current = 0;
+	int progress = 0;
+	int np;
+	pagelist loader;
+	size_t current = 0;
 
 
-    if (!head)
-        return;
+	if (!head)
+		return;
 
-    if (SNAP_STEPS_DEBUG) ph_syslog( 0, "snap: verification started...");
+	if (SNAP_STEPS_DEBUG)
+		ph_syslog(0, "snap: verification started...");
 
 #if !USE_SYNC_IO
-    disk_page_io page_io;
+	disk_page_io page_io;
 
-    disk_page_io_init(&page_io);
-    disk_page_io_allocate(&page_io);
+	disk_page_io_init(&page_io);
+	disk_page_io_allocate(&page_io);
 #endif
 
-    pagelist_init(&loader, head, 0, DISK_STRUCT_MAGIC_SNAP_LIST);
+	pagelist_init(&loader, head, 0, DISK_STRUCT_MAGIC_SNAP_LIST);
 
-    pagelist_seek(&loader);
+	pagelist_seek(&loader);
 
-    for(np = 0; np < vm_map_map_end - vm_map_map; np++)
-    {
-        size_t page_offset = np * ARCH_PAGE_SIZE;
-        disk_page_no_t block;
-	short percentage = np * 100 / (vm_map_map_end - vm_map_map);
+	for (np = 0; np < vm_map_map_end - vm_map_map; np++) {
+		size_t page_offset = np * ARCH_PAGE_SIZE;
+		disk_page_no_t block;
+		short percentage = np * 100 / (vm_map_map_end - vm_map_map);
 
-        if (progress != percentage)
-        {
-            progress = percentage;
-            if (SNAP_STEPS_DEBUG)
-	    {
-		if (progress % 10) hal_printf(". ", progress);
-		else hal_printf(".%d%%\n", progress);
-	    }
-        }
-        if (!pagelist_read_seq(&loader, &block))
-        {
-            ph_printf("Incomplete pagelist\n");
-            //panic("Incomplete pagelist\n");
-            break;
-        }
+		if (progress != percentage) {
+			progress = percentage;
+			if (SNAP_STEPS_DEBUG) {
+				if (progress % 10)
+					hal_printf(". ", progress);
+				else
+					hal_printf(".%d%%\n", progress);
+			}
+		}
+		if (!pagelist_read_seq(&loader, &block)) {
+			ph_printf("Incomplete pagelist\n");
+			// panic("Incomplete pagelist\n");
+			break;
+		}
 
-        if (current < page_offset || current - page_offset < ARCH_PAGE_SIZE)
-        {
+		if (current < page_offset || current - page_offset < ARCH_PAGE_SIZE) {
 #if USE_SYNC_IO
-            extern phantom_disk_partition_t *pp; // BUG
+			extern phantom_disk_partition_t *pp;  // BUG
 
-            char buf[DISK_STRUCT_BS];
+			char buf[DISK_STRUCT_BS];
 
-            errno_t rc = phantom_sync_read_block( pp, buf, block, 1 );
-            if( rc )
-            {
-                ph_syslog( 0, "snap: verification read err %d", rc );
-                return;
-            }
+			errno_t rc = phantom_sync_read_block(pp, buf, block, 1);
+			if (rc) {
+				ph_syslog(0, "snap: verification read err %d", rc);
+				return;
+			}
 
-            // SHOW_FLOW(0, "verifying page %p, current=%p", (void*)page_offset, (void*)current);
-            current = vm_verify_page(buf, page_offset, current, hal.object_vsize);
+			// SHOW_FLOW(0, "verifying page %p, current=%p", (void*)page_offset,
+			// (void*)current);
+			current = vm_verify_page(buf, page_offset, current, hal.object_vsize);
 #else
-            page_io.req.disk_page = block;
-            disk_page_io_load_me_async(&page_io);
-            disk_page_io_wait(&page_io);
-            current = vm_verify_page(page_io.mem, page_offset, current, hal.object_vsize);
+			page_io.req.disk_page = block;
+			disk_page_io_load_me_async(&page_io);
+			disk_page_io_wait(&page_io);
+			current = vm_verify_page(page_io.mem, page_offset, current, hal.object_vsize);
 #endif
-        }
-    }
+		}
+	}
 
-    pagelist_finish( &loader );
+	pagelist_finish(&loader);
 #if !USE_SYNC_IO
-    disk_page_io_release(&page_io);
+	disk_page_io_release(&page_io);
 #endif
-    if (SNAP_STEPS_DEBUG)
-    {
-	hal_printf("\n");
-	ph_syslog( 0, "snap: verification completed");
-    }
+	if (SNAP_STEPS_DEBUG) {
+		hal_printf("\n");
+		ph_syslog(0, "snap: verification completed");
+	}
 }
 
 #else
 
 static inline void vm_verify_snap(disk_page_no_t head)
 {
-    (void)head;
+	(void)head;
 }
 
 #endif
@@ -2154,104 +2125,101 @@ static inline void vm_verify_snap(disk_page_no_t head)
 //---------------------------------------------------------------------------
 
 
-void wire_page( vm_page *p )
+void wire_page(vm_page *p)
 {
-    p->wired_count++;
+	p->wired_count++;
 
-    STAT_INC_CNT( STAT_CNT_WIRE );
+	STAT_INC_CNT(STAT_CNT_WIRE);
 
-    if(!p->flag_phys_mem)
-    {
-        STAT_INC_CNT( STAT_CNT_WIRE_PAGEIN );
-        /*
-        hal_mutex_lock(&p->lock);
-        page_touch_history_arg(p, 0);
+	if (!p->flag_phys_mem) {
+		STAT_INC_CNT(STAT_CNT_WIRE_PAGEIN);
+		/*
+		hal_mutex_lock(&p->lock);
+		page_touch_history_arg(p, 0);
 
-        pagein somehow
+		pagein somehow
 
-        hal_mutex_unlock(&p->lock);
-        */
-        volatile int val = *((char *)p->virt_addr); // Just touch it
-        (void) val;
-    }
+		hal_mutex_unlock(&p->lock);
+		*/
+		volatile int val = *((char *)p->virt_addr);  // Just touch it
+		(void)val;
+	}
 }
 
-void unwire_page( vm_page *p )
+void unwire_page(vm_page *p)
 {
-    assert(p->wired_count > 0);
-    p->wired_count--;
+	assert(p->wired_count > 0);
+	p->wired_count--;
 }
-
 
 
 //! Make page wired (fixed in phys mem, allways present)
 // It is guaranteed that after return and up to the call
 // to unwire_page_for_addr physical addr will be the same
-void wire_page_for_addr( void *addr, size_t count )
+void wire_page_for_addr(void *addr, size_t count)
 {
-    void *pp = (void *)PREV_PAGE_ALIGN((addr_t)addr);
-    ssize_t c = count;
-    c += addr-pp;
+	void *pp = (void *)PREV_PAGE_ALIGN((addr_t)addr);
+	ssize_t c = count;
+	c += addr - pp;
 
-    do{
-        wire_page( addr_to_vm_page((addr_t) pp, 0) );
-        c -= ARCH_PAGE_SIZE;
-        pp += ARCH_PAGE_SIZE;
-    } while( c > 0 );
+	do {
+		wire_page(addr_to_vm_page((addr_t)pp, 0));
+		c -= ARCH_PAGE_SIZE;
+		pp += ARCH_PAGE_SIZE;
+	} while (c > 0);
 }
 
-void unwire_page_for_addr( void *addr, size_t count )
+void unwire_page_for_addr(void *addr, size_t count)
 {
-    void *pp = (void *)PREV_PAGE_ALIGN((addr_t)addr);
-    ssize_t c = count;
-    c += addr-pp;
+	void *pp = (void *)PREV_PAGE_ALIGN((addr_t)addr);
+	ssize_t c = count;
+	c += addr - pp;
 
-    do{
-        unwire_page( addr_to_vm_page((addr_t) pp, 0) );
-        c -= ARCH_PAGE_SIZE;
-        pp += ARCH_PAGE_SIZE;
-    } while( c > 0 );
+	do {
+		unwire_page(addr_to_vm_page((addr_t)pp, 0));
+		c -= ARCH_PAGE_SIZE;
+		pp += ARCH_PAGE_SIZE;
+	} while (c > 0);
 }
 
 
 // TODO must unmap and free physmem, and resulting page must not go
 // to snap at all (must have 0 in pagelist = no pagein on snap load)
-void vm_map_page_mark_unused( addr_t page_start )
+void vm_map_page_mark_unused(addr_t page_start)
 {
 #if VM_UNMAP_UNUSED_OBJECTS
-    //ph_printf("asked to mark page %p unused\n", page_start);
-    vm_page *vmp = addr_to_vm_page( page_start, 0 );
+	// ph_printf("asked to mark page %p unused\n", page_start);
+	vm_page *vmp = addr_to_vm_page(page_start, 0);
 
-    hal_mutex_lock(&vmp->lock);
+	hal_mutex_lock(&vmp->lock);
 
-    page_touch_history(vmp);
+	page_touch_history(vmp);
 
-    if(vmp->wired_count) goto done; // very strange, but ok, just skip it
-    if(vmp->flag_pager_io_busy) goto done; // don't mess
-    if(is_in_snapshot_process) goto done; // don't mess
+	if (vmp->wired_count)
+		goto done;  // very strange, but ok, just skip it
+	if (vmp->flag_pager_io_busy)
+		goto done;  // don't mess
+	if (is_in_snapshot_process)
+		goto done;  // don't mess
 
-    /*
-    page_touch_history(p);
-    remove_from_clean_q(p);
-    p->flag_phys_mem = 0; // Take it
-    physaddr_t paddr = p->phys_addr;
-    hal_page_control(paddr, p->virt_addr, page_unmap, page_noaccess);
-    hal_free_phys_page(paddr);
-    */
+	/*
+	page_touch_history(p);
+	remove_from_clean_q(p);
+	p->flag_phys_mem = 0; // Take it
+	physaddr_t paddr = p->phys_addr;
+	hal_page_control(paddr, p->virt_addr, page_unmap, page_noaccess);
+	hal_free_phys_page(paddr);
+	*/
 
-    vmp->flag_phys_dirty = 0; // just skip paging out
+	vmp->flag_phys_dirty = 0;  // just skip paging out
 
-    //page_fault( vmp, write );
+	// page_fault( vmp, write );
 done:
-    hal_mutex_unlock(&vmp->lock);
+	hal_mutex_unlock(&vmp->lock);
 #else
-    (void) page_start;
+	(void)page_start;
 #endif
 }
-
-
-
-
 
 
 //---------------------------------------------------------------------------
@@ -2261,135 +2229,131 @@ done:
 #if USE_SNAP_WAIT
 
 
-static hal_cond_t  wait_snap_snap;
-static hal_cond_t  wait_snap_done;
+static hal_cond_t wait_snap_snap;
+static hal_cond_t wait_snap_done;
 static hal_mutex_t wait_snap_mutex;
 
 
-
-static void init_snap_wait( void )
+static void init_snap_wait(void)
 {
-    assert ( 0 == hal_mutex_init( &wait_snap_mutex, "SnapWait" ) );
+	assert(0 == hal_mutex_init(&wait_snap_mutex, "SnapWait"));
 
-    assert ( 0 == hal_cond_init( &wait_snap_snap, "SnapSnapWait" ) );
+	assert(0 == hal_cond_init(&wait_snap_snap, "SnapSnapWait"));
 
-    assert ( 0 == hal_cond_init( &wait_snap_done, "SnapDoneWait" ) );
+	assert(0 == hal_cond_init(&wait_snap_done, "SnapDoneWait"));
 }
 
 
-void phantom_wait_4_snapshot_snap( void )
+void phantom_wait_4_snapshot_snap(void)
 {
-    //errno_t rc;
+	// errno_t rc;
 
-    assert ( 0 == hal_mutex_lock( &wait_snap_mutex ) );
+	assert(0 == hal_mutex_lock(&wait_snap_mutex));
 
-    assert ( 0 == hal_cond_wait( &wait_snap_snap, &wait_snap_mutex ) );
+	assert(0 == hal_cond_wait(&wait_snap_snap, &wait_snap_mutex));
 
-    assert ( 0 == hal_mutex_unlock( &wait_snap_mutex ) );
+	assert(0 == hal_mutex_unlock(&wait_snap_mutex));
 }
 
 
-
-void phantom_wait_4_snapshot_done( void )
+void phantom_wait_4_snapshot_done(void)
 {
-    //errno_t rc;
+	// errno_t rc;
 
-    assert ( 0 == hal_mutex_lock( &wait_snap_mutex ) );
+	assert(0 == hal_mutex_lock(&wait_snap_mutex));
 
-    assert ( 0 == hal_cond_wait( &wait_snap_done, &wait_snap_mutex ) );
+	assert(0 == hal_cond_wait(&wait_snap_done, &wait_snap_mutex));
 
-    assert ( 0 == hal_mutex_unlock( &wait_snap_mutex ) );
+	assert(0 == hal_mutex_unlock(&wait_snap_mutex));
 }
 
-static void signal_snap_snap_passed( void )
+static void signal_snap_snap_passed(void)
 {
-    assert ( 0 == hal_cond_broadcast( &wait_snap_snap ) );
+	assert(0 == hal_cond_broadcast(&wait_snap_snap));
 }
 
-static void signal_snap_done_passed( void )
+static void signal_snap_done_passed(void)
 {
-    assert ( 0 == hal_cond_broadcast( &wait_snap_snap ) );
+	assert(0 == hal_cond_broadcast(&wait_snap_snap));
 }
 
 #endif
-
-
-
 
 
 //---------------------------------------------------------------------------
 // Debug window - mem map
 //---------------------------------------------------------------------------
 
-static rgba_t calc_persistent_pixel_color( int elem, int units_per_pixel );
+static rgba_t calc_persistent_pixel_color(int elem, int units_per_pixel);
 
 /**
- * 
+ *
  * \brief Generic painter for any allocator using us.
- * 
+ *
  * Used in debug window.
- * 
+ *
  * \param[in] w Window to draw to
  * \param[in] r Rectangle to paint inside
- * 
-**/
-void paint_persistent_memory_map(window_handle_t w, rect_t *r )
+ *
+ **/
+void paint_persistent_memory_map(window_handle_t w, rect_t *r)
 {
-    if(!vm_map_vm_page_count) return;
+	if (!vm_map_vm_page_count)
+		return;
 
-    int pixels = r->xsize * r->ysize;
-    int units_per_pixel =  1 + ((vm_map_vm_page_count-1) / pixels);
+	int pixels = r->xsize * r->ysize;
+	int units_per_pixel = 1 + ((vm_map_vm_page_count - 1) / pixels);
 
-    int x, y;
-    for( y = 0; y < r->ysize; y++ )
-    {
-        for( x = 0; x < r->xsize; x++ )
-            w_draw_pixel( w, x + r->x, y + r->y, calc_persistent_pixel_color( x + y * r->xsize, units_per_pixel ));
-    }
-
+	int x, y;
+	for (y = 0; y < r->ysize; y++) {
+		for (x = 0; x < r->xsize; x++)
+			w_draw_pixel(w,
+						 x + r->x,
+						 y + r->y,
+						 calc_persistent_pixel_color(x + y * r->xsize, units_per_pixel));
+	}
 }
 
-static rgba_t calc_persistent_pixel_color( int elem, int units_per_pixel )
+static rgba_t calc_persistent_pixel_color(int elem, int units_per_pixel)
 {
-    vm_page *ep = vm_map_map + elem;
+	vm_page *ep = vm_map_map + elem;
 
-    int state = 0; // 0 = empty, 1 = partial, 2 = used
-    int bits = 0;
-    int do_io = 0;
+	int state = 0;  // 0 = empty, 1 = partial, 2 = used
+	int bits = 0;
+	int do_io = 0;
 
-    int i;
-    for( i = 0; i < units_per_pixel; i++, ep++ )
-    {
-        if( 0 == ep->flag_phys_mem ) continue; // empty, no change
-        state = 2; // full
-        bits += 1;
+	int i;
+	for (i = 0; i < units_per_pixel; i++, ep++) {
+		if (0 == ep->flag_phys_mem)
+			continue;  // empty, no change
+		state = 2;     // full
+		bits += 1;
 
-        if( ep->flag_pager_io_busy ) 
-        {
-            do_io = 1;
-            //lprintf("io %d ", elem+i);
-        }
-    }
+		if (ep->flag_pager_io_busy) {
+			do_io = 1;
+			// lprintf("io %d ", elem+i);
+		}
+	}
 
-    if(do_io) return COLOR_YELLOW;
+	if (do_io)
+		return COLOR_YELLOW;
 
-    switch(state)
-    {
-        case 0: return COLOR_BLUE;
-        
-        case 1: 
-        {
-            //return COLOR_LIGHTGREEN;
-            rgba_t c = COLOR_LIGHTGREEN;
-            // lighter = less used
-            c.g = 0xFF - (bits * 0xFF / (units_per_pixel * sizeof(map_elem_t) * 8));
-            return c;
-        }
+	switch (state) {
+		case 0:
+			return COLOR_BLUE;
 
-        case 2: return COLOR_LIGHTRED;
+		case 1: {
+			// return COLOR_LIGHTGREEN;
+			rgba_t c = COLOR_LIGHTGREEN;
+			// lighter = less used
+			c.g = 0xFF - (bits * 0xFF / (units_per_pixel * sizeof(map_elem_t) * 8));
+			return c;
+		}
 
-        default: return COLOR_BLACK;
-    }
+		case 2:
+			return COLOR_LIGHTRED;
+
+		default:
+			return COLOR_BLACK;
+	}
 }
-
-

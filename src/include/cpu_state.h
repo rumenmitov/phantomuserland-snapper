@@ -7,12 +7,11 @@
  * Thread switch uses this to save CPU state. See arch/...
  *
  *
-**/
+ **/
 
 #ifndef CPU_STATE_H
 #define CPU_STATE_H
 
 #include <arch/arch-cpu_state.h>
 
-#endif // CPU_STATE_H
-
+#endif  // CPU_STATE_H

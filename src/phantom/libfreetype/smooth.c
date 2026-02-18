@@ -20,9 +20,10 @@
 
 #warning turned off - makes dup funcs
 /*
-#include <ft2build.h>
 #include "ftgrays.c"
 #include "ftsmooth.c"
+
+#include <ft2build.h>
 */
 
 /* END */

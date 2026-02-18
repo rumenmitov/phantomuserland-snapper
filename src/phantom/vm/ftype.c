@@ -3,13 +3,11 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
- 
+
 #include <stdint.h>
-
 #include <utf8proc.h>
-
-#include <video/screen.h>
 #include <video/font.h>
+#include <video/screen.h>
 
 
 const size_t MAX_SYMBOLS_COUNT = 256;
@@ -26,19 +24,14 @@ struct ttf_symbol
     int32_t height;
     FT_Glyph glyph;
 };
- 
- 
+
+
 #define MIN(x, y) ((x) > (y) ? (y) : (x))
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
 
-#define W_BLEND_PIXEL( old, new, newalpha ) \
-    ((unsigned char) \
-      ( \
-        ( ((unsigned char)(new)) * (newalpha) ) \
-        + \
-        ( ((unsigned char)(old)) * (1.0f - (newalpha)) ) \
-      )\
-    )
+#define W_BLEND_PIXEL(old, new, newalpha)                    \
+	((unsigned char)((((unsigned char)(new)) * (newalpha)) + \
+					 (((unsigned char)(old)) * (1.0f - (newalpha)))))
 
 
 
@@ -217,6 +210,6 @@ FT_Pos getKerning(FT_Face face, uint32_t leftCharcode, uint32_t rightCharcode)
     FT_Get_Kerning(face, leftIndex, rightIndex, FT_KERNING_DEFAULT, &delta);
     return delta.x;
 }
- 
+
 
 #endif

@@ -27,11 +27,12 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-//#include <sys/cdefs.h>
-//__FBSDID("$FreeBSD: src/lib/libc/string/strlcpy.c,v 1.9.6.1 2008/11/25 02:59:29 kensmith Exp $");
+// #include <sys/cdefs.h>
+//__FBSDID("$FreeBSD: src/lib/libc/string/strlcpy.c,v 1.9.6.1 2008/11/25 02:59:29 kensmith
+//Exp $");
 
-//#include <sys/types.h>
-//#include <string.h>
+// #include <sys/types.h>
+// #include <string.h>
 
 #include <phantom_libc.h>
 
@@ -41,8 +42,7 @@
  * will be copied.  Always NUL terminates (unless siz == 0).
  * Returns strlen(src); if retval >= siz, truncation occurred.
  */
-size_t
-ph_strlcpy(char *dst, const char *src, size_t siz)
+size_t ph_strlcpy(char *dst, const char *src, size_t siz)
 {
 	char *d = dst;
 	const char *s = src;
@@ -59,10 +59,10 @@ ph_strlcpy(char *dst, const char *src, size_t siz)
 	/* Not enough room in dst, add NUL and traverse rest of src */
 	if (n == 0) {
 		if (siz != 0)
-			*d = '\0';		/* NUL-terminate dst */
+			*d = '\0'; /* NUL-terminate dst */
 		while (*s++)
 			;
 	}
 
-	return(s - src - 1);	/* count does not include NUL */
+	return (s - src - 1); /* count does not include NUL */
 }

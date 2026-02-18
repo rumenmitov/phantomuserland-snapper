@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 1995 The University of Utah and
  * the Computer Systems Laboratory at the University of Utah (CSL).
  * All rights reserved.
@@ -29,56 +29,56 @@
 
 
 /* Bits in DR7 - debug control register */
-#define DR7_LEN3	0xc0000000
-#define DR7_RW3		0x30000000
-#define DR7_LEN2	0x0c000000
-#define DR7_RW2		0x03000000
-#define DR7_LEN1	0x00c00000
-#define DR7_RW1		0x00300000
-#define DR7_LEN0	0x000c0000
-#define DR7_RW0		0x00030000
-#define DR7_GD		0x00002000
-#define DR7_GE		0x00000200
-#define DR7_LE		0x00000100
-#define DR7_G3		0x00000080
-#define DR7_L3		0x00000040
-#define DR7_G2		0x00000020
-#define DR7_L2		0x00000010
-#define DR7_G1		0x00000008
-#define DR7_L1		0x00000004
-#define DR7_G0		0x00000002
-#define DR7_L0		0x00000001
+#define DR7_LEN3 0xc0000000
+#define DR7_RW3  0x30000000
+#define DR7_LEN2 0x0c000000
+#define DR7_RW2  0x03000000
+#define DR7_LEN1 0x00c00000
+#define DR7_RW1  0x00300000
+#define DR7_LEN0 0x000c0000
+#define DR7_RW0  0x00030000
+#define DR7_GD   0x00002000
+#define DR7_GE   0x00000200
+#define DR7_LE   0x00000100
+#define DR7_G3   0x00000080
+#define DR7_L3   0x00000040
+#define DR7_G2   0x00000020
+#define DR7_L2   0x00000010
+#define DR7_G1   0x00000008
+#define DR7_L1   0x00000004
+#define DR7_G0   0x00000002
+#define DR7_L0   0x00000001
 
 /* Shift values for multibit fields in DR7 */
-#define DR7_LEN3_SHIFT	30
-#define DR7_RW3_SHIFT	28
-#define DR7_LEN2_SHIFT	26
-#define DR7_RW2_SHIFT	24
-#define DR7_LEN1_SHIFT	22
-#define DR7_RW1_SHIFT	20
-#define DR7_LEN0_SHIFT	18
-#define DR7_RW0_SHIFT	16
+#define DR7_LEN3_SHIFT 30
+#define DR7_RW3_SHIFT  28
+#define DR7_LEN2_SHIFT 26
+#define DR7_RW2_SHIFT  24
+#define DR7_LEN1_SHIFT 22
+#define DR7_RW1_SHIFT  20
+#define DR7_LEN0_SHIFT 18
+#define DR7_RW0_SHIFT  16
 
 /* Values for LEN fields in DR7 */
-#define DR7_LEN_1	0
-#define DR7_LEN_2	1
-#define DR7_LEN_4	3
+#define DR7_LEN_1 0
+#define DR7_LEN_2 1
+#define DR7_LEN_4 3
 
 /* Values for RW fields in DR7 */
-#define DR7_RW_INST	0	/* Break on instruction execution */
-#define DR7_RW_WRITE	1	/* Break on data writes */
-#define DR7_RW_IO	2	/* Break on I/O reads and writes (Pentium only) */
-#define DR7_RW_DATA	3	/* Break on data reads and writes */
+#define DR7_RW_INST  0 /* Break on instruction execution */
+#define DR7_RW_WRITE 1 /* Break on data writes */
+#define DR7_RW_IO    2 /* Break on I/O reads and writes (Pentium only) */
+#define DR7_RW_DATA  3 /* Break on data reads and writes */
 
 
 /* Bits in DR6 - debug status register */
-#define DR6_BT		0x00008000
-#define DR6_BS		0x00004000
-#define DR6_BD		0x00002000
-#define DR6_B3		0x00000008
-#define DR6_B2		0x00000004
-#define DR6_B1		0x00000002
-#define DR6_B0		0x00000001
+#define DR6_BT 0x00008000
+#define DR6_BS 0x00004000
+#define DR6_BD 0x00002000
+#define DR6_B3 0x00000008
+#define DR6_B2 0x00000004
+#define DR6_B1 0x00000002
+#define DR6_B0 0x00000001
 
 // have in ia32/proc_reg.h
 

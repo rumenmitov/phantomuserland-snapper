@@ -11,16 +11,14 @@
  * Network syscalls
  *
  *
-**/
+ **/
 
-#include "vm/object.h"
 #include "vm/internal.h"
 #include "vm/internal_da.h"
-#include "vm/syscall.h"
-#include "vm/root.h"
+#include "vm/object.h"
 #include "vm/p2c.h"
-
-
+#include "vm/root.h"
+#include "vm/syscall.h"
 
 
 #endif

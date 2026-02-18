@@ -7,7 +7,7 @@
  * Object allocator header
  *
  *
-**/
+ **/
 
 #ifndef PVM_ALLOC_H
 #define PVM_ALLOC_H
@@ -16,16 +16,15 @@
 #include <vm/object.h>
 
 
-
-
-
 // allocator
 
-pvm_object_storage_t * pvm_object_alloc( unsigned int data_area_size, unsigned int flags, bool saturated );
-//void pvm_object_delete( pvm_object_storage_t * );
+pvm_object_storage_t *pvm_object_alloc(unsigned int data_area_size,
+									   unsigned int flags,
+									   bool saturated);
+// void pvm_object_delete( pvm_object_storage_t * );
 
 
-void pvm_alloc_init( void * _pvm_object_space_start, size_t size );
+void pvm_alloc_init(void *_pvm_object_space_start, size_t size);
 void pvm_alloc_threaded_init(void);
 
 void pvm_alloc_clear_mem(void);
@@ -49,35 +48,32 @@ void run_gc(void);
 // used on sys global objects
 void ref_saturate_o(pvm_object_t o);
 
-void          ref_dec_o(pvm_object_t o);
-pvm_object_t  ref_inc_o(pvm_object_t o);
+void ref_dec_o(pvm_object_t o);
+pvm_object_t ref_inc_o(pvm_object_t o);
 
 void ref_dec_p(pvm_object_storage_t *p);
 void ref_inc_p(pvm_object_storage_t *p);
 
 
-void do_ref_dec_p(pvm_object_storage_t *p); // for deferred refdec
-
+void do_ref_dec_p(pvm_object_storage_t *p);  // for deferred refdec
 
 
 // ------------------------------------------------------------
 // shared between alloc.c and gc.c
 
 // Gigant lock for now. TODO
-extern hal_mutex_t  *vm_alloc_mutex;
+extern hal_mutex_t *vm_alloc_mutex;
 
 
-void * get_pvm_object_space_start(void);
-void * get_pvm_object_space_end(void);
+void *get_pvm_object_space_start(void);
+void *get_pvm_object_space_end(void);
 
-void refzero_process_children( pvm_object_storage_t *o );
+void refzero_process_children(pvm_object_storage_t *o);
 void ref_saturate_p(pvm_object_storage_t *p);
 
-// called by refcount code - collapse free objects and attempt to 
+// called by refcount code - collapse free objects and attempt to
 // unmap 'em
-void pvm_collapse_free(pvm_object_storage_t *op); 
-
-
+void pvm_collapse_free(pvm_object_storage_t *op);
 
 
 // Free'd object
@@ -90,7 +86,6 @@ void pvm_collapse_free(pvm_object_storage_t *op);
 // processed. All the children refcounts must be decremented and then this object
 // can be freed.
 #define PVM_OBJECT_AH_ALLOCATOR_FLAG_REFZERO 0x02
-
 
 
 // Flags for cycle detection candidates (noninternal objects only),
@@ -111,58 +106,42 @@ void pvm_collapse_free(pvm_object_storage_t *op);
 #define PVM_ARENA_START_MARKER 0xAAAA77FE
 
 // Contains nothing at all, unallocated arena space
-#define PVM_ARENA_FLAG_EMPTY            (1<<0)
+#define PVM_ARENA_FLAG_EMPTY (1 << 0)
 // Contains objects, not arenas
-#define PVM_ARENA_FLAG_LEAF             (1<<1)
+#define PVM_ARENA_FLAG_LEAF (1 << 1)
 // This is a per-thread arena - how do we find thread after restoring snap?
-#define PVM_ARENA_FLAG_THREAD           (1<<2)
+#define PVM_ARENA_FLAG_THREAD (1 << 2)
 
-#define PVM_ARENA_FLAG_INT              (1<<8)
-#define PVM_ARENA_FLAG_FAST             (1<<9)
-#define PVM_ARENA_FLAG_SATURATED        (1<<10)
+#define PVM_ARENA_FLAG_INT       (1 << 8)
+#define PVM_ARENA_FLAG_FAST      (1 << 9)
+#define PVM_ARENA_FLAG_SATURATED (1 << 10)
 
 // Object size < 1K
-#define PVM_ARENA_FLAG_1K               (1<<16)
+#define PVM_ARENA_FLAG_1K (1 << 16)
 // Object size < 16K
-#define PVM_ARENA_FLAG_16K              (1<<17)
-#define PVM_ARENA_FLAG_64K              (1<<18)
-#define PVM_ARENA_FLAG_512K             (1<<19)
+#define PVM_ARENA_FLAG_16K  (1 << 17)
+#define PVM_ARENA_FLAG_64K  (1 << 18)
+#define PVM_ARENA_FLAG_512K (1 << 19)
 
 
 struct persistent_arena
 {
-    int32_t             arena_start_marker;
+	int32_t arena_start_marker;
 
-    // from beginning of this struct to arena end
-    int64_t             arena_full_size; 
+	// from beginning of this struct to arena end
+	int64_t arena_full_size;
 
-    int32_t             arena_flags;
+	int32_t arena_flags;
 
-    // pointer to owning thread (data part) - used on startup only, not counted.
-    // must be cleaned by GC if thread is collected.
-    int64_t             arena_thread_ptr;
+	// pointer to owning thread (data part) - used on startup only, not counted.
+	// must be cleaned by GC if thread is collected.
+	int64_t arena_thread_ptr;
 
-    // Must be recreated on OS restart
-    hal_mutex_t         arena_mutex;
+	// Must be recreated on OS restart
+	hal_mutex_t arena_mutex;
 };
 
 typedef struct persistent_arena persistent_arena_t;
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#endif // PVM_ALLOC_H
+#endif  // PVM_ALLOC_H

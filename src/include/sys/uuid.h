@@ -32,7 +32,7 @@
 #include <sys/cdefs.h>
 
 /* Length of a node address (an IEEE 802 address). */
-#define _UUID_NODE_LEN          6
+#define _UUID_NODE_LEN 6
 
 /*
  * See also:
@@ -41,18 +41,19 @@
  *
  * A DCE 1.1 compatible source representation of UUIDs.
  */
-struct uuid {
-        u_int32_t        time_low;
-        u_int16_t        time_mid;
-        u_int16_t        time_hi_and_version;
-        u_int8_t         clock_seq_hi_and_reserved;
-        u_int8_t         clock_seq_low;
-        u_int8_t         node[_UUID_NODE_LEN];
+struct uuid
+{
+	u_int32_t time_low;
+	u_int16_t time_mid;
+	u_int16_t time_hi_and_version;
+	u_int8_t clock_seq_hi_and_reserved;
+	u_int8_t clock_seq_low;
+	u_int8_t node[_UUID_NODE_LEN];
 };
 
 #if 0
 
-#define UUID_NODE_LEN   _UUID_NODE_LEN
+#define UUID_NODE_LEN _UUID_NODE_LEN
 
 struct sbuf;
 
@@ -68,15 +69,15 @@ void be_uuid_enc(void *buf, struct uuid const *uuid);
 void le_uuid_dec(void const *buf, struct uuid *uuid);
 void le_uuid_enc(void *buf, struct uuid const *uuid);
 
-#else   /* _KERNEL */
+#else /* _KERNEL */
 
 /* XXX namespace pollution? */
 typedef struct uuid uuid_t;
 
 __BEGIN_DECLS
-//int     uuidgen(struct uuid *, int);
+// int     uuidgen(struct uuid *, int);
 __END_DECLS
 
-#endif  /* _KERNEL */
+#endif /* _KERNEL */
 
 #endif /* _SYS_UUID_H_ */

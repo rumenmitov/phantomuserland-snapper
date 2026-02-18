@@ -53,33 +53,35 @@
 
 typedef struct _SNMP_VARLIST SNMP_VARLIST;
 
-struct _SNMP_VARLIST {
-    SNMP_VARLIST *var_next;
-    OID *var_name;
-    int var_nlen;
-    uint8_t var_type;
-    long var_val;
-    uint8_t *var_vptr;
-    int var_vlen;
+struct _SNMP_VARLIST
+{
+	SNMP_VARLIST *var_next;
+	OID *var_name;
+	int var_nlen;
+	uint8_t var_type;
+	long var_val;
+	uint8_t *var_vptr;
+	int var_vlen;
 };
 
-typedef struct {
-    /*! \brief Type of this PDU. */
-    int pdu_cmd;
+typedef struct
+{
+	/*! \brief Type of this PDU. */
+	int pdu_cmd;
 
-    uint32_t  pdu_reqid;    /* Request id */
-    uint32_t  pdu_errstat;  /* Error status */
-    uint32_t  pdu_errindex; /* Error index */
+	uint32_t pdu_reqid;    /* Request id */
+	uint32_t pdu_errstat;  /* Error status */
+	uint32_t pdu_errindex; /* Error index */
 
-    /* Trap information */
-    OID *pdu_enterprise;/* System OID */
-    int     pdu_enterprise_length;
-    uint32_t  pdu_agent_addr;     /* address of object generating trap */
-    int pdu_trap_type;      /* trap type */
-    int pdu_specific_type;  /* specific type */
-    uint32_t pdu_time;   /* Uptime */
+	/* Trap information */
+	OID *pdu_enterprise; /* System OID */
+	int pdu_enterprise_length;
+	uint32_t pdu_agent_addr; /* address of object generating trap */
+	int pdu_trap_type;       /* trap type */
+	int pdu_specific_type;   /* specific type */
+	uint32_t pdu_time;       /* Uptime */
 
-    SNMP_VARLIST *pdu_variables;
+	SNMP_VARLIST *pdu_variables;
 } SNMP_PDU;
 
 /*@}*/
@@ -87,6 +89,7 @@ typedef struct {
 extern SNMP_PDU *SnmpPduCreate(int cmd, CONST OID *ep, size_t ep_len);
 extern void SnmpPduDestroy(SNMP_PDU *pdu);
 
-extern int SnmpPduAddVariable(SNMP_PDU *pdu, OID *name, size_t nlen, uint8_t type, uint8_t *value, size_t vlen);
+extern int SnmpPduAddVariable(
+	SNMP_PDU *pdu, OID *name, size_t nlen, uint8_t type, uint8_t *value, size_t vlen);
 
 #endif

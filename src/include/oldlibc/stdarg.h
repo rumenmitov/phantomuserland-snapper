@@ -36,70 +36,59 @@
  */
 
 #ifndef _MACHINE_STDARG_H_
-#define	_MACHINE_STDARG_H_
+#define _MACHINE_STDARG_H_
 
 // TODO we need cdefs for it defines __GNUCLIKE_BUILTIN_NEXT_ARG
 #include <sys/cdefs.h>
-//#include <sys/_types.h>
+// #include <sys/_types.h>
 
 #include <phantom_types.h>
 
 // It fails on e2k, arm & mips, don't know why
 #if defined(ARCH_arm) || defined(ARCH_mips) || defined(ARCH_e2k)
-#  undef __GNUCLIKE_BUILTIN_STDARG
+#undef __GNUCLIKE_BUILTIN_STDARG
 #endif
 
 #if defined(ARCH_e2k)
-#  undef __GNUCLIKE_BUILTIN_NEXT_ARG
+#undef __GNUCLIKE_BUILTIN_NEXT_ARG
 #endif
 
 
-
-
 #ifndef _VA_LIST_DECLARED
-#define	_VA_LIST_DECLARED
-//typedef	__va_list	va_list;
-typedef char *		va_list;
+#define _VA_LIST_DECLARED
+// typedef	__va_list	va_list;
+typedef char *va_list;
 #endif
 
 #ifdef __GNUCLIKE_BUILTIN_STDARG
 
-#define	va_start(ap, last) \
-	__builtin_va_start((ap), (last))
+#define va_start(ap, last) __builtin_va_start((ap), (last))
 
-#define	va_arg(ap, type) \
-	__builtin_va_arg((ap), type)
+#define va_arg(ap, type) __builtin_va_arg((ap), type)
 
 #if __ISO_C_VISIBLE >= 1999
-#define	va_copy(dest, src) \
-	__builtin_va_copy((dest), (src))
+#define va_copy(dest, src) __builtin_va_copy((dest), (src))
 #endif
 
-#define	va_end(ap) \
-	__builtin_va_end(ap)
+#define va_end(ap) __builtin_va_end(ap)
 
-#else	/* !__GNUCLIKE_BUILTIN_STDARG */
+#else /* !__GNUCLIKE_BUILTIN_STDARG */
 
-#define	__va_size(type) \
-	(((sizeof(type) + sizeof(int) - 1) / sizeof(int)) * sizeof(int))
+#define __va_size(type) (((sizeof(type) + sizeof(int) - 1) / sizeof(int)) * sizeof(int))
 
 #ifdef __GNUCLIKE_BUILTIN_NEXT_ARG
-#define va_start(ap, last) \
-	((ap) = (va_list)__builtin_next_arg(last))
-#else	/* !__GNUCLIKE_BUILTIN_NEXT_ARG */
-#define	va_start(ap, last) \
-	((ap) = (va_list)&(last) + __va_size(last))
-#endif	/* __GNUCLIKE_BUILTIN_NEXT_ARG */
+#define va_start(ap, last) ((ap) = (va_list)__builtin_next_arg(last))
+#else /* !__GNUCLIKE_BUILTIN_NEXT_ARG */
+#define va_start(ap, last) ((ap) = (va_list) & (last) + __va_size(last))
+#endif /* __GNUCLIKE_BUILTIN_NEXT_ARG */
 
-#define	va_arg(ap, type) \
-	(*(type *)((ap) += __va_size(type), (ap) - __va_size(type)))
+#define va_arg(ap, type) (*(type *)((ap) += __va_size(type), (ap) - __va_size(type)))
 
 #if __ISO_C_VISIBLE >= 1999
-#define	va_copy(dest, src) \
-	((dest) = (src))
+#define va_copy(dest, src) ((dest) = (src))
 #endif
 
-#define	va_end(ap)
+#define va_end(ap)
 
 #endif /* __GNUCLIKE_BUILTIN_STDARG */
 

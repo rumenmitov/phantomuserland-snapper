@@ -1,4 +1,4 @@
-#ifndef	_PHANTOM_PMAP_MACHINE_
+#ifndef _PHANTOM_PMAP_MACHINE_
 #define _PHANTOM_PMAP_MACHINE_
 
 #ifndef ARCH_ia32
@@ -14,7 +14,7 @@
 #define NPTE 1024
 
 // for physalloc - max pages to alloc
-#define PHYSALLOC_MAXPAGES (NPDE*NPTE)
+#define PHYSALLOC_MAXPAGES (NPDE * NPTE)
 
 /*
  *	Hardware pte bit definitions (to be used directly on the ptes
@@ -22,36 +22,35 @@
  */
 
 
-#define INTEL_PTE_VALID		0x00000001
-#define INTEL_PTE_WRITE		0x00000002
-#define INTEL_PTE_USER		0x00000004
-#define INTEL_PTE_WTHRU		0x00000008
-#define INTEL_PTE_NCACHE 	0x00000010
-#define INTEL_PTE_REF		0x00000020
-#define INTEL_PTE_MOD		0x00000040
+#define INTEL_PTE_VALID  0x00000001
+#define INTEL_PTE_WRITE  0x00000002
+#define INTEL_PTE_USER   0x00000004
+#define INTEL_PTE_WTHRU  0x00000008
+#define INTEL_PTE_NCACHE 0x00000010
+#define INTEL_PTE_REF    0x00000020
+#define INTEL_PTE_MOD    0x00000040
 
-#define INTEL_PTE_GLOBAL	0x00000100
-//#define INTEL_PTE_WIRED		0x00000200
-//#define INTEL_PDPTE_NESTED	0x00000400
+#define INTEL_PTE_GLOBAL 0x00000100
+// #define INTEL_PTE_WIRED		0x00000200
+// #define INTEL_PDPTE_NESTED	0x00000400
 
-#define INTEL_PTE_AVAIL		0x00000e00
+#define INTEL_PTE_AVAIL 0x00000e00
 
-#define INTEL_PTE_PFN		0xfffff000
+#define INTEL_PTE_PFN 0xfffff000
 
 
+#define INTEL_PDE_VALID  0x00000001
+#define INTEL_PDE_WRITE  0x00000002
+#define INTEL_PDE_USER   0x00000004
+#define INTEL_PDE_WTHRU  0x00000008
+#define INTEL_PDE_NCACHE 0x00000010
+#define INTEL_PDE_REF    0x00000020
 
-#define INTEL_PDE_VALID		0x00000001
-#define INTEL_PDE_WRITE		0x00000002
-#define INTEL_PDE_USER		0x00000004
-#define INTEL_PDE_WTHRU		0x00000008
-#define INTEL_PDE_NCACHE 	0x00000010
-#define INTEL_PDE_REF		0x00000020
+#define INTEL_PDE_AVL   0x00000040
+#define INTEL_PDE_PGSZ  0x00000080
+#define INTEL_PDE_GLOBL 0x00000100
 
-#define INTEL_PDE_AVL		0x00000040
-#define INTEL_PDE_PGSZ		0x00000080
-#define INTEL_PDE_GLOBL		0x00000100
-
-#define INTEL_PDE_PFN		0xfffff000
+#define INTEL_PDE_PFN 0xfffff000
 
 
 /*
@@ -59,27 +58,22 @@
  *	and physical addresses.
  */
 
-#define	pa_to_pte(a)		((a) & INTEL_PTE_PFN)
-#define	pte_to_pa(p)		((p) & INTEL_PTE_PFN)
-#define	pte_increment_pa(p)	((p) += INTEL_OFFMASK+1)
+#define pa_to_pte(a)        ((a) & INTEL_PTE_PFN)
+#define pte_to_pa(p)        ((p) & INTEL_PTE_PFN)
+#define pte_increment_pa(p) ((p) += INTEL_OFFMASK + 1)
 
-#define	pa_to_pde(a)		((a) & INTEL_PDE_PFN)
+#define pa_to_pde(a) ((a) & INTEL_PDE_PFN)
 
 
 // Combine address and mode bits into a PTE.
-#define create_pte(a, m)	((pt_entry_t) (((physaddr_t) (a)) | (m)))
+#define create_pte(a, m) ((pt_entry_t)(((physaddr_t)(a)) | (m)))
 
 
-
-
-//#define INTEL_OFFMASK	0xfff	/* offset within page - gone to arch_page.h */
-#define PDESHIFT	22	/* page descriptor shift */
-#define PDEMASK		0x3ff	/* mask for page descriptor index */
-#define PTESHIFT	12	/* page table shift */
-#define PTEMASK		0x3ff	/* mask for page table index */
-
-
-
+// #define INTEL_OFFMASK	0xfff	/* offset within page - gone to arch_page.h */
+#define PDESHIFT 22    /* page descriptor shift */
+#define PDEMASK  0x3ff /* mask for page descriptor index */
+#define PTESHIFT 12    /* page table shift */
+#define PTEMASK  0x3ff /* mask for page table index */
 
 
 #ifndef ASSEMBLER
@@ -89,48 +83,38 @@
  *	i386/i486 Page Table Entry
  */
 
-typedef unsigned int	pt_entry_t;
-typedef unsigned int	pd_entry_t;
-
-
-
+typedef unsigned int pt_entry_t;
+typedef unsigned int pd_entry_t;
 
 
 /*
  *	Convert linear offset to page descriptor/page table index
  */
-#define lin2pdenum(a)	(((a) >> PDESHIFT) & PDEMASK)
-#define lin2ptenum(a)	(((a) >> PTESHIFT) & PTEMASK)
+#define lin2pdenum(a) (((a) >> PDESHIFT) & PDEMASK)
+#define lin2ptenum(a) (((a) >> PTESHIFT) & PTEMASK)
 
 /*
  *	Convert page descriptor/page table index to linear address
  */
-#define pdenum2lin(a)	((vm_offset_t)(a) << PDESHIFT)
-#define ptenum2lin(a)	((vm_offset_t)(a) << PTESHIFT)
-
-
-
-
-
+#define pdenum2lin(a) ((vm_offset_t)(a) << PDESHIFT)
+#define ptenum2lin(a) ((vm_offset_t)(a) << PTESHIFT)
 
 
 void phantom_paging_init(void);
-void phantom_paging_start(void); // For SMP - to load pdir in next CPUs
+void phantom_paging_start(void);  // For SMP - to load pdir in next CPUs
 
 
-void phantom_map_page(linaddr_t la, pt_entry_t mapping );
-void phantom_unmap_page(linaddr_t la );
+void phantom_map_page(linaddr_t la, pt_entry_t mapping);
+void phantom_unmap_page(linaddr_t la);
 
 int phantom_is_page_accessed(linaddr_t la);
 int phantom_is_page_modified(linaddr_t la);
 
 
-#endif // ASSEMBLER
+#endif  // ASSEMBLER
 
 
-
-
-#endif	/* _PMAP_MACHINE_ */
+#endif /* _PMAP_MACHINE_ */
 
 
 /*

@@ -1,6 +1,6 @@
+#include <device.h>
 #include <disk.h>
 #include <disk_q.h>
-#include <device.h>
 #include <genode_disk_private.h>
 
 phantom_device_t *driver_genode_disk_probe();

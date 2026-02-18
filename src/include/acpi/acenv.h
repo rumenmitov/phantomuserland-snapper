@@ -116,7 +116,7 @@
 #ifndef __ACENV_H__
 #define __ACENV_H__
 
-//#warning check me
+// #warning check me
 
 #define ACPI_USE_LOCAL_CACHE
 
@@ -129,13 +129,13 @@
 
 /* Types for ACPI_MUTEX_TYPE */
 
-#define ACPI_BINARY_SEMAPHORE       0
-#define ACPI_OSL_MUTEX              1
+#define ACPI_BINARY_SEMAPHORE 0
+#define ACPI_OSL_MUTEX        1
 
 /* Types for DEBUGGER_THREADING */
 
-#define DEBUGGER_SINGLE_THREADED    0
-#define DEBUGGER_MULTI_THREADED     1
+#define DEBUGGER_SINGLE_THREADED 0
+#define DEBUGGER_MULTI_THREADED  1
 
 
 /******************************************************************************
@@ -177,9 +177,7 @@
  * AcpiBin/AcpiHelp/AcpiSrc configuration. All single threaded, with
  * no debug output.
  */
-#if (defined ACPI_BIN_APP)   || \
-    (defined ACPI_SRC_APP)   || \
-    (defined ACPI_XTRACT_APP)
+#if (defined ACPI_BIN_APP) || (defined ACPI_SRC_APP) || (defined ACPI_XTRACT_APP)
 #define ACPI_APPLICATION
 #define ACPI_SINGLE_THREADED
 #endif
@@ -200,7 +198,7 @@
 
 #ifdef ACPI_APPLICATION
 #define ACPI_USE_SYSTEM_CLIBRARY
-//#define ACPI_USE_LOCAL_CACHE
+// #define ACPI_USE_LOCAL_CACHE
 #endif
 
 /* Common debug support */
@@ -237,17 +235,17 @@
 /* 64-bit data types */
 
 #ifndef COMPILER_DEPENDENT_INT64
-#define COMPILER_DEPENDENT_INT64   long long
+#define COMPILER_DEPENDENT_INT64 long long
 #endif
 
 #ifndef COMPILER_DEPENDENT_UINT64
-#define COMPILER_DEPENDENT_UINT64  unsigned long long
+#define COMPILER_DEPENDENT_UINT64 unsigned long long
 #endif
 
 /* Type of mutex supported by host. Default is binary semaphores. */
 
 #ifndef ACPI_MUTEX_TYPE
-#define ACPI_MUTEX_TYPE             ACPI_BINARY_SEMAPHORE
+#define ACPI_MUTEX_TYPE ACPI_BINARY_SEMAPHORE
 #endif
 
 /* Global Lock acquire/release */
@@ -306,10 +304,10 @@
  */
 #ifndef DEBUGGER_THREADING
 #ifdef ACPI_APPLICATION
-#define DEBUGGER_THREADING          DEBUGGER_SINGLE_THREADED
+#define DEBUGGER_THREADING DEBUGGER_SINGLE_THREADED
 
 #else
-#define DEBUGGER_THREADING          DEBUGGER_MULTI_THREADED
+#define DEBUGGER_THREADING DEBUGGER_MULTI_THREADED
 #endif
 #endif /* !DEBUGGER_THREADING */
 
@@ -340,36 +338,37 @@
 
 /* Use the standard headers from the standard locations */
 
+#include <ctype.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 
 #endif /* ACPI_USE_STANDARD_HEADERS */
 
 /* We will be linking to the standard Clib functions */
 
-#define ACPI_STRSTR(s1,s2)      strstr((s1), (s2))
-#define ACPI_STRCHR(s1,c)       strchr((s1), (c))
-#define ACPI_STRLEN(s)          (ACPI_SIZE) strlen((s))
-#define ACPI_STRCPY(d,s)        (void) strcpy((d), (s))
-#define ACPI_STRNCPY(d,s,n)     (void) strncpy((d), (s), (ACPI_SIZE)(n))
-#define ACPI_STRNCMP(d,s,n)     strncmp((d), (s), (ACPI_SIZE)(n))
-#define ACPI_STRCMP(d,s)        strcmp((d), (s))
-#define ACPI_STRCAT(d,s)        (void) strcat((d), (s))
-#define ACPI_STRNCAT(d,s,n)     strncat((d), (s), (ACPI_SIZE)(n))
-#define ACPI_STRTOUL(d,s,n)     strtoul((d), (s), (ACPI_SIZE)(n))
-#define ACPI_MEMCMP(s1,s2,n)    memcmp((const char *)(s1), (const char *)(s2), (ACPI_SIZE)(n))
-#define ACPI_MEMCPY(d,s,n)      (void) memcpy((d), (s), (ACPI_SIZE)(n))
-#define ACPI_MEMSET(d,s,n)      (void) memset((d), (s), (ACPI_SIZE)(n))
-#define ACPI_TOUPPER(i)         toupper((int) (i))
-#define ACPI_TOLOWER(i)         tolower((int) (i))
-#define ACPI_IS_XDIGIT(i)       isxdigit((int) (i))
-#define ACPI_IS_DIGIT(i)        isdigit((int) (i))
-#define ACPI_IS_SPACE(i)        isspace((int) (i))
-#define ACPI_IS_UPPER(i)        isupper((int) (i))
-#define ACPI_IS_PRINT(i)        isprint((int) (i))
-#define ACPI_IS_ALPHA(i)        isalpha((int) (i))
+#define ACPI_STRSTR(s1, s2)   strstr((s1), (s2))
+#define ACPI_STRCHR(s1, c)    strchr((s1), (c))
+#define ACPI_STRLEN(s)        (ACPI_SIZE) strlen((s))
+#define ACPI_STRCPY(d, s)     (void)strcpy((d), (s))
+#define ACPI_STRNCPY(d, s, n) (void)strncpy((d), (s), (ACPI_SIZE)(n))
+#define ACPI_STRNCMP(d, s, n) strncmp((d), (s), (ACPI_SIZE)(n))
+#define ACPI_STRCMP(d, s)     strcmp((d), (s))
+#define ACPI_STRCAT(d, s)     (void)strcat((d), (s))
+#define ACPI_STRNCAT(d, s, n) strncat((d), (s), (ACPI_SIZE)(n))
+#define ACPI_STRTOUL(d, s, n) strtoul((d), (s), (ACPI_SIZE)(n))
+#define ACPI_MEMCMP(s1, s2, n) \
+	memcmp((const char *)(s1), (const char *)(s2), (ACPI_SIZE)(n))
+#define ACPI_MEMCPY(d, s, n) (void)memcpy((d), (s), (ACPI_SIZE)(n))
+#define ACPI_MEMSET(d, s, n) (void)memset((d), (s), (ACPI_SIZE)(n))
+#define ACPI_TOUPPER(i)      toupper((int)(i))
+#define ACPI_TOLOWER(i)      tolower((int)(i))
+#define ACPI_IS_XDIGIT(i)    isxdigit((int)(i))
+#define ACPI_IS_DIGIT(i)     isdigit((int)(i))
+#define ACPI_IS_SPACE(i)     isspace((int)(i))
+#define ACPI_IS_UPPER(i)     isupper((int)(i))
+#define ACPI_IS_PRINT(i)     isprint((int)(i))
+#define ACPI_IS_ALPHA(i)     isalpha((int)(i))
 
 #else
 
@@ -394,35 +393,36 @@ typedef char *va_list;
 
 /* Storage alignment properties */
 
-#define  _AUPBND                (sizeof (ACPI_NATIVE_INT) - 1)
-#define  _ADNBND                (sizeof (ACPI_NATIVE_INT) - 1)
+#define _AUPBND (sizeof(ACPI_NATIVE_INT) - 1)
+#define _ADNBND (sizeof(ACPI_NATIVE_INT) - 1)
 
 /* Variable argument list macro definitions */
 
-#define _Bnd(X, bnd)            (((sizeof (X)) + (bnd)) & (~(bnd)))
-#define va_arg(ap, T)           (*(T *)(((ap) += (_Bnd (T, _AUPBND))) - (_Bnd (T,_ADNBND))))
-#define va_end(ap)              (void) 0
-#define va_start(ap, A)         (void) ((ap) = (((char *) &(A)) + (_Bnd (A,_AUPBND))))
+#define _Bnd(X, bnd)    (((sizeof(X)) + (bnd)) & (~(bnd)))
+#define va_arg(ap, T)   (*(T *)(((ap) += (_Bnd(T, _AUPBND))) - (_Bnd(T, _ADNBND))))
+#define va_end(ap)      (void)0
+#define va_start(ap, A) (void)((ap) = (((char *)&(A)) + (_Bnd(A, _AUPBND))))
 
 #endif /* va_arg */
 
 /* Use the local (ACPICA) definitions of the clib functions */
 
-#define ACPI_STRSTR(s1,s2)      AcpiUtStrstr ((s1), (s2))
-#define ACPI_STRCHR(s1,c)       AcpiUtStrchr ((s1), (c))
-#define ACPI_STRLEN(s)          (ACPI_SIZE) AcpiUtStrlen ((s))
-#define ACPI_STRCPY(d,s)        (void) AcpiUtStrcpy ((d), (s))
-#define ACPI_STRNCPY(d,s,n)     (void) AcpiUtStrncpy ((d), (s), (ACPI_SIZE)(n))
-#define ACPI_STRNCMP(d,s,n)     AcpiUtStrncmp ((d), (s), (ACPI_SIZE)(n))
-#define ACPI_STRCMP(d,s)        AcpiUtStrcmp ((d), (s))
-#define ACPI_STRCAT(d,s)        (void) AcpiUtStrcat ((d), (s))
-#define ACPI_STRNCAT(d,s,n)     AcpiUtStrncat ((d), (s), (ACPI_SIZE)(n))
-#define ACPI_STRTOUL(d,s,n)     AcpiUtStrtoul ((d), (s), (ACPI_SIZE)(n))
-#define ACPI_MEMCMP(s1,s2,n)    AcpiUtMemcmp((const char *)(s1), (const char *)(s2), (ACPI_SIZE)(n))
-#define ACPI_MEMCPY(d,s,n)      (void) AcpiUtMemcpy ((d), (s), (ACPI_SIZE)(n))
-#define ACPI_MEMSET(d,v,n)      (void) AcpiUtMemset ((d), (v), (ACPI_SIZE)(n))
-#define ACPI_TOUPPER(c)         AcpiUtToUpper ((int) (c))
-#define ACPI_TOLOWER(c)         AcpiUtToLower ((int) (c))
+#define ACPI_STRSTR(s1, s2)   AcpiUtStrstr((s1), (s2))
+#define ACPI_STRCHR(s1, c)    AcpiUtStrchr((s1), (c))
+#define ACPI_STRLEN(s)        (ACPI_SIZE) AcpiUtStrlen((s))
+#define ACPI_STRCPY(d, s)     (void)AcpiUtStrcpy((d), (s))
+#define ACPI_STRNCPY(d, s, n) (void)AcpiUtStrncpy((d), (s), (ACPI_SIZE)(n))
+#define ACPI_STRNCMP(d, s, n) AcpiUtStrncmp((d), (s), (ACPI_SIZE)(n))
+#define ACPI_STRCMP(d, s)     AcpiUtStrcmp((d), (s))
+#define ACPI_STRCAT(d, s)     (void)AcpiUtStrcat((d), (s))
+#define ACPI_STRNCAT(d, s, n) AcpiUtStrncat((d), (s), (ACPI_SIZE)(n))
+#define ACPI_STRTOUL(d, s, n) AcpiUtStrtoul((d), (s), (ACPI_SIZE)(n))
+#define ACPI_MEMCMP(s1, s2, n) \
+	AcpiUtMemcmp((const char *)(s1), (const char *)(s2), (ACPI_SIZE)(n))
+#define ACPI_MEMCPY(d, s, n) (void)AcpiUtMemcpy((d), (s), (ACPI_SIZE)(n))
+#define ACPI_MEMSET(d, v, n) (void)AcpiUtMemset((d), (v), (ACPI_SIZE)(n))
+#define ACPI_TOUPPER(c)      AcpiUtToUpper((int)(c))
+#define ACPI_TOLOWER(c)      AcpiUtToLower((int)(c))
 
 #endif /* ACPI_USE_SYSTEM_CLIBRARY */
 

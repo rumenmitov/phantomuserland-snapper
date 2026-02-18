@@ -116,7 +116,7 @@
 #ifndef __ACPI_H__
 #define __ACPI_H__
 
-//#define ACPI_DEBUG_OUTPUT
+// #define ACPI_DEBUG_OUTPUT
 /*
  * Public include files for use by code that will interface to ACPICA.
  *
@@ -126,14 +126,14 @@
  *
  * Note: The order of these include files is important.
  */
-#include "acpi/acenv.h"     /* Environment-specific items */
-#include "acpi/acnames.h"            /* Common ACPI names and strings */
-#include "acpi/actypes.h"            /* ACPICA data types and structures */
-#include "acpi/acexcep.h"            /* ACPICA exceptions */
-#include "acpi/actbl.h"              /* ACPI table definitions */
-#include "acpi/acoutput.h"           /* Error output and Debug macros */
-#include "acpi/acrestyp.h"           /* Resource Descriptor structs */
-#include "acpi/acpiosxf.h"           /* OSL interfaces (ACPICA-to-OS) */
-#include "acpi/acpixf.h"             /* ACPI core subsystem external interfaces */
+#include "acpi/acenv.h"    /* Environment-specific items */
+#include "acpi/acexcep.h"  /* ACPICA exceptions */
+#include "acpi/acnames.h"  /* Common ACPI names and strings */
+#include "acpi/acoutput.h" /* Error output and Debug macros */
+#include "acpi/acpiosxf.h" /* OSL interfaces (ACPICA-to-OS) */
+#include "acpi/acpixf.h"   /* ACPI core subsystem external interfaces */
+#include "acpi/acrestyp.h" /* Resource Descriptor structs */
+#include "acpi/actbl.h"    /* ACPI table definitions */
+#include "acpi/actypes.h"  /* ACPICA data types and structures */
 
 #endif /* __ACPI_H__ */

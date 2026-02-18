@@ -3,9 +3,9 @@
 #ifndef JSON_H
 #define JSON_H
 
-#include <stddef.h>
 #include <errno.h>
-//#include <jsmn.h>
+#include <stddef.h>
+// #include <jsmn.h>
 
 
 struct json_output;
@@ -14,29 +14,27 @@ typedef void (*json_out)(struct json_output *, char c);
 
 struct json_output
 {
-    json_out    putc;
-    int         depth;
-    int         putc_arg;       // For use of putc func, can contain fd, socket, etc
-    errno_t     err;
+	json_out putc;
+	int depth;
+	int putc_arg;  // For use of putc func, can contain fd, socket, etc
+	errno_t err;
 };
 
 typedef struct json_output json_output;
 
 
+void json_out_int(json_output *jo, const char *name, int value);
+void json_out_long(json_output *jo, const char *name, long value);
+void json_out_string(json_output *jo, const char *name, const char *value);
 
+void json_out_open_anon_struct(json_output *jo);
+void json_out_open_struct(json_output *jo, const char *name);
+void json_out_close_struct(json_output *jo);
 
-void json_out_int( json_output *jo, const char *name, int value );
-void json_out_long( json_output *jo, const char *name, long value );
-void json_out_string( json_output *jo, const char *name, const char * value );
+void json_out_open_array(json_output *jo, const char *name);
+void json_out_close_array(json_output *jo);
 
-void json_out_open_anon_struct( json_output *jo );
-void json_out_open_struct( json_output *jo, const char *name );
-void json_out_close_struct( json_output *jo  );
-
-void json_out_open_array( json_output *jo, const char *name );
-void json_out_close_array( json_output *jo );
-
-void json_out_delimiter( json_output *jo );
+void json_out_delimiter(json_output *jo);
 
 // --------------------------------------------------------------
 //
@@ -46,8 +44,8 @@ void json_out_delimiter( json_output *jo );
 //
 // --------------------------------------------------------------
 
-void json_start( json_output *jo );
-void json_stop( json_output *jo );
+void json_start(json_output *jo);
+void json_stop(json_output *jo);
 
 
 // --------------------------------------------------------------
@@ -56,12 +54,19 @@ void json_stop( json_output *jo );
 
 
 //! Encode array by calling 'encoder' for each el of array
-void json_foreach( json_output *jo, const char *name, void *array, size_t el_size, size_t count, void (*encoder)( json_output *jo, void *el ) );
+void json_foreach(json_output *jo,
+				  const char *name,
+				  void *array,
+				  size_t el_size,
+				  size_t count,
+				  void (*encoder)(json_output *jo, void *el));
 
 
-void json_out_int_array( json_output *jo, const char *name, int *value, size_t count );
-void json_out_string_array( json_output *jo, const char *name, const char * value, size_t count );
-
+void json_out_int_array(json_output *jo, const char *name, int *value, size_t count);
+void json_out_string_array(json_output *jo,
+						   const char *name,
+						   const char *value,
+						   size_t count);
 
 
 // --------------------------------------------------------------
@@ -69,12 +74,8 @@ void json_out_string_array( json_output *jo, const char *name, const char * valu
 // --------------------------------------------------------------
 
 
-void json_putc_kfd( json_output *jo, char c );
-void json_putc_console( json_output *jo, char c );
-
-
-
-
+void json_putc_kfd(json_output *jo, char c);
+void json_putc_console(json_output *jo, char c);
 
 
 // --------------------------------------------------------------
@@ -82,11 +83,7 @@ void json_putc_console( json_output *jo, char c );
 // --------------------------------------------------------------
 
 
-void json_dump_threads( json_output *jo );
-
-
-
-
+void json_dump_threads(json_output *jo);
 
 
 // --------------------------------------------------------------
@@ -95,15 +92,13 @@ void json_dump_threads( json_output *jo );
 
 
 //! tokens allocated, must be freed by caller
-//errno_t json_parse(const char *js, jsmntok_t **tokens, size_t *o_count );
-//errno_t json_parse_len(const char *js, int jslen, jsmntok_t **tokens, size_t *o_count );
+// errno_t json_parse(const char *js, jsmntok_t **tokens, size_t *o_count );
+// errno_t json_parse_len(const char *js, int jslen, jsmntok_t **tokens, size_t *o_count
+// );
 
 
 #include <bits/udp_json.h>
 #include <bits/udp_json_builder.h>
 
 
-
-
-#endif // JSON_H
-
+#endif  // JSON_H

@@ -3,28 +3,27 @@
  * Based on rm_nested example and rump block device backend
  */
 
-#include <base/component.h>
-#include <rm_session/connection.h>
-#include <region_map/client.h>
-#include <dataspace/client.h>
-
 #include <base/allocator_avl.h>
+#include <base/component.h>
+
 #include <block_session/connection.h>
+#include <dataspace/client.h>
+#include <region_map/client.h>
+#include <rm_session/connection.h>
 
 // #include <libc/component.h>
 
-#include "phantom_env.h"
 #include "disk_backend.h"
-#include "phantom_vmem.h"
-
 #include "phantom_entrypoints.h"
-
-#include "tests_hal.h"
+#include "phantom_env.h"
+#include "phantom_vmem.h"
 #include "tests_adapters.h"
+#include "tests_hal.h"
 
 #include <base/quota_guard.h>
 
-namespace Genode {
+namespace Genode
+{
 	bool phantom_quota_go = false;
 }
 
@@ -73,29 +72,25 @@ bool test_hal()
 	// }
 
 	log("--- Starting phys alloc test");
-	if (!test_hal_phys_alloc())
-	{
+	if (!test_hal_phys_alloc()) {
 		ok = false;
 		log("Failed phys alloc test!");
 	}
 
 	log("--- Starting virt addrs mapping test");
-	if (!test_hal_vmem_mapping())
-	{
+	if (!test_hal_vmem_mapping()) {
 		ok = false;
 		log("Failed virt addrs mapping test!");
 	}
 
 	log("--- Starting virt addrs remapping test");
-	if (!test_hal_vmem_remapping())
-	{
+	if (!test_hal_vmem_remapping()) {
 		ok = false;
 		log("Failed virt addrs remapping test!");
 	}
 
 	log("--- Starting mutex states test");
-	if (!test_hal_mutex_state())
-	{
+	if (!test_hal_mutex_state()) {
 		ok = false;
 		log("Failed mutex states test!");
 	}
@@ -105,7 +100,7 @@ bool test_hal()
 
 #ifdef PHANTOM_LINUX
 extern "C" void wait_for_continue(void);
-#endif // PHANTOM_LINUX
+#endif  // PHANTOM_LINUX
 
 // void Libc::Component::construct(Libc::Env &env)
 void Component::construct(Env &env)
@@ -123,91 +118,85 @@ void Component::construct(Env &env)
 
 	// Libc::with_libc([&]()
 	// 				{
-		log("--- Phantom init ---");
-		log("short size: ", sizeof(short));
-		log("int size: ", sizeof(int));
-		log("long size: ", sizeof(long));
-		log("long long size: ", sizeof(long long));
+	log("--- Phantom init ---");
+	log("short size: ", sizeof(short));
+	log("int size: ", sizeof(int));
+	log("long size: ", sizeof(long));
+	log("long long size: ", sizeof(long long));
 
-		env.exec_static_constructors();
-
-		
-		// Ram_dataspace_capability test_ds = env.ram().alloc(20 * 1024 * 4096);
-    	// Genode::Region_map_client _obj_space{_rm.create(OBJECT_SPACE_SIZE)};
-		
-		// for (unsigned long i=0;i<2000;i++){
-		// 	Genode::log("Attaching (root) ", i);
-		// 	// env.rm().attach_at(test_ds, 0x8000000 + i*4096, 4096, i*4096);
-		// 	env.rm().attach(test_ds, 4096);
-		// }
+	env.exec_static_constructors();
 
 
+	// Ram_dataspace_capability test_ds = env.ram().alloc(20 * 1024 * 4096);
+	// Genode::Region_map_client _obj_space{_rm.create(OBJECT_SPACE_SIZE)};
+
+	// for (unsigned long i=0;i<2000;i++){
+	// 	Genode::log("Attaching (root) ", i);
+	// 	// env.rm().attach_at(test_ds, 0x8000000 + i*4096, 4096, i*4096);
+	// 	env.rm().attach(test_ds, 4096);
+	// }
 
 
 #ifdef PHANTOM_LINUX
-		log("Waiting for continue");
-    wait_for_continue();
-#endif // PHANTOM_LINUX
+	log("Waiting for continue");
+	wait_for_continue();
+#endif  // PHANTOM_LINUX
 
-		log("GO");
+	log("GO");
 
-		{
-			/*
-			 * Setup Main object
-			 */
-			try
-			{
-				log("--- Setting up adapters ---");
-				setup_adapters(env);
-			}
-			catch (Genode::Service_denied)
-			{
-				error("opening block session was denied!");
-				return;
-			}
+	{
+		/*
+		 * Setup Main object
+		 */
+		try {
+			log("--- Setting up adapters ---");
+			setup_adapters(env);
+		} catch (Genode::Service_denied) {
+			error("opening block session was denied!");
+			return;
 		}
+	}
 
-		// log("--- TESTING LOTS OF ATTACH ---");
+	// log("--- TESTING LOTS OF ATTACH ---");
 
-		// Dataspace_capability test_ds_2 = env.ram().alloc(20 * 1024 * 4096);
-		// for (unsigned long i=0;i<300;i++){
-		// 	Genode::log("Attaching ", i);
-        //     if (i == 244){
-        //         Genode::log("Should fail here");
-        //     }
-		// 	// main_obj->_vmem _obj_space.attach_at(_ram_ds, i*4096, 4096, i*4096);
-		// 	// if (i < 50) {
-		// 	// main_obj->_vmem_adapter._obj_space.attach_at(
-		// 	// 	main_obj->_vmem_adapter._ram_ds, i*4096, 4096, i*4096);
-		// 	// } else {
-		// 	main_obj->_vmem_adapter._obj_space.attach_at(
-		// 		test_ds_2, i*4096, 4096, i*4096);
+	// Dataspace_capability test_ds_2 = env.ram().alloc(20 * 1024 * 4096);
+	// for (unsigned long i=0;i<300;i++){
+	// 	Genode::log("Attaching ", i);
+	//     if (i == 244){
+	//         Genode::log("Should fail here");
+	//     }
+	// 	// main_obj->_vmem _obj_space.attach_at(_ram_ds, i*4096, 4096, i*4096);
+	// 	// if (i < 50) {
+	// 	// main_obj->_vmem_adapter._obj_space.attach_at(
+	// 	// 	main_obj->_vmem_adapter._ram_ds, i*4096, 4096, i*4096);
+	// 	// } else {
+	// 	main_obj->_vmem_adapter._obj_space.attach_at(
+	// 		test_ds_2, i*4096, 4096, i*4096);
 
-		// 	// }
-		// 	// env.rm().attach(test_ds, 4096);
-		// }
+	// 	// }
+	// 	// env.rm().attach(test_ds, 4096);
+	// }
 
 
+	log("--- Testing adapters ---");
+	test_adapters();
 
-		log("--- Testing adapters ---");
-		test_adapters();
+	log("--- Testing HAL ---");
+	test_hal();
 
-		log("--- Testing HAL ---");
-		test_hal();
+	log("--- finished Phantom env test ---");
 
-		log("--- finished Phantom env test ---");
+	// env.exec_static_constructors(); <- This thing might break pthreads!
 
-		 	// env.exec_static_constructors(); <- This thing might break pthreads!
+	// Actual Phantom code
 
-		// Actual Phantom code
+	int p_argc = 1;
+	char **p_argv = nullptr;
+	char **p_envp = nullptr;
 
-		int p_argc = 1;
-		char **p_argv = nullptr;
-		char **p_envp = nullptr;
+	Genode::phantom_quota_go = true;
 
-		Genode::phantom_quota_go = true;
-
-		phantom_main_entry_point(p_argc, p_argv, p_envp); 
+	phantom_main_entry_point(p_argc, p_argv, p_envp);
 	// });
 }
 
