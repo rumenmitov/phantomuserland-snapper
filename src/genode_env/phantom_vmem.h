@@ -158,11 +158,11 @@ struct Phantom::Vmem_adapter {
   addr_t OBJECT_SPACE_START = 0x80000000;
 #endif // PHANTOM_LINUX
 
-  addr_t OBJECT_SPACE_SIZE = 0x40000000;
-  // TODO : defined as a macro that is required for other Phantom, need to
-  // fix!!! const size_t ARCH_PAGE_SIZE = 4096;
+  /* Persistent object address space */
+  Genode::size_t OBJECT_SPACE_SIZE = 1024ULL * 1024 * 1024 * 2;
 
-  const unsigned int _phys_space_limit = 4096 * 1024 * 16;
+  /* Physical memory required */
+  const Genode::uint64_t _phys_space_limit = OBJECT_SPACE_SIZE;
 
   Genode::Env &_env;
   Genode::Rm_connection _rm{_env};
@@ -184,7 +184,7 @@ struct Phantom::Vmem_adapter {
   unsigned long long total_allocated = 0;
 
   // Allocated phys region
-  Ram_dataspace_capability _ram_ds{_env.ram().alloc(4096 * 1024 * 16)};
+  Ram_dataspace_capability _ram_ds{_env.ram().alloc(_phys_space_limit)};
 
   Vmem_adapter(Env &env) : _env(env) {
 

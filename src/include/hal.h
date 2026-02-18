@@ -69,8 +69,7 @@ struct hardware_abstraction_level
 extern struct hardware_abstraction_level        hal;
 
 
-vmem_ptr_t                              hal_get_objspace_start(void);
-void                                    hal_init( vmem_ptr_t va, long vs );
+void                                    hal_init( vmem_ptr_t va, size_t vs );
 void                                    hal_init_object_vmem(void *start_of_virtual_address_space);
 
 
@@ -80,6 +79,7 @@ int                                     phantom_is_a_real_kernel(void);
 
 
 vmem_ptr_t                              hal_object_space_address(void);
+size_t                                  hal_object_space_size(void);
 
 
 

@@ -13,10 +13,8 @@ extern "C" void *ph_malloc(size_t size) {
 
   size_t total_size = sizeof(size_t) + size;
 
-  // void *original_addr = main_obj->_heap.alloc(total_size);
-
   auto alloc_res = main_obj->_heap.try_alloc(total_size);
-
+  
   if (!alloc_res.ok()) {
     alloc_res.with_error([](Alloc_error err) { error(err); });
     return 0;

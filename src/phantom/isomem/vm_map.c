@@ -147,7 +147,7 @@ static unsigned long       vm_map_vm_page_count = 0;         // how many pages V
 
 // INFO pages_per_snapshot_file x ARCH_PAGES_SIZE should not
 // exceeed the `bufsize` in the Snapper configuration!
-static unsigned long       pages_per_snapshot_file = 64;    // how many VM pages will be saved in one snapshot file
+static unsigned long       pages_per_snapshot_file = 1024;    // how many VM pages will be saved in one snapshot file
 
 static vm_page *           vm_map_map;                       // array of pages
 static vm_page *           vm_map_map_end;                   // a byte after map
@@ -1559,6 +1559,8 @@ void do_snapshot(void)
 
     // TODO - free prev snap first! -- (why?)
 
+    bigtime_t snap_start = hal_system_time();
+      
     disk_page_no_t new_snap_head = 0;
 
 
@@ -1608,6 +1610,10 @@ void do_snapshot(void)
     // #error not impl
     //  free journal part, which was created before this snap
     //  was started
+
+    bigtime_t snap_fin = hal_system_time();
+
+    hal_printf("snapshot took: %u us\n", snap_fin - snap_start);
 
 #else // LEGACY_SNAP
     snapper_batch_snapshot();

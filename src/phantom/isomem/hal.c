@@ -36,7 +36,7 @@ int phantom_is_a_real_kernel() { return 1; }
 
 
 
-void hal_init( vmem_ptr_t va, long vs )
+void hal_init( vmem_ptr_t va, size_t vs )
 {
 
     hal.object_vspace = va;
@@ -48,11 +48,6 @@ void hal_init( vmem_ptr_t va, long vs )
     // hal_init_vm_map();
 
     hal_time_init();
-}
-
-vmem_ptr_t hal_object_space_address() {
-    if(hal.object_vspace == 0) panic("hal_object_space_address() - is zero yet!");
-    return hal.object_vspace;
 }
 
 

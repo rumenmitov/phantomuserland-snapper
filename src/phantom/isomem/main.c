@@ -52,7 +52,7 @@ static amap_t ram_map;
 // File specific macros
 
 #define MEM_SIZE 0x100000000LL
-#define N_OBJMEM_PAGES ((1024L*1024*32)/4096)
+#define N_OBJMEM_PAGES (hal_object_space_size()/4096)
 #define PHANTOM_VERSION_STR "0.2"
 
 // Genode specific
@@ -236,7 +236,7 @@ int phantom_main_entry_point(int argc, char **argv, char **envp)
     SHOW_FLOW0( 0, "intr reg overflow test PASSED" );
 #endif
 
-    hal_init(hal_get_objspace_start(), N_OBJMEM_PAGES*4096L);
+    hal_init(hal_object_space_address(), N_OBJMEM_PAGES*4096ULL);
 
     // Threads startup
     arch_threads_init();

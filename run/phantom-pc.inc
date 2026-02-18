@@ -114,8 +114,8 @@
 	</route>
 </start>
 
-<start name="isomem" caps="2000">
- 	<resource name="RAM" quantum="500M"/>
+<start name="isomem" caps="4000">
+ 	<resource name="RAM" quantum="8G"/>
   
  	<config verbose="yes" ld_verbose="yes">
  	</config>

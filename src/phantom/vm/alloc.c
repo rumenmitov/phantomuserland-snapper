@@ -36,7 +36,7 @@ static int object_allocator_inited = 0;
 
 
 
-static void init_free_object_header( pvm_object_storage_t *op, unsigned int size );
+static void init_free_object_header( pvm_object_storage_t *op, size_t size );
 
 // TODO Object alloc - gigant lock for now. This is to be redone with separate locks for buckets/arenas.
 static hal_mutex_t  _vm_alloc_mutex;
@@ -120,7 +120,7 @@ static inline unsigned int round_size(unsigned int size, int arena)
 pvm_object_storage_t *get_root_object_storage() { return pvm_object_space_start; }
 
 // TODO must be rewritten - arena properties must be kept in persistent memory
-static void init_arenas( void * _pvm_object_space_start, unsigned int size )
+static void init_arenas( void * _pvm_object_space_start, size_t size )
 {
     pvm_object_space_start = _pvm_object_space_start;
     pvm_object_space_end = pvm_object_space_start + size;
@@ -152,7 +152,7 @@ void pvm_alloc_clear_mem()
 
 
 // Initialize the heap, prepare
-void pvm_alloc_init( void * _pvm_object_space_start, unsigned int size )
+void pvm_alloc_init( void * _pvm_object_space_start, size_t size )
 {
     assert(_pvm_object_space_start != 0);
     assert(size > 0);
@@ -175,7 +175,7 @@ void pvm_alloc_threaded_init(void)
 }
 
 
-static void init_object_header(pvm_object_storage_t *op, unsigned int size)
+static void init_object_header(pvm_object_storage_t *op, size_t size)
 {
     assert( size >= sizeof(pvm_object_storage_t) );
 
@@ -186,7 +186,7 @@ static void init_object_header(pvm_object_storage_t *op, unsigned int size)
     op->_ah.exact_size = size;
 }
 
-static void init_free_object_header(pvm_object_storage_t *op, unsigned int size)
+static void init_free_object_header(pvm_object_storage_t *op, size_t size)
 {
     assert( size >= sizeof(pvm_object_storage_t) );
 
@@ -202,7 +202,7 @@ static void init_free_object_header(pvm_object_storage_t *op, unsigned int size)
 
 
 // returns allocated object
-static pvm_object_storage_t *alloc_eat_some(pvm_object_storage_t *op, unsigned int size)
+static pvm_object_storage_t *alloc_eat_some(pvm_object_storage_t *op, size_t size)
 {
     assert( op->_ah.object_start_marker == PVM_OBJECT_START_MARKER );
     assert( op->_ah.alloc_flags == PVM_OBJECT_AH_ALLOCATOR_FLAG_FREE );
@@ -230,7 +230,7 @@ static void alloc_collapse_with_next_free(pvm_object_storage_t *op, unsigned int
     assert( op->_ah.object_start_marker == PVM_OBJECT_START_MARKER );
     assert( op->_ah.alloc_flags == PVM_OBJECT_AH_ALLOCATOR_FLAG_FREE );
 
-    unsigned int size = op->_ah.exact_size;
+    size_t size = op->_ah.exact_size;
     do {
         void *o = (void *)op + size;
         pvm_object_storage_t *opppa = (pvm_object_storage_t *)o;
@@ -361,7 +361,7 @@ void pvm_object_is_allocated_assert(pvm_object_storage_t *o)
 
 
 // Find a piece of mem of given or bigger size. Linear allocation.
-static pvm_object_t pvm_find(unsigned int size, int arena)
+static pvm_object_t pvm_find(size_t size, int arena)
 {
 
 #define CURR_POS  curr_a[arena]

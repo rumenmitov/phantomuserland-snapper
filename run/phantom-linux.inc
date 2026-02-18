@@ -96,8 +96,8 @@
 	</route>
 </start>
 
-<start name="isomem" caps="2000">
- 	<resource name="RAM" quantum="2G"/>
+<start name="isomem" caps="5000">
+ 	<resource name="RAM" quantum="12G"/>
   
  	<config verbose="yes" ld_verbose="yes">
  	</config>

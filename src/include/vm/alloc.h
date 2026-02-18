@@ -25,7 +25,7 @@ pvm_object_storage_t * pvm_object_alloc( unsigned int data_area_size, unsigned i
 //void pvm_object_delete( pvm_object_storage_t * );
 
 
-void pvm_alloc_init( void * _pvm_object_space_start, unsigned int size );
+void pvm_alloc_init( void * _pvm_object_space_start, size_t size );
 void pvm_alloc_threaded_init(void);
 
 void pvm_alloc_clear_mem(void);

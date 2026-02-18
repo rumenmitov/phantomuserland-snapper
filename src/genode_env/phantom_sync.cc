@@ -61,12 +61,15 @@ extern "C"
     {
         if (!m || !m->impl || !m->impl->lock)
             return 0;
-      
+
         m->impl->lock->~Phantom_mutex_wrapper();
-        // main_obj->_heap.free(m->impl->lock, sizeof(Genode::Mutex));
+        
         ph_free(m->impl->lock);
-        ph_free(m->impl);
         m->impl->lock = 0;
+
+        ph_free(m->impl);
+        m->impl = 0;
+        
         return 0;
     }
 
@@ -104,10 +107,12 @@ extern "C"
     void hal_sem_destroy(hal_sem_t *s)
     {
         s->impl->sem->~Semaphore();
-        // main_obj->_heap.free(s->impl->sem, sizeof(Genode::Semaphore));
+      
         ph_free(s->impl->sem);
-        ph_free(s->impl);
         s->impl->sem = 0;
+
+        ph_free(s->impl);
+        s->impl = 0;
     }
 
     /*
