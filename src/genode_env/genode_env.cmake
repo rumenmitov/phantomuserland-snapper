@@ -24,6 +24,7 @@ set (source_all
     phantom_timer.cc 
     phantom_unsorted.cc
     phantom_framebuffer.cc
+    phantom_fs.cc
 )
 
 # convert filenames to absolute paths

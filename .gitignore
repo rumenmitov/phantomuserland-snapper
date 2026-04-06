@@ -6,3 +6,4 @@
 /goa
 /.cache/
 /venv/
+/src/cmake_build/

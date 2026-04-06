@@ -8,6 +8,7 @@
  *
  **/
 
+#include <phantom_fs.h>
 #include <wasm_export.h>
 #include <wasm_memory.h>
 #include <wasm_runtime.h>
@@ -490,6 +491,74 @@ static int wasm_phantom_throw(wasm_exec_env_t exec_env, uint64_t object_id)
 	return 0;
 }
 
+static int32_t wasm_phantom_fs_create(wasm_exec_env_t exec_env, const char *path)
+{
+  (void) exec_env;
+  
+  int32_t rc;
+
+  rc = ph_fs_create(path);
+  return rc;
+}
+
+static int32_t wasm_phantom_fs_mkdir(wasm_exec_env_t exec_env, const char *path)
+{
+	(void)exec_env;
+  
+  int32_t rc;
+
+  rc = ph_fs_mkdir(path);
+  return rc;
+}
+
+static int32_t wasm_phantom_fs_write(wasm_exec_env_t exec_env, const char *path, void *buf, unsigned long bufsize)
+{
+	(void)exec_env;
+
+  int32_t rc;
+
+  rc = ph_fs_write(path, buf, bufsize);
+  return rc;
+}
+
+static int32_t wasm_phantom_fs_read(wasm_exec_env_t exec_env, const char *path, void *buf, unsigned long bufsize)
+{
+	(void)exec_env;
+
+  int32_t rc;
+  rc = ph_fs_read(path, buf, bufsize);
+
+  return rc;
+}
+
+static int32_t wasm_phantom_fs_file_size(wasm_exec_env_t exec_env, const char *path)
+{
+  (void) exec_env;
+
+  int32_t rc;
+  
+  rc = ph_fs_file_size(path);
+  return rc;
+}
+
+static int32_t wasm_phantom_fs_rename(wasm_exec_env_t exec_env, const char *oldpath, const char* newpath)
+{
+	(void)exec_env;
+
+	int32_t rc;
+  
+  rc = ph_fs_rename(oldpath, newpath);
+  return rc;
+}
+
+static void wasm_phantom_fs_unlink(wasm_exec_env_t exec_env, const char *path)
+{
+	(void)exec_env;
+  
+  ph_fs_unlink(path);
+}
+
+
 static NativeSymbol phantom_native_symbols[] = {
 	{"phantom_create_string", wasm_phantom_create_string, "(*~)I"},
 	{"phantom_get_string_contents", wasm_phantom_get_string_contents, "(I)i"},
@@ -501,6 +570,14 @@ static NativeSymbol phantom_native_symbols[] = {
 	{"phantom_syscall", wasm_phantom_syscall, "(I*Ii*~)i"},
 	{"phantom_release_object", wasm_phantom_release_object, "(I)"},
 	{"phantom_throw", wasm_phantom_throw, "(I)i"},
+	{"phantom_create", wasm_phantom_fs_create, "($)i"},
+	{"phantom_mkdir", wasm_phantom_fs_mkdir, "($)i"},
+	{"phantom_fwrite", wasm_phantom_fs_write, "($*~)i"},
+	{"phantom_fread", wasm_phantom_fs_read, "($*~)i"},
+	{"phantom_file_size", wasm_phantom_fs_file_size, "($)i"},
+	{"phantom_rename", wasm_phantom_fs_rename, "($$)i"},
+    	{"phantom_unlink", wasm_phantom_fs_unlink, "($)"},
+  
 };
 
 // ######################################################

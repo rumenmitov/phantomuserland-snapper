@@ -63,7 +63,8 @@
 	<config atapi="no">
 		<report ports="yes"/>
 		<policy label="isomem -> " device="0" writeable="yes" />
-		<policy label="vfs -> " device="1" writeable="yes" />
+		<policy label="snapper_vfs -> " device="1" writeable="yes" />
+    <policy label="isomem_vfs -> " device="2" writeable="yes" />
 	</config>
 	<route>
 		<service name="Report"> <child name="ahci_report_rom"/> </service>
@@ -71,7 +72,8 @@
 	</route>
 </start>
 
-<start name="vfs" ram="200M" caps="200">
+<start name="snapper_vfs" ram="200M" caps="200">
+  <binary name="vfs"/>
   <provides><service name="File_system"/></provides>
   <config>
    	<vfs>
@@ -84,6 +86,17 @@
               external_cache_size="32M" report_cache="yes"/>
    	</vfs>
    	<policy label_prefix="snapper" root="/" writeable="yes"/>
+  </config>
+</start>
+
+<start name="isomem_vfs" ram="200M" caps="200">
+  <binary name="vfs"/>
+  <provides><service name="File_system"/></provides>
+  <config>
+   	<vfs>
+      <rump fs="ext2fs" ram="10M"/>
+   	</vfs>
+   	<policy label_prefix="isomem" root="/" writeable="yes"/>
   </config>
 </start>
 
@@ -110,6 +123,7 @@
   </config>
 	<route>
 		<service name="Block"><child name="ahci"/></service>
+		<service name="File_system"><child name="snapper_vfs"/></service>    
 		<any-service> <parent/> <any-child /> </any-service>
 	</route>
 </start>
@@ -118,9 +132,13 @@
  	<resource name="RAM" quantum="2G"/>
   
  	<config verbose="yes" ld_verbose="yes">
+    <vfs>
+      <fs/>
+    </vfs>
  	</config>
  	<route>
  		<service name="Block"><child name="ahci"/></service>
+		<service name="File_system"><child name="isomem_vfs"/></service>
  		<any-service> <parent/> <any-child /> </any-service>
  	</route>
 </start>

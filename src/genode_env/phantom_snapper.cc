@@ -75,7 +75,7 @@ extern "C"
 		res.Tag = Snapper_result::Recoverable;
 
 		res.Result.recoverableState =
-			(decltype(res.Result.recoverableState))main_obj->snapper.init_snapshot();
+			(decltype(res.Result.recoverableState))main_obj->_snapper.init_snapshot();
 		return res;
 	}
 
@@ -87,7 +87,7 @@ extern "C"
 		res.Tag = Snapper_result::Recoverable;
 
 		res.Result.recoverableState =
-			(decltype(res.Result.recoverableState))main_obj->snapper.take_snapshot(
+			(decltype(res.Result.recoverableState))main_obj->_snapper.take_snapshot(
 				payload, size, identifier);
 
 		return res;
@@ -100,7 +100,7 @@ extern "C"
 		try {
 			res.Tag = Snapper_result::Recoverable;
 			res.Result.recoverableState = (decltype(res.Result.recoverableState))
-											  main_obj->snapper.commit_snapshot();
+											  main_obj->_snapper.commit_snapshot();
 		} catch (CrashStates crash) {
 			res.Tag = Snapper_result::Crash;
 			res.Result.crashState = (decltype(res.Result.crashState))crash;
@@ -115,7 +115,7 @@ extern "C"
 		res.Tag = Snapper_result::Recoverable;
 
 		res.Result.recoverableState =
-			(decltype(res.Result.recoverableState))main_obj->snapper.open_generation(
+			(decltype(res.Result.recoverableState))main_obj->_snapper.open_generation(
 				generation);
 		return res;
 	}
@@ -126,7 +126,7 @@ extern "C"
 		res.Tag = Snapper_result::Recoverable;
 
 		res.Result.recoverableState =
-			(decltype(res.Result.recoverableState))main_obj->snapper.restore(dest,
+			(decltype(res.Result.recoverableState))main_obj->_snapper.restore(dest,
 																			 size,
 																			 identifier);
 		return res;
@@ -138,7 +138,7 @@ extern "C"
 		res.Tag = Snapper_result::Recoverable;
 
 		res.Result.recoverableState =
-			(decltype(res.Result.recoverableState))main_obj->snapper.close_generation();
+			(decltype(res.Result.recoverableState))main_obj->_snapper.close_generation();
 
 		return res;
 	}
@@ -149,12 +149,12 @@ extern "C"
 		res.Tag = Snapper_result::Recoverable;
 
 		res.Result.recoverableState =
-			(decltype(res.Result.recoverableState))main_obj->snapper.purge(generation);
+			(decltype(res.Result.recoverableState))main_obj->_snapper.purge(generation);
 		return res;
 	}
 
 	void snapper_purge_expired(void)
 	{
-		main_obj->snapper.purge_expired();
+		main_obj->_snapper.purge_expired();
 	}
 }
