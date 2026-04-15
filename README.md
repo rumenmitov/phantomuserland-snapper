@@ -167,21 +167,8 @@ ln -s $(pwd)/var/build/x86_64/isomem genode/build/x86_64/bin/isomem
 ln -s $(pwd)/run/* genode/repos/ports/run/
 # softlink phantom classes 
 ln -s $(pwd)/src/plib/bin/classes genode/build/x86_64/bin/phantom_classes
-
-# Create a 2 GB empty disk image
-dd if=/dev/zero of=empty_disk.raw bs=1M count=0 seek=2048
-dd conv=notrunc bs=4096 count=1 seek=16 if=src/run/img/phantom.superblock of=empty_disk.raw
-
-# Create block for Snapper snapshots
-dd if=/dev/zero of=snapper_block.raw bs=1M seek=16 count=0
-mkfs.ext4 -O^metadata_csum -F snapper_block.raw
-
-# Copy raw images to bin/
-cp empty_disk.raw genode/build/x86_64/bin/block0.raw
-cp snapper_block.raw genode/build/x86_64/bin/snapper_block.raw
 ```
 
-> Note: executing command `cp empty_disk.raw genode/build/x86_64/bin/block0.raw` again will result in erasing contents of disk used by emulated Phantom OS. You can use it to reset the system state. 
 
 ## Building & running Phantom OS
 
