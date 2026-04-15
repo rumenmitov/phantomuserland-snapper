@@ -13,6 +13,7 @@ set build_components {
     snapper
     lib/vfs_lwext4
     lib/snap
+    lib/vfs_rump    
 }
 
 #
@@ -20,14 +21,21 @@ set build_components {
 #
 
 set mke4fs [installed_command mkfs.ext4]
+set mke2fs [installed_command mke2fs]
 set dd     [installed_command dd]
 set cat     [installed_command cat]
 
 catch { exec $dd if=/dev/zero of=bin/block0.raw bs=1M count=0 seek=2048 }
 catch { exec $dd dd conv=notrunc bs=4096 count=1 seek=16 if=/phantomuserland/src/run/img/phantom.superblock of=bin/block0.raw }
 
+# NB: Change the value of count if you need more space for snapshots.
 catch { exec $dd if=/dev/zero of=bin/snapper_block.raw bs=1M count=256 }
 catch { exec $mke4fs -O^metadata_csum -F bin/snapper_block.raw }
+
+# Block storage for file-system that is accessible by userspace.
+catch { exec $dd if=/dev/zero of=bin/isomem_fs_block.raw bs=1M count=256 }
+catch { exec $mke2fs -F bin/isomem_fs_block.raw }
+
 
 set config {
 <config>
@@ -75,7 +83,7 @@ install_config $config
 # Boot modules
 #
 if {[have_board linux]} {
-    build_boot_image [list {*}[build_artifacts] phantom_classes isomem snapper_block.raw block0.raw]
+    build_boot_image [list {*}[build_artifacts] phantom_classes isomem isomem_fs_block.raw snapper_block.raw block0.raw]
 }
 
 if {[have_board pc]} {
@@ -88,6 +96,7 @@ if {[have_board pc]} {
     append qemu_args " -nographic "
     append qemu_args " -drive id=disk,file=bin/block0.raw,format=raw,if=none             -device ide-hd,drive=disk,bus=ahci.0 "
     append qemu_args " -drive id=snapper,file=bin/snapper_block.raw,format=raw,if=none   -device ide-hd,drive=snapper,bus=ahci.1 "
+    append qemu_args " -drive id=isomemfs,file=bin/isomem_fs_block.raw,format=raw,if=none   -device ide-hd,drive=isomemfs,bus=ahci.2 "
 }
 
 run_genode_until forever

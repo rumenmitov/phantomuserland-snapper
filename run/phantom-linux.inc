@@ -9,6 +9,7 @@
 	<config>
 		<policy label_prefix="snapper_block"  root="/"  writeable="yes"/>
 		<policy label_prefix="isomem_block"  root="/"  writeable="yes"/>
+    <policy label_prefix="isomem_fs_block"  root="/"  writeable="yes"/>
 	</config>
 </start>
 
@@ -49,6 +50,25 @@
   </route>
 </start>
 
+<start name="isomem_fs_block" ram="1G">
+  <binary name="vfs_block"/>
+	<provides><service name="Block"/></provides>
+	<config>
+    <vfs>
+      <fs />
+		</vfs>
+		<policy label_prefix="isomem_vfs"
+		        file="/isomem_fs_block.raw" block_size="512" writeable="yes"/>
+  </config>
+  <route>
+    <service name="File_system">
+      <child name="lx_fs"/>
+    </service>
+    <any-service> <parent/> </any-service>
+  </route>
+</start>
+
+
 <start name="vfs" ram="200M" caps="200">
   <provides><service name="File_system"/></provides>
   <config>
@@ -68,6 +88,22 @@
     <any-service> <parent/> <any-child/> </any-service>
   </route>
 </start>
+
+<start name="isomem_vfs" ram="200M" caps="200">
+  <binary name="vfs"/>
+  <provides><service name="File_system"/></provides>
+  <config verbose="yes" ld_verbose="yes">
+    <vfs>
+      <rump fs="ext2fs" ram="10M"/>
+    </vfs>
+    <policy label_prefix="isomem" root="/" writeable="yes"/>
+  </config>
+  <route>
+    <service name="Block"> <child name="isomem_fs_block"/> </service>
+    <any-service> <parent/> <any-child/> </any-service>
+  </route>
+</start>
+
 
 <start name="snapper" ram="1G" caps="400">
   <provides>
@@ -98,11 +134,14 @@
 
 <start name="isomem" caps="5000">
  	<resource name="RAM" quantum="2G"/>
-  
- 	<config verbose="yes" ld_verbose="yes">
+  <config verbose="yes" ld_verbose="yes">
+    <vfs>
+      <fs/>
+    </vfs>
  	</config>
  	<route>
  		<service name="Block"><child name="isomem_block"/></service>
+ 		<service name="File_system"><child name="isomem_vfs"/></service>    
  		<any-service> <parent/> <any-child /> </any-service>
  	</route>
 </start>
