@@ -100,7 +100,7 @@ git clone https://github.com/genodelabs/genode
 git clone https://github.com/genodelabs/goa
 # Setting up Snapper and Lwext4
 git clone --depth 1 https://github.com/rumenmitov/snapper genode/repos/snapper
-git clone -b 25.05-2025-07-07 --depth 1 https://codeberg.org/jws/genode-wundertuete.git genode/repos/wundertuete
+git clone -b sculpt-25.10-2025-12-03 --depth 1 https://codeberg.org/jws/genode-wundertuete.git genode/repos/wundertuete
 ```
 
 ### Container Setup
@@ -121,12 +121,12 @@ This section contains commands that would prepare the environment to build Phant
 > Following commands should be executed inside the container!
 
 ```bash
-goa update-goa 25.04 || (echo "Could not update goa to required version! Retry running this command!" && exit 1)
+goa update-goa 25.10 || (echo "Could not update goa to required version! Retry running this command!" && exit 1)
 
 cd ./genode/
 
 # Switch to supported version (depends on the supported versions for lwext4 port which follows goa releases)
-git switch --detach sculpt-25.04
+git switch --detach sculpt-25.10.1
 
 # Creating build directory
 ./tool/create_builddir x86_64

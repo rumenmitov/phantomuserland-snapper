@@ -3,6 +3,7 @@
 
 #include "base/env.h"
 #include "base/heap.h"
+
 #include <base/log.h>
 #include <base/thread.h>
 
@@ -65,7 +66,7 @@ struct Phantom::PhantomGenericThread : public Genode::Thread
 		return _info;
 	}
 
-	PhantomGenericThread(Genode::Env &env, const char *name, Genode::size_t stack_size)
+	PhantomGenericThread(Genode::Env &env, const char *name, Stack_size stack_size)
 		: Genode::Thread(env, name, stack_size)
 	{}
 
@@ -92,7 +93,7 @@ struct Phantom::PhantomThread : PhantomGenericThread
 	}
 
 	PhantomThread(Genode::Env &env, void (*thread_entry)(void))
-		: PhantomGenericThread(env, "Phantom thread", DEFAULT_STACK_SIZE),
+		: PhantomGenericThread(env, "Phantom thread", Stack_size {DEFAULT_STACK_SIZE}),
 		  _thread_entry(thread_entry)
 	{}
 };
@@ -108,7 +109,7 @@ struct Phantom::PhantomThreadWithArgs : PhantomGenericThread
 	}
 
 	PhantomThreadWithArgs(Genode::Env &env, void (*thread_entry)(void *arg), void *args)
-		: PhantomGenericThread(env, "Phantom arg thread", DEFAULT_STACK_SIZE),
+		: PhantomGenericThread(env, "Phantom arg thread", Stack_size {DEFAULT_STACK_SIZE}),
 		  _thread_entry(thread_entry),
 		  _args(args)
 	{}

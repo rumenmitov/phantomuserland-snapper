@@ -78,7 +78,7 @@
   <config>
    	<vfs>
    		<dir name="dev">
-   			<block name="block" block_buffer_count="128"/>
+   			<block name="block" io_buffer="128"/>
    		</dir>
       <lwext4 block_device="/dev/block" cache_write_back="yes"
               expand_via_io="no" writeable="yes"

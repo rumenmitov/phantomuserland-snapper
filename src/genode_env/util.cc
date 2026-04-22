@@ -76,8 +76,9 @@ extern "C"
 	{
 		int res = 0;
 
-		Genode::ascii_to_signed<int>(nptr, res);
-
+		Genode::Span span(nptr, Genode::strlen(nptr));
+    Genode::parse_signed(span, res);
+    
 		return res;
 	}
 
@@ -85,8 +86,9 @@ extern "C"
 	{
 		long res = 0;
 
-		Genode::ascii_to_signed<long>(nptr, res);
-
+		Genode::Span span(nptr, Genode::strlen(nptr));
+    Genode::parse_signed(span, res);
+    
 		return res;
 	}
 
