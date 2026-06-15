@@ -313,6 +313,7 @@ static void pvm_create_root_objects()
 
 	pvm_root.kernel_stats = pvm_create_binary_object(STAT_CNT_PERSISTENT_DA_SIZE, 0);
 	pvm_root.class_dir = pvm_create_directory_object();
+  pvm_internal_init_fs(pvm_get_fs_class());
 
 
 	ref_saturate_o(pvm_root.threads_list);        // Need it?
@@ -380,6 +381,7 @@ static void set_root_from_table()
 	SET_ROOT_CLASS(ui_control, UI_CONTROL);
 	SET_ROOT_CLASS(ui_font, UI_FONT);
 	SET_ROOT_CLASS(wasm, WASM);
+  SET_ROOT_CLASS(fs, FS);
 }
 
 
@@ -549,11 +551,15 @@ GCINLINE pvm_object_t pvm_get_ui_font_class()
 {
 	return pvm_root.ui_font_class;
 }
-
 GCINLINE pvm_object_t pvm_get_wasm_class()
 {
 	return pvm_root.wasm_class;
 }
+GCINLINE pvm_object_t pvm_get_fs_class()
+{
+	return pvm_root.fs_class;
+}
+
 
 #undef GCINLINE
 

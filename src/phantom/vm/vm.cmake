@@ -35,7 +35,7 @@ set (PHANTOM_PVM_SOURCE
     gc.c 
     wpaint.c 
     syscall_net.c 
-    directory.c 
+    directory.c
     sys/i_stat.c 
     sys/i_udp.c 
     sys/i_time.c 
@@ -46,6 +46,7 @@ set (PHANTOM_PVM_SOURCE
     sys/i_http.c 
     sys/i_net.c 
     sys/i_wasm.c
+    sys/i_fs.c
 )
 
 if (PHANTOM_BUILD_NO_DISPLAY)
