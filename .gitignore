@@ -8,3 +8,4 @@
 /.cache/
 /venv/
 /src/cmake_build/
+/.dir-locals.el
