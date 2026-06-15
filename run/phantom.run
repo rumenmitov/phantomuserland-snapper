@@ -34,8 +34,8 @@ catch { exec $dd if=/dev/zero of=bin/snapper_block.raw bs=1M count=256 }
 catch { exec $mke4fs -O^metadata_csum -F bin/snapper_block.raw }
 
 # Block storage for file-system that is accessible by userspace.
-catch { exec $dd if=/dev/zero of=bin/isomem_fs_block.raw bs=1M count=256 }
-catch { exec $mke2fs -F bin/isomem_fs_block.raw }
+# catch { exec $dd if=/dev/zero of=bin/isomem_fs_block.raw bs=1M count=256 }
+# catch { exec $mke2fs -F bin/isomem_fs_block.raw }
 
 
 set config {
@@ -93,7 +93,7 @@ install_config $config
 # Boot modules
 #
 if {[have_board linux]} {
-    build_boot_image [list {*}[build_artifacts] phantom_classes isomem snapper_block.raw block0.raw]
+    build_boot_image [list {*}[build_artifacts] phantom_classes isomem isomem_fs_block.raw snapper_block.raw block0.raw]
 }
 
 if {[have_board pc]} {

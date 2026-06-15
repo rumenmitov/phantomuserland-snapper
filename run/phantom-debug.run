@@ -4,22 +4,23 @@ assert_spec x86
 
 create_boot_directory
 build {
-	core init timer
-	lib/ld lib/vfs
-	driver/platform
-	driver/acpi
-	driver/ahci
-	driver/rtc
-	app/pci_decode
-	server/report_rom
-	server/nitpicker
-  server/vfs
-  snapper
-  lib/vfs_lwext4
-  lib/snap
+    core init timer
+    lib/ld lib/vfs
+    driver/platform
+    driver/acpi
+    driver/ahci
+    driver/rtc
+    app/pci_decode
+    server/report_rom
+    server/nitpicker
+    server/vfs
+    snapper
+    lib/vfs_lwext4
+    lib/snap
+    lib/vfs_rump      
 
-  server/tcp_terminal lib/libc lib/libm
-  driver/uart
+    server/tcp_terminal lib/libc lib/libm
+    driver/uart
 }
 
 import_from_depot [depot_user]/pkg/[drivers_interactive_pkg] \
@@ -36,14 +37,22 @@ import_from_depot [depot_user]/pkg/[drivers_interactive_pkg] \
 # Build EXT4-file-system image
 #
 set mke4fs [installed_command mkfs.ext4]
+set mke2fs [installed_command mke2fs]
 set dd     [installed_command dd]
-set cat     [installed_command cat]
+set cat    [installed_command cat]
+
 
 catch { exec $dd if=/dev/zero of=bin/block0.raw bs=1M count=0 seek=2048 }
 catch { exec $dd dd conv=notrunc bs=4096 count=1 seek=16 if=/phantomuserland/src/run/img/phantom.superblock of=bin/block0.raw }
 
+# NB: Change the value of count if you need more space for snapshots.
 catch { exec $dd if=/dev/zero of=bin/snapper_block.raw bs=1M count=256 }
 catch { exec $mke4fs -O^metadata_csum -F bin/snapper_block.raw }
+
+# Block storage for file-system that is accessible by userspace.
+catch { exec $dd if=/dev/zero of=bin/isomem_fs_block.raw bs=1M count=256 }
+catch { exec $mke2fs -F bin/isomem_fs_block.raw }
+
 
 set config {
 <config>
@@ -128,12 +137,13 @@ set config {
 	</start>
 
 	<start name="ahci">
-		<resource name="RAM" quantum="1M" />
+		<resource name="RAM" quantum="10M" />
 		<provides><service name="Block" /></provides>
 		<config atapi="no">
 			<report ports="yes"/>
 			<policy label="monitor -> isomem -> " device="0" writeable="yes" />
-			<policy label="vfs -> " device="1" writeable="yes" />
+      <policy label="snapper_vfs -> " device="1" writeable="yes" />
+      <policy label="isomem_vfs -> " device="2" writeable="yes" />    
 		</config>
 		<route>
 			<service name="Report"> <child name="ahci_report_rom"/> </service>
@@ -141,12 +151,13 @@ set config {
 		</route>
 	</start>
 
-  <start name="vfs" ram="200M" caps="200">
+  <start name="snapper_vfs" ram="200M" caps="200">
+    <binary name="vfs"/>
    	<provides><service name="File_system"/></provides>
    	<config>
    		<vfs>
    			<dir name="dev">
-   				<block name="block" block_buffer_count="128"/>
+   				<block name="block" io_buffer="128"/>
    			</dir>
         <lwext4 block_device="/dev/block" cache_write_back="yes"
               expand_via_io="no" writeable="yes"
@@ -159,6 +170,17 @@ set config {
       <service name="Block"><child name="ahci"/></service>
       <any-service> <parent/> <any-child/> </any-service>
     </route>
+  </start>
+
+  <start name="isomem_vfs" ram="200M" caps="200">
+    <binary name="vfs"/>
+    <provides><service name="File_system"/></provides>
+    <config>
+      <vfs>
+        <rump fs="ext2fs" ram="10M"/>
+   	  </vfs>
+   	  <policy label_prefix="monitor" root="/" writeable="yes"/>
+    </config>
   </start>
 
   <start name="snapper" ram="400M" caps="100">
@@ -183,6 +205,7 @@ set config {
     </config>
 	<route>
 		<service name="Block"><child name="ahci"/></service>
+		<service name="File_system"><child name="snapper_vfs"/></service>        
 		<any-service> <parent/> <any-child /> </any-service>
 	</route>
   </start>
@@ -212,6 +235,7 @@ set config {
         <service name="Gui"/>
         <service name="Capture"/>
         <service name="Event"/>
+        <service name="File_system"/>
 			</parent-provides>
 			<default caps="100"/>
 
@@ -222,7 +246,10 @@ set config {
     	<start name="isomem" caps="2000">
     		<resource name="RAM" quantum="1G"/>
     
-    		<config verbose="yes" ld_verbose="yes">
+        <config verbose="yes" ld_verbose="yes">
+          <vfs>
+            <fs/>
+          </vfs>
     		</config>
     		<route>
     			<service name="Block"><parent/></service>
@@ -235,6 +262,7 @@ set config {
 		</config>
     <route>
       <service name="Block"><child name="ahci"/></service>
+    	<service name="File_system"><child name="isomem_vfs"/></service>
       <service name="Terminal"><child name="terminal"/></service>
       <any-service> <parent/> <any-child/> </any-service>
     </route>
@@ -259,6 +287,7 @@ append qemu_args " -device virtio-vga -enable-kvm -cpu host "
 append qemu_args " -device ahci,id=ahci -boot d "
 append qemu_args " -drive id=disk,file=bin/block0.raw,format=raw,if=none             -device ide-hd,drive=disk,bus=ahci.0 "
 append qemu_args " -drive id=snapper,file=bin/snapper_block.raw,format=raw,if=none   -device ide-hd,drive=snapper,bus=ahci.1 "
+append qemu_args " -drive id=isomemfs,file=bin/isomem_fs_block.raw,format=raw,if=none   -device ide-hd,drive=isomemfs,bus=ahci.2 " 
 
 set host "localhost"
 set port "5555"

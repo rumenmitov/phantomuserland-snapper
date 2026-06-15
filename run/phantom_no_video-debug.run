@@ -4,37 +4,49 @@ assert_spec x86
 
 create_boot_directory
 build {
-	core init timer
-	lib/ld lib/vfs
-	driver/platform
-	driver/acpi
-	driver/ahci
-	driver/rtc
-	app/pci_decode
-	server/report_rom
-  server/vfs
-  snapper
-  lib/snap
+    core init timer
+    lib/ld lib/vfs
+    driver/platform
+    driver/acpi
+    driver/ahci
+    driver/rtc
+    app/pci_decode
+    server/report_rom
+    server/vfs
+    snapper
+    lib/vfs_lwext4  
+    lib/snap
+    lib/vfs_rump        
 
-  server/tcp_terminal lib/libc lib/libm
-  driver/uart
+    server/tcp_terminal lib/libc lib/libm
+    driver/uart
 }
 
 import_from_depot [depot_user]/src/init \
                   [depot_user]/src/sandbox \
                   [depot_user]/src/monitor
 
+
 #
 # Build EXT4-file-system image
 #
 set mke4fs [installed_command mkfs.ext4]
+set mke2fs [installed_command mke2fs]
 set dd     [installed_command dd]
+set cat    [installed_command cat]
+
 
 catch { exec $dd if=/dev/zero of=bin/block0.raw bs=1M count=0 seek=2048 }
 catch { exec $dd dd conv=notrunc bs=4096 count=1 seek=16 if=/phantomuserland/src/run/img/phantom.superblock of=bin/block0.raw }
 
+# NB: Change the value of count if you need more space for snapshots.
 catch { exec $dd if=/dev/zero of=bin/snapper_block.raw bs=1M count=256 }
 catch { exec $mke4fs -O^metadata_csum -F bin/snapper_block.raw }
+
+# Block storage for file-system that is accessible by userspace.
+catch { exec $dd if=/dev/zero of=bin/isomem_fs_block.raw bs=1M count=256 }
+catch { exec $mke2fs -F bin/isomem_fs_block.raw }
+
 
 install_config {
 <config>
@@ -77,48 +89,31 @@ install_config {
 
 	<start name="acpi" caps="350">
 		<resource name="RAM" quantum="4M"/>
-		<route>
-			<service name="Report"> <child name="report_rom"/> </service>
-			<service name="IO_MEM"> <parent/> </service>
-			<service name="LOG">    <parent/> </service>
-			<service name="PD">     <parent/> </service>
-			<service name="RM">     <parent/> </service>
-			<service name="CPU">    <parent/> </service>
-			<service name="ROM">    <parent/> </service>
-		</route>
-	</start>
+  	<route>
+  		<service name="Report"> <child name="report_rom"/> </service>
+  		<any-service> <parent/> <any-child /> </any-service>
+  	</route>
+  </start>
 
-	<start name="pci_decode" caps="350">
-		<resource name="RAM" quantum="2M"/>
-		<route>
-			<service name="Report">             <child name="report_rom"/> </service>
-			<service name="ROM" label="system"> <child name="report_rom"/> </service>
-			<service name="IO_MEM"> <parent/> </service>
-			<service name="LOG">    <parent/> </service>
-			<service name="PD">     <parent/> </service>
-			<service name="RM">     <parent/> </service>
-			<service name="CPU">    <parent/> </service>
-			<service name="ROM">    <parent/> </service>
-		</route>
-	</start>
+  <start name="pci_decode" caps="350">
+  	<resource name="RAM" quantum="2M"/>
+	<route>
+  		<service name="Report">             <child name="report_rom"/> </service>
+  		<service name="ROM" label="system"> <child name="report_rom"/> </service>
+  		<any-service> <parent/> <any-child /> </any-service>
+  	</route>
+  </start>
 
 	<start name="platform" caps="100" managing_system="yes">
 		<resource name="RAM" quantum="1M"/>
 		<provides>
 			<service name="Platform"/>
 		</provides>
-		<route>
-			<service name="ROM" label="devices"> <child name="report_rom"/> </service>
-			<service name="Report"> <child name="report_rom"/> </service>
-			<service name="IRQ">     <parent/> </service>
-			<service name="IO_MEM">  <parent/> </service>
-			<service name="IO_PORT"> <parent/> </service>
-			<service name="ROM">     <parent/> </service>
-			<service name="PD">      <parent/> </service>
-			<service name="CPU">     <parent/> </service>
-			<service name="LOG">     <parent/> </service>
-			<service name="Timer">   <child name="timer"/> </service>
-		</route>
+  	<route>
+  		<service name="ROM" label="devices"> <child name="report_rom"/> </service>
+  		<service name="Report"> <child name="report_rom"/> </service>
+  		<any-service> <parent/> <any-child /> </any-service>
+  	</route>
 		<config>
 			<report devices="yes"/>
 			<policy label="ahci -> "> <pci class="AHCI"/> </policy>
@@ -133,12 +128,13 @@ install_config {
 	</start>
 
 	<start name="ahci">
-		<resource name="RAM" quantum="1M" />
+		<resource name="RAM" quantum="10M" />
 		<provides><service name="Block" /></provides>
 		<config atapi="no">
 			<report ports="yes"/>
 			<policy label="monitor -> isomem -> " device="0" writeable="yes" />
-			<policy label="vfs -> " device="1" writeable="yes" />
+      <policy label="snapper_vfs -> " device="1" writeable="yes" />
+      <policy label="isomem_vfs -> " device="2" writeable="yes" />      
 		</config>
 		<route>
 			<service name="Report"> <child name="ahci_report_rom"/> </service>
@@ -146,18 +142,20 @@ install_config {
 		</route>
 	</start>
 
-  <start name="vfs" ram="200M" caps="200">
+  <start name="snapper_vfs" ram="200M" caps="200">
+    <binary name="vfs"/>
    	<provides><service name="File_system"/></provides>
    	<config>
    		<vfs>
    			<dir name="dev">
-   				<block name="block" block_buffer_count="128"/>
+   				<block name="block" io_buffer="128"/>
    			</dir>
-        <dir name="snapper">
-          <ram/>
-        </dir>
+        <lwext4 block_device="/dev/block" cache_write_back="yes"
+              expand_via_io="no" writeable="yes"
+              reporting="no"
+              external_cache_size="32M" report_cache="yes"/>
    		</vfs>
-   		<policy label_prefix="snapper" root="/snapper" writeable="yes"/>
+   		<policy label_prefix="snapper" root="/" writeable="yes"/>
    	</config>
     <route>
       <service name="Block"><child name="ahci"/></service>
@@ -165,6 +163,17 @@ install_config {
     </route>
   </start>
 
+  <start name="isomem_vfs" ram="200M" caps="200">
+    <binary name="vfs"/>
+    <provides><service name="File_system"/></provides>
+    <config>
+      <vfs>
+        <rump fs="ext2fs" ram="10M"/>
+   	  </vfs>
+   	  <policy label_prefix="monitor" root="/" writeable="yes"/>
+    </config>
+  </start>
+    
   <start name="snapper" ram="400M" caps="100">
     <provides>
       <service name="Snapper"/>
@@ -187,6 +196,7 @@ install_config {
     </config>
 	<route>
 		<service name="Block"><child name="ahci"/></service>
+    <service name="File_system"><child name="snapper_vfs"/></service>        
 		<any-service> <parent/> <any-child /> </any-service>
 	</route>
   </start>
@@ -213,9 +223,7 @@ install_config {
         <service name="Timer"/>
         <service name="Block"/>
         <service name="Snapper"/>
-        <service name="Gui"/>
-        <service name="Capture"/>
-        <service name="Event"/>
+        <service name="File_system"/>
 			</parent-provides>
 			<default caps="100"/>
 
@@ -227,7 +235,10 @@ install_config {
     		<resource name="RAM" quantum="1G"/>
     
     		<config verbose="yes" ld_verbose="yes">
-    		</config>
+          <vfs>
+            <fs/>
+          </vfs>
+        </config>
     		<route>
     			<service name="Block"><parent/></service>
 					<service name="PD">  <local/> </service>
@@ -239,6 +250,7 @@ install_config {
 		</config>
     <route>
       <service name="Block"><child name="ahci"/></service>
+      <service name="File_system"><child name="isomem_vfs"/></service>  
       <service name="Terminal"><child name="terminal"/></service>
       <any-service> <parent/> <any-child/> </any-service>
     </route>
@@ -253,11 +265,12 @@ build_boot_image [list {*}[build_artifacts] phantom_classes isomem]
 
 append qemu_args " -smp 8 "
 append qemu_args " -m 12000 "
-append qemu_args " -device virtio-vga -enable-kvm -cpu host "
+append qemu_args " -enable-kvm -cpu host "
 append qemu_args " -device ahci,id=ahci -boot d "
-append qemu_args " -nographic "
+append qemu_args " -display none "
 append qemu_args " -drive id=disk,file=bin/block0.raw,format=raw,if=none             -device ide-hd,drive=disk,bus=ahci.0 "
 append qemu_args " -drive id=snapper,file=bin/snapper_block.raw,format=raw,if=none   -device ide-hd,drive=snapper,bus=ahci.1 "
+append qemu_args " -drive id=isomemfs,file=bin/isomem_fs_block.raw,format=raw,if=none   -device ide-hd,drive=isomemfs,bus=ahci.2 "
 
 set host "localhost"
 set port "5555"
