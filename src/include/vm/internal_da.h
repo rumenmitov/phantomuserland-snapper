@@ -53,8 +53,8 @@
 
 static inline pvm_object_t pvm_da_to_object(void *da)
 {
-	const int off = __offsetof(pvm_object_storage_t, da);
-	pvm_object_storage_t *st = da - off;
+	const u_int64_t off = __offsetof(pvm_object_storage_t, da);
+	pvm_object_storage_t *st = (pvm_object_storage_t*)(da - off);
 
 	return pvm_storage_to_object(st);
 }
@@ -566,7 +566,7 @@ struct data_area_4_connection
 	pvm_object_t p_kernel_state_object;
 	void *p_kernel_state;
 
-	pvm_object_t (*blocking_syscall_worker)(pvm_object_t this,
+	pvm_object_t (*blocking_syscall_worker)(pvm_object_t o,
 											struct data_area_4_thread *tc,
 											int nmethod,
 											pvm_object_t arg);

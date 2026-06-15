@@ -42,8 +42,8 @@
 // TODO check against POSIX
 struct timespec
 {
-	long tv_sec;
-	long tv_nsec;
+	u_int64_t tv_sec;
+	u_int64_t tv_nsec;
 };
 
 // microseconds!
