@@ -45,6 +45,11 @@
 #define ev_assert(e) r_assert(e)
 #endif
 
+    /* INFO Grant access to file-system. */
+    static const char *allowed_dirs[] = { "/" };
+
+
+
 typedef struct data_area_4_wasm *pvm_wasm_da_t;
 
 static const u_int32_t stack_size = 1024 * 32, heap_size = 32768 * 32;
@@ -558,6 +563,13 @@ static void wasm_phantom_fs_unlink(wasm_exec_env_t exec_env, const char *path)
   ph_fs_unlink(path);
 }
 
+static u_int64_t wasm_phantom_gettime_us(wasm_exec_env_t exec_env) 
+{
+  (void) exec_env;
+
+  return hal_system_time();
+}
+
 
 static NativeSymbol phantom_native_symbols[] = {
 	{"phantom_create_string", wasm_phantom_create_string, "(*~)I"},
@@ -576,8 +588,8 @@ static NativeSymbol phantom_native_symbols[] = {
 	{"phantom_fread", wasm_phantom_fs_read, "($*~)i"},
 	{"phantom_file_size", wasm_phantom_fs_file_size, "($)i"},
 	{"phantom_rename", wasm_phantom_fs_rename, "($$)i"},
-    	{"phantom_unlink", wasm_phantom_fs_unlink, "($)"},
-  
+	{"phantom_unlink", wasm_phantom_fs_unlink, "($)"},
+	{"phantom_gettime_us", wasm_phantom_gettime_us, "()I"},
 };
 
 // ######################################################
@@ -972,8 +984,8 @@ static int si_wasi_invoke_start_wasm_10(pvm_object_t me,
 		}
 
 		wasm_runtime_set_wasi_args(wasm_da->module,
-								   NULL,
-								   0,  // dir_list, dir_count
+								   allowed_dirs,
+								   1,
 								   NULL,
 								   0,  // map_dir_list, map_dir_count
 								   (const char **)wasi_envs,
