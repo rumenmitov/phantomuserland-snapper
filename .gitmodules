@@ -1,3 +1,4 @@
 [submodule "src/phantom/vm/wasm-micro-runtime"]
 	path = src/phantom/vm/wasm-micro-runtime
-	url = https://github.com/Phantom-OS/phantom-wasm-micro-runtime
+	url = https://github.com/rumenmitov/phantom-wasm-micro-runtime.git
+	branch = dev

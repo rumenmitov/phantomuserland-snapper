@@ -114,6 +114,7 @@ DEF_I(ui_control)
 DEF_I(ui_font)
 
 DEF_I(wasm)
+DEF_I(fs)
 
 
 #undef DEF_I

@@ -1,7 +1,8 @@
 #!/bin/sh
 
+# NOTE If using gdb inside EMACS set the environment variable: EMACS=-i=mi.
 
-/usr/local/genode/tool/current/bin/genode-x86-gdb genode/build/x86_64/debug/ld.lib.so \
+/usr/local/genode/tool/current/bin/genode-x86-gdb $EMACS /phantomuserland/genode/build/x86_64/debug/ld-hw.lib.so \
                                                   -ex "set pagination off" \
                                                   -ex "set interactive-mode off" \
                                                   -ex "set non-stop on" \

@@ -9,6 +9,7 @@
  *
  **/
 
+#include <phantom_fs_internal.h>
 #include <ph_string.h>
 #include <phantom_libc.h>
 #include <vm/internal.h>
@@ -454,13 +455,21 @@ struct internal_class pvm_internal_classes[] = {
 		 PHANTOM_OBJECT_STORAGE_FLAG_IS_FINALIZER,
 	 0},
 
-
 	{".internal.wasm",
 	 PVM_ROOT_OBJECT_WASM_CLASS,
 	 IINIT(wasm),
 	 0,  // no finalizer
 	 pvm_restart_wasm,
 	 sizeof(struct data_area_4_wasm),
+	 PHANTOM_OBJECT_STORAGE_FLAG_IS_INTERNAL,
+	 0},
+  
+  	{".internal.fs",
+	 PVM_ROOT_OBJECT_FS_CLASS,
+	 IINIT(fs),
+	 0,  // no finalizer
+	 pvm_restart_fs,
+	 sizeof(struct data_area_4_fs),
 	 PHANTOM_OBJECT_STORAGE_FLAG_IS_INTERNAL,
 	 0},
 };

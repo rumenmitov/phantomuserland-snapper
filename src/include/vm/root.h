@@ -95,6 +95,7 @@ struct pvm_root_t
 	pvm_object_t ui_font_class;
 
 	pvm_object_t wasm_class;
+  pvm_object_t fs_class;					    // Manages open file-descriptors
 
 	pvm_object_t null_object;
 	pvm_object_t sys_interface_object;  // Each method is a consecutive syscall (sys 0
@@ -235,7 +236,9 @@ extern struct pvm_root_t pvm_root;
 
 #define PVM_ROOT_OBJECT_WASM_CLASS 41
 
-#define PVM_ROOT_LAST_CLASS_INDEX PVM_ROOT_OBJECT_WASM_CLASS
+#define PVM_ROOT_OBJECT_FS_CLASS 42
+
+#define PVM_ROOT_LAST_CLASS_INDEX PVM_ROOT_OBJECT_FS_CLASS
 
 
 // Runtime restoration facilities

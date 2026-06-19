@@ -33,8 +33,8 @@ catch { exec $dd if=/dev/zero of=bin/snapper_block.raw bs=1M count=256 }
 catch { exec $mke4fs -O^metadata_csum -F bin/snapper_block.raw }
 
 # Block storage for file-system that is accessible by userspace.
-catch { exec $dd if=/dev/zero of=bin/isomem_fs_block.raw bs=1M count=256 }
-catch { exec $mke2fs -F bin/isomem_fs_block.raw }
+# catch { exec $dd if=/dev/zero of=bin/isomem_fs_block.raw bs=1M count=256 }
+# catch { exec $mke2fs -F bin/isomem_fs_block.raw }
 
 
 set config {
@@ -93,7 +93,7 @@ if {[have_board pc]} {
     append qemu_args " -m 12000 "
     append qemu_args " -device virtio-vga -enable-kvm -cpu host "
     append qemu_args " -device ahci,id=ahci -boot d "
-    append qemu_args " -nographic "
+    append qemu_args " -display none "
     append qemu_args " -drive id=disk,file=bin/block0.raw,format=raw,if=none             -device ide-hd,drive=disk,bus=ahci.0 "
     append qemu_args " -drive id=snapper,file=bin/snapper_block.raw,format=raw,if=none   -device ide-hd,drive=snapper,bus=ahci.1 "
     append qemu_args " -drive id=isomemfs,file=bin/isomem_fs_block.raw,format=raw,if=none   -device ide-hd,drive=isomemfs,bus=ahci.2 "
